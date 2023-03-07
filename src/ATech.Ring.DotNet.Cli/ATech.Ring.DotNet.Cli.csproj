@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <PackAsTool>true</PackAsTool>
     <IsPackable>true</IsPackable>
@@ -14,10 +14,10 @@
     <PackageType>DotNetCliTool</PackageType>
     <PackageTags>dotnet, cli, dotnet-cli, global, tool, ring, nuget, package</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageReleaseNotes>https://github.com/AccountTechnologies/ring/blob/master/RELEASENOTES.md</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/queil/ring/blob/master/RELEASENOTES.md</PackageReleaseNotes>
     <PackageIcon>ring.128.png</PackageIcon>
     <PackageDescription>ring! service launcher and monitor</PackageDescription>
-    <RepositoryUrl>https://github.com/AccountTechnologies/ring</RepositoryUrl>
+    <RepositoryUrl>https://github.com/queil/ring</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
