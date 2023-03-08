@@ -27,7 +27,7 @@
     <PackageReference Include="FsHttp" Version="9.1.2" />
     <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
-    <PackageReference Update="FSharp.Core" Version="6.*" />
+    <PackageReference Update="FSharp.Core" Version="7.*" />
   </ItemGroup>
 
   <ItemGroup>
