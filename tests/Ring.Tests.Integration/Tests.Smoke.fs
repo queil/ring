@@ -23,10 +23,10 @@ let tests =
       let! actualPath = ring.ConfigPath("--default")
       let expectedPath =
         if Environment.isWindows
-        then $"""{env "USERPROFILE"}\.dotnet\tools\.store\atech.ring.dotnet.cli\{pkgVer}\atech.ring.dotnet.cli\{pkgVer}\tools\net6.0\any\app.windows.toml"""
+        then $"""{env "USERPROFILE"}\.dotnet\tools\.store\atech.ring.dotnet.cli\{pkgVer}\atech.ring.dotnet.cli\{pkgVer}\tools\net7.0\any\app.windows.toml"""
         else if Environment.isMacOS
-        then $"""{env "HOME"}/.dotnet/tools/.store/atech.ring.dotnet.cli/{pkgVer}/atech.ring.dotnet.cli/{pkgVer}/tools/net6.0/any/app.osx.toml"""
-        else $"""{env "HOME"}/.dotnet/tools/.store/atech.ring.dotnet.cli/{pkgVer}/atech.ring.dotnet.cli/{pkgVer}/tools/net6.0/any/app.linux.toml"""
+        then $"""{env "HOME"}/.dotnet/tools/.store/atech.ring.dotnet.cli/{pkgVer}/atech.ring.dotnet.cli/{pkgVer}/tools/net7.0/any/app.osx.toml"""
+        else $"""{env "HOME"}/.dotnet/tools/.store/atech.ring.dotnet.cli/{pkgVer}/atech.ring.dotnet.cli/{pkgVer}/tools/net7.0/any/app.linux.toml"""
       "Config path should be correct" |> Expect.equal actualPath expectedPath
     }
 
@@ -37,10 +37,10 @@ let tests =
       let! actualPath = ring.ConfigPath("--default")
       let expectedPath =
         if Environment.isWindows
-        then $"""{env "USERPROFILE"}\.nuget\packages\atech.ring.dotnet.cli\{pkgVer}\tools\net6.0\any\app.windows.toml"""
+        then $"""{env "USERPROFILE"}\.nuget\packages\atech.ring.dotnet.cli\{pkgVer}\tools\net7.0\any\app.windows.toml"""
         else if Environment.isMacOS
-        then $"""{env "HOME"}/.nuget/packages/atech.ring.dotnet.cli/{pkgVer}/tools/net6.0/any/app.osx.toml"""
-        else $"""{env "HOME"}/.nuget/packages/atech.ring.dotnet.cli/{pkgVer}/tools/net6.0/any/app.linux.toml"""
+        then $"""{env "HOME"}/.nuget/packages/atech.ring.dotnet.cli/{pkgVer}/tools/net7.0/any/app.osx.toml"""
+        else $"""{env "HOME"}/.nuget/packages/atech.ring.dotnet.cli/{pkgVer}/tools/net7.0/any/app.linux.toml"""
         
       "Config path should (default) be correct" |> Expect.equal actualPath expectedPath
       
