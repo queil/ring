@@ -36,7 +36,7 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
                 config.CsProj = Path.Combine(resolveFullClonePath(fromGit), config.CsProj);
             }
 
-            ctx.CsProjPath = config.CsProj;
+            ctx.CsProjPath = config.FullPath;
             (ctx.TargetFramework, ctx.TargetRuntime) = config.GetTargetFrameworkAndRuntime();
             ctx.WorkingDir = config.GetWorkingDir();
             var runtimePathSegment = ctx.TargetRuntime == null ? "" : $"{Path.DirectorySeparatorChar}{ctx.TargetRuntime}";
