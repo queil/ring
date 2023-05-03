@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,7 +40,8 @@ public abstract class DotnetRunnableBase<TContext, TConfig> : ProcessRunnable<TC
         if (File.Exists(ctx.EntryAssemblyPath)) return ctx;
 
         _logger.LogDebug("Building {Project}", ctx.CsProjPath);
-        var result = await Dotnet.BuildAsync(ctx.CsProjPath, token);
+        var result =
+            await Dotnet.TryAsync(3, TimeSpan.FromSeconds(10), f => f.BuildAsync(ctx.CsProjPath, token), token);
 
         if (!result.IsSuccess)
         {

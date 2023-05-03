@@ -38,8 +38,8 @@ public static class ToolExtensions
         return result;
     }
 
-    public static async Task<ExecutionInfo> TryAsync(this ITool t, int times, TimeSpan backOffInterval,
-        Func<ITool, Task<ExecutionInfo>> func, CancellationToken token)
+    public static async Task<ExecutionInfo> TryAsync<T>(this T t, int times, TimeSpan backOffInterval,
+        Func<T, Task<ExecutionInfo>> func, CancellationToken token) where T : ITool
         => await TryAsync(times, backOffInterval, () => func(t), r => r.IsSuccess, token);
 
     public static Task<ExecutionInfo> RunProcessWaitAsync(this ITool tool, CancellationToken token)
