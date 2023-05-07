@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ATech.Ring.DotNet.Cli.Abstractions.Tools;
+using ATech.Ring.DotNet.Cli.Logging;
 using ATech.Ring.DotNet.Cli.Tools.Windows;
 using Microsoft.Extensions.Logging;
 
@@ -15,8 +16,9 @@ namespace ATech.Ring.DotNet.Cli.Tools;
 
 public static class ToolExtensions
 {
-    public static async Task<T> TryAsync<T>(int times, TimeSpan backOffInterval, Func<Task<T>> func, Predicate<T> until, CancellationToken token)
-        where T: new()
+    public static async Task<T> TryAsync<T>(int times, TimeSpan backOffInterval, Func<Task<T>> func, Predicate<T> until,
+        CancellationToken token)
+        where T : new()
     {
         var result = new T();
         var triesLeft = times;
@@ -32,6 +34,7 @@ public static class ToolExtensions
             {
                 break;
             }
+
             triesLeft--;
         }
 
@@ -51,29 +54,60 @@ public static class ToolExtensions
     public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, object[] args, CancellationToken token)
         => tool.RunProcessCoreAsync(args, token: token);
 
-    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, string workingDirectory, IDictionary<string, string>? envVars, object[]? args, CancellationToken token)
-        => tool.RunProcessCoreAsync(args, envVars: envVars, workingDirectory: workingDirectory, token: token);
+    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, string workingDirectory,
+        IDictionary<string, string>? envVars, object[]? args, CancellationToken token)
+        => tool.RunProcessCoreAsync(args, envVars: envVars, workingDirectory: workingDirectory, captureStdOut: false,
+            token: token);
 
-    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, Action<string> onErrorData, IDictionary<string, string>? envVars, object[]? args, CancellationToken token)
+    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, Action<string> onErrorData,
+        IDictionary<string, string>? envVars, object[]? args, CancellationToken token)
         => tool.RunProcessCoreAsync(args: args, onErrorData: onErrorData, envVars: envVars, token: token);
+
+    //TODO: this should be configurable
+    private static readonly string[] FailureWords = { "err", "error", "fail" };
 
     private static async Task<ExecutionInfo> RunProcessCoreAsync(this ITool tool,
         IEnumerable<object>? args,
         bool wait = false,
         string? workingDirectory = null,
         IDictionary<string, string>? envVars = null,
-        Action<string>? onErrorData = null, CancellationToken token=default)
+        Action<string>? onErrorData = null,
+        bool captureStdOut = true,
+        CancellationToken token = default)
     {
         var procUid = Guid.NewGuid().ToString("n").Remove(10);
         try
         {
-            var allArgs = string.Join(" ", (tool.DefaultArgs ?? Array.Empty<object>()).Concat((args ?? Array.Empty<object>()).Select(x => x.ToString())));
+            var allArgs = string.Join(" ",
+                (tool.DefaultArgs ?? Array.Empty<object>()).Concat(
+                    (args ?? Array.Empty<object>()).Select(x => x.ToString())));
             var sb = new StringBuilder();
-            void OnData(object _, DataReceivedEventArgs x) => sb.AppendLine(x.Data);
+
+            void OnData(object _, DataReceivedEventArgs line)
+            {
+                if (line.Data == null) return;
+                if (captureStdOut) sb.AppendLine(line.Data);
+
+                if (FailureWords.Any(x => line.Data.Contains(x, StringComparison.OrdinalIgnoreCase)))
+                {
+                    using (tool.Logger.WithLogErrorScope())
+                    {
+                        tool.Logger.LogWarning($"{ScopeLoggingExtensions.Red}{line.Data}");
+                    }
+                }
+                else
+                {
+                    using (tool.Logger.WithLogInfoScope())
+                    {
+                        tool.Logger.LogInformation($"{ScopeLoggingExtensions.Gray}{line.Data}");
+                    }
+                }
+            }
+
             void OnError(object _, DataReceivedEventArgs x)
             {
                 if (string.IsNullOrWhiteSpace(x.Data)) return;
-                tool.Logger.LogInformation(x.Data);
+                tool.Logger.LogInformation("ERROR: {Data}", x.Data);
                 onErrorData?.Invoke(x.Data);
             }
 
@@ -85,7 +119,7 @@ public static class ToolExtensions
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                RedirectStandardInput = true,
+                RedirectStandardInput = false,
             };
             if (envVars != null)
             {
@@ -99,16 +133,18 @@ public static class ToolExtensions
             if (workingDirectory != null) s.WorkingDirectory = workingDirectory;
             var ringWorkingDir = Directory.GetCurrentDirectory();
 
-            tool.Logger.LogDebug("{procUid} - Starting process: {Tool} {Args} ({ProcessWorkingDir})", procUid, tool.Command, allArgs, workingDirectory ?? ringWorkingDir);
+            tool.Logger.LogDebug("{procUid} - Starting process: {Tool} {Args} ({ProcessWorkingDir})", procUid,
+                tool.Command, allArgs, workingDirectory ?? ringWorkingDir);
 
             var p = Process.Start(s);
 
             if (p == null)
             {
-                tool.Logger.LogError("{procUid} - Process failed: {Tool} {Args} ({ProcessWorkingDir})", procUid, tool.Command, allArgs, workingDirectory ?? ringWorkingDir);
+                tool.Logger.LogError("{procUid} - Process failed: {Tool} {Args} ({ProcessWorkingDir})", procUid,
+                    tool.Command, allArgs, workingDirectory ?? ringWorkingDir);
                 return new ExecutionInfo();
             }
-               
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 p.TrackAsChild();
@@ -117,13 +153,14 @@ public static class ToolExtensions
             {
                 // not sure yet what can be done for Linux/Darwin to support it
             }
-               
+
             p.EnableRaisingEvents = true;
             p.OutputDataReceived += OnData;
             p.ErrorDataReceived += OnError;
 
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
+
 
             tool.Logger.LogDebug("{procUid} - Process started: {Pid}", procUid, p.Id);
 
