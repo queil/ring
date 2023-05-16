@@ -1,4 +1,4 @@
-# Ring [![Build Status](https://dev.azure.com/AccountTechnologies/Ring/_apis/build/status/AccountTechnologies.ring?branchName=master)](https://dev.azure.com/AccountTechnologies/Ring/_build/latest?definitionId=2&branchName=master) [![NuGet Badge](https://buildstats.info/nuget/ATech.Ring.Dotnet.Cli?includePreReleases=true)](https://www.nuget.org/packages/ATech.Ring.Dotnet.Cli)
+# Ring [![Build Status](https://dev.azure.com/queil/Ring/_apis/build/status/queil.ring?branchName=main)](https://dev.azure.com/Queil/Ring/_build/latest?definitionId=2&branchName=main) [![NuGet Badge](https://buildstats.info/nuget/ATech.Ring.Dotnet.Cli?includePreReleases=true)](https://www.nuget.org/packages/ATech.Ring.Dotnet.Cli)
 
 ## Meta-orchestrator for developers (cross-platform)
 
@@ -10,7 +10,7 @@ Ring consists of the following parts:
 
 * the meta-orchestrator (a dotnet CLI tool)
 * [Visual Studio Extension](https://marketplace.visualstudio.com/items?itemName=account-technologies.ring-vsix) (2022, also versions pre 4.0 support 2017, and 2019)
-* [Visual Studio Code Extension](https://marketplace.visualstudio.com/items?itemName=account-technologies.ring-vscode) (WIP)
+* [Visual Studio Code Extension](https://marketplace.visualstudio.com/items?itemName=queil.ring-vsce) (WIP)
 
 # How it works
 
@@ -30,15 +30,15 @@ turning services off/on for build/debugging if they're a part of the currently l
 
 # Supported runnables
 
-* [kustomize](docs/runnables/kustomize.md) - Kubernetes apps managed by [Kustomize](https://kustomize.io/)
+* [kustomize](https://queil.github.io/ring/runnables/kustomize/) - Kubernetes apps managed by [Kustomize](https://kustomize.io/)
 * `dockercompose` - docker-compose files
-* [aspnetcore](docs/runnables/aspnetcore.md) - .NET Core apps running in console (like ASP.NET Core in Kestrel)
+* [aspnetcore](https://queil.github.io/ring/runnables/aspnetcore/) - .NET Core apps running in console (like ASP.NET Core in Kestrel)
 * `proc` - arbitrary native processes
 
 Windows-only:
 
 * `iisxcore` - ASP.NET Core apps in IIS Express
-* [iisexpress](docs/runnables/iisexpress.md) - WCF and other .NET Framework services hosted in IIS Express
+* [iisexpress](https://queil.github.io/ring/runnables/iisexpress/) - WCF and other .NET Framework services hosted in IIS Express
 * `netexe` - full .NET Framework console apps (like TopShelf)
 
 # Installation 
@@ -56,7 +56,7 @@ Download here [ring! for Visual Studio](https://marketplace.visualstudio.com/ite
 
 ## Visual Studio Code Extension
 
-Download an [early preview](https://marketplace.visualstudio.com/items?itemName=account-technologies.ring-vscode)
+Download an [early preview](https://marketplace.visualstudio.com/items?itemName=queil.ring-vsce)
 
 ## Troubleshooting 
 
@@ -71,7 +71,7 @@ ring run -w .\path\to\your\workspace.toml -d
 * `run` - runs a specified workspace in a stand-alone mode.
 * `headless` - starts and awaits clients (VS Code / VS extension) connections. Once connected a client can load a workspace and interact with it.
 * `clone` - loads a workspace and clones configured repos for each runnable. The runnables must have the `sshRepoUrl` parameter configured otherwise they'll be skipped.
-* `config-*` commands - more info here - [configuration files](./docs/configuration.md).
+* `config-*` commands - more info here - [configuration files](https://queil.github.io/ring/configuration/).
 
 # Vocabulary
 
@@ -96,7 +96,7 @@ path = "relative/path/to/your/workspace.toml"
 
 ## Authoring workspaces
 
-[Authoring workspaces docs](docs/authoring-workspaces.md)
+[Authoring workspaces docs](https://queil.github.io/ring/authoring-workspaces/)
 
 # Release notes
 
