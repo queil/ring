@@ -52,6 +52,19 @@ args = ["30"]
     MY_TEST_ENV_VAR = "NONSENSE"
     YET_ANOTHER = "QUIT"
 ```
+#### Example
+
+Running a service via dotnet watch
+
+```toml
+[[proc]]
+id = "my.project"
+command = "dotnet"
+args = ["watch", "--project", "path/to/proj"]
+
+[proc.vars]
+  URLS = "https://localhost:8080"
+```
 
 ### Legacy formats
 
