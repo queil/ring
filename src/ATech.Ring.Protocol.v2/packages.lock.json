@@ -11,8 +11,8 @@
       "System.Text.Json": {
         "type": "Direct",
         "requested": "[6.*, )",
-        "resolved": "6.0.5",
-        "contentHash": "SSH+YYrMpvLcy7Orzb5K1tSyffnFacWahyxCCjYH1PbSHdAF4dekmIetBurFKgtTHDmwEe/J2Csi/7niRH6d/g==",
+        "resolved": "6.0.8",
+        "contentHash": "WhW6zPEgRZoo+c1NEvSSmrME4+LqXmW6tcsRFsEiSMeco+qZ9rpLs7tT53EIkE/s9GNTYS4/STQoaGiKDSWifQ==",
         "dependencies": {
           "System.Runtime.CompilerServices.Unsafe": "6.0.0",
           "System.Text.Encodings.Web": "6.0.0"
