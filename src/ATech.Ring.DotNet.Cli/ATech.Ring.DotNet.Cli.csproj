@@ -15,6 +15,7 @@
     <PackageTags>dotnet, cli, dotnet-cli, global, tool, ring, nuget, package</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReleaseNotes>https://github.com/AccountTechnologies/ring/blob/master/RELEASENOTES.md</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>ring.128.png</PackageIcon>
     <PackageDescription>ring! service launcher and monitor</PackageDescription>
     <RepositoryUrl>https://github.com/AccountTechnologies/ring</RepositoryUrl>
