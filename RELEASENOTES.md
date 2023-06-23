@@ -7,6 +7,8 @@
 * feat: process runnble - ability to run arbitrary processes
 * feat: [workspace flavours](docs/authoring-workspaces.md#workspace-flavours)
 * feat: allow overriding runnable `id` so it's now possible to run many instances of the same runnable
+* feat: log streaming
+* fix: make behaviour of `workingDir` runnable configuration more intuitive
 
 ## 3.2.0
 
