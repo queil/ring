@@ -16,10 +16,9 @@ public abstract class RunnableConfigBase : IRunnableConfig
 
     public List<string> Tags { get; set; } = new();
 
-    public static string GetFullPath(string workDir, string path)
+    public static string GetFullPath(string? workDir, string path)
     {
-
         path = path.Replace("file://", "");
-        return Path.IsPathRooted(path) ? path : Path.GetFullPath(Path.Combine(workDir, path));
+        return Path.IsPathRooted(path) ? path : Path.GetFullPath(Path.Combine(workDir ?? string.Empty, path));
     }
 }

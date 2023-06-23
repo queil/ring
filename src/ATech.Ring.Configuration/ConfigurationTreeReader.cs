@@ -34,10 +34,19 @@ public class ConfigurationTreeReader : IConfigurationTreeReader
 
             foreach (var r in c.Elements<IRunnableConfig>())
             {
-                if (r is IUseWorkingDir wd) wd.WorkingDir = new FileInfo(c.path).DirectoryName;
+                if (r is IUseWorkingDir wd)
+                {
+                    var defaultWd = new FileInfo(c.path).DirectoryName ?? string.Empty;
+                    var newWorkingDir = wd.WorkingDir switch
+                    {
+                        null => defaultWd,
+                        var dir when Path.IsPathRooted(dir) => dir,
+                        var dir => Path.Combine(defaultWd, dir)
+                    };
+                    wd.WorkingDir = Path.GetFullPath(newWorkingDir);
+                }
                 r.DeclaredPaths.Add(fullPath);
             }
-            if (c.import == null) return c;
             for (var i = 0; i < c.import.Count; i++)
             {
                 c.import[i] = Populate(c.import[i].path, c, new FileInfo(fullPath).DirectoryName);

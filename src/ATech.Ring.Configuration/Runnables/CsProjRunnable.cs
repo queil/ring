@@ -5,7 +5,7 @@ namespace ATech.Ring.Configuration.Runnables;
 
 public abstract class CsProjRunnable : RunnableConfigBase, IUseCsProjFile, IFromGit
 {
-    public string WorkingDir { get; set; }
+    public string? WorkingDir { get; set; }
     public string CsProj { get; set; }
     public string SshRepoUrl { get; set; }
     public string FullPath => GetFullPath(WorkingDir, CsProj);
