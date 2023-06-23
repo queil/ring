@@ -2,5 +2,5 @@
 
 public interface IUseWorkingDir
 {
-    string WorkingDir { get; set; }
+    string? WorkingDir { get; set; }
 }

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ATech.Ring.Configuration.Interfaces;
 
 namespace ATech.Ring.Configuration.Runnables;
 
-public class Proc : RunnableConfigBase
+public class Proc : RunnableConfigBase, IUseWorkingDir
 {
     public string Command { get; set; }
     public string WorkingDir { get; set; }
