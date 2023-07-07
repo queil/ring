@@ -8,17 +8,16 @@
     <ToolCommandName>ring</ToolCommandName>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
-    <Company>Account Technologies</Company>
     <Authors>Krzysztof Kraszewski</Authors>
     <Configurations>Debug;Release;ReleaseVsix</Configurations>
     <PackageType>DotNetCliTool</PackageType>
     <PackageTags>dotnet, cli, dotnet-cli, global, tool, ring, nuget, package</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageReleaseNotes>https://github.com/AccountTechnologies/ring/blob/master/RELEASENOTES.md</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/queil/ring/blob/master/RELEASENOTES.md</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>ring.128.png</PackageIcon>
     <PackageDescription>ring! service launcher and monitor</PackageDescription>
-    <RepositoryUrl>https://github.com/AccountTechnologies/ring</RepositoryUrl>
+    <RepositoryUrl>https://github.com/queil/ring</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
