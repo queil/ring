@@ -11,7 +11,7 @@ variables:
     PKGVER: ${{ variables['Build.SourceBranchName'] }}
   ${{ if not(startsWith(variables['Build.SourceBranch'], 'refs/tags/')) }}:
     PKGVER: '0.0.0-dev'
-  SRC_PATH: 'src/ATech.Ring.DotNet.Cli'
+  SRC_PATH: 'src/*'
   BuildConfiguration: Release
 
 strategy:
@@ -38,7 +38,7 @@ steps:
   displayName: 'Pack'
   inputs:
     command: 'pack'
-    packagesToPack: '$(SRC_PATH)/*.csproj'
+    packagesToPack: '$(SRC_PATH)/*.*sproj'
     versioningScheme: 'byEnvVar'
     versionEnvVar: PKGVER
     verbosityPack: 'Normal'
