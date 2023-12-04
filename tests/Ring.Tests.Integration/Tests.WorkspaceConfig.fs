@@ -7,7 +7,7 @@ open Ring.Tests.Integration.Async
 open Ring.Tests.Integration.RingControl
 open Ring.Tests.Integration.TestContext
 open Ring.Tests.Integration.Shared
-open ATech.Ring.Protocol.v2.Events
+open ATech.Ring.Protocol.Events
 
 [<Tests>]
 let tests =

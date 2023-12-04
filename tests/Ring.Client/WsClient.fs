@@ -4,12 +4,13 @@ open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
 open System.Threading.Channels
-open ATech.Ring.Protocol.v2
+open ATech.Ring.Protocol
+open ATech.Ring.Protocol.Events
 open System
 open System.Net.WebSockets
 open System.Threading
 open System.Threading.Tasks
-open ATech.Ring.Protocol.v2.Events
+
 open FSharp.Control
 
 type ClientOptions =

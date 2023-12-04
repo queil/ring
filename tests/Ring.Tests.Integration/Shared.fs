@@ -1,7 +1,7 @@
 module Ring.Tests.Integration.Shared
 
 open System.IO
-open ATech.Ring.Protocol.v2
+open ATech.Ring.Protocol
 open Expecto
 open Fake.Core
 open Ring.Client
