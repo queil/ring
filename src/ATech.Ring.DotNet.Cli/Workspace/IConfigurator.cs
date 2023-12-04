@@ -2,8 +2,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration;
-using ATech.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration;
+using Queil.Ring.Configuration.Interfaces;
 
 namespace ATech.Ring.DotNet.Cli.Workspace;
 

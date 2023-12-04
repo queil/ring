@@ -1,8 +1,8 @@
-using ATech.Ring.Configuration.Interfaces;
 using System.Collections.Generic;
 using System.IO;
+using Queil.Ring.Configuration.Interfaces;
 
-namespace ATech.Ring.Configuration.Runnables;
+namespace Queil.Ring.Configuration.Runnables;
 
 public abstract class RunnableConfigBase : IRunnableConfig
 {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using ATech.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration.Interfaces;
 
-namespace ATech.Ring.Configuration.Runnables;
+namespace Queil.Ring.Configuration.Runnables;
 
 public class Proc : RunnableConfigBase, IUseWorkingDir
 {

@@ -5,7 +5,7 @@ using ATech.Ring.DotNet.Cli.Dtos;
 using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Tools;
 using Microsoft.Extensions.Logging;
-using DockerComposeConfig = ATech.Ring.Configuration.Runnables.DockerCompose;
+using DockerComposeConfig = Queil.Ring.Configuration.Runnables.DockerCompose;
 
 namespace ATech.Ring.DotNet.Cli.Runnables.DockerCompose;
 

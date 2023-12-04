@@ -3,7 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Configuration.Interfaces;
+using Queil.Ring.Configuration.Interfaces;
 using Abstractions;
 
 internal sealed class RunnableContainer : IDisposable

@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration.Runnables;
+using Queil.Ring.Configuration.Runnables;
 using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Tools;
 using Microsoft.Extensions.Logging;

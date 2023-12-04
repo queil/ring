@@ -805,13 +805,13 @@
         "resolved": "12.0.0",
         "contentHash": "sMp20zI63j7xVoor98vGeDxteLeyuAlM330L7XbXxMMPjLdP1mwoK/5Nn/8Vldc9hUMN5otkg88bVLEtQnPdaw=="
       },
-      "atech.ring.configuration": {
+      "queil.ring.configuration": {
         "type": "Project",
         "dependencies": {
           "Nett": "[0.13.0, )"
         }
       },
-      "atech.ring.protocol": {
+      "queil.ring.protocol": {
         "type": "Project",
         "dependencies": {
           "System.Text.Json": "[6.*, )",

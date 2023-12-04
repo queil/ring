@@ -12,7 +12,7 @@ using ATech.Ring.DotNet.Cli.Dtos;
 using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Tools.Windows;
 using Microsoft.Extensions.Logging;
-using IISExpressConfig = ATech.Ring.Configuration.Runnables.IISExpress;
+using IISExpressConfig = Queil.Ring.Configuration.Runnables.IISExpress;
 
 namespace ATech.Ring.DotNet.Cli.Runnables.Windows.IISExpress;
 

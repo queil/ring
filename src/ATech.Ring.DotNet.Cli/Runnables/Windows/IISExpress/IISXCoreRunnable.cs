@@ -6,7 +6,7 @@ using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Tools;
 using ATech.Ring.DotNet.Cli.Tools.Windows;
 using Microsoft.Extensions.Logging;
-using IISXCoreConfig = ATech.Ring.Configuration.Runnables.IISXCore;
+using IISXCoreConfig = Queil.Ring.Configuration.Runnables.IISXCore;
 
 namespace ATech.Ring.DotNet.Cli.Runnables.Windows.IISExpress;
 

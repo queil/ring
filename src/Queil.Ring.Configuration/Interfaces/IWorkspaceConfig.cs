@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ATech.Ring.Configuration.Interfaces;
+namespace Queil.Ring.Configuration.Interfaces;
 
 public interface IWorkspaceConfig
 {

@@ -31,8 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ATech.Ring.Configuration\ATech.Ring.Configuration.csproj" />
-    <ProjectReference Include="..\..\src\Ring.Client.FSharp\Ring.Client.FSharp.fsproj" />
+    <ProjectReference Include="..\..\src\Queil.Ring.Configuration\Queil.Ring.Configuration.csproj" />
+    <ProjectReference Include="..\..\src\Queil.Ring.Client.FSharp\Queil.Ring.Client.FSharp.fsproj" />
   </ItemGroup>
 
   <!-- Hack for https://github.com/dotnet/sdk/issues/11484 (Windows) -->

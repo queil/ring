@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Configuration.Interfaces;
+using Queil.Ring.Configuration.Interfaces;
 using Context;
 using Dtos;
 using Infrastructure;

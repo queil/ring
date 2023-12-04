@@ -1,4 +1,4 @@
-﻿namespace ATech.Ring.Configuration.Runnables;
+﻿namespace Queil.Ring.Configuration.Runnables;
 
 public class IISXCore : CsProjRunnable
 {
