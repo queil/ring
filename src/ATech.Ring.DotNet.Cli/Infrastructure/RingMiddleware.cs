@@ -3,7 +3,7 @@
 using System;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
-using ATech.Ring.DotNet.Cli.Logging;
+using Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

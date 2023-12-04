@@ -1,4 +1,4 @@
-﻿namespace ATech.Ring.Protocol.v2;
+﻿namespace ATech.Ring.Protocol;
 
 public static class Constants
 {

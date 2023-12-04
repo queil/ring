@@ -4,22 +4,27 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ATech.Ring.Protocol.v2;
+namespace ATech.Ring.Protocol;
+
 public static class WebSocketExtensions
 {
     public static async Task SendAckAsync(this WebSocket s, Ack status, CancellationToken token = default)
     {
         if (s.State != WebSocketState.Open) return;
-        await s.SendAsync(new ArraySegment<byte>(new Message(M.ACK, (byte)status).Bytes.ToArray()), WebSocketMessageType.Binary, true, token).ConfigureAwait(false);
+        await s.SendAsync(new ArraySegment<byte>(new Message(M.ACK, (byte)status).Bytes.ToArray()),
+            WebSocketMessageType.Binary, true, token).ConfigureAwait(false);
     }
 
     public static Task SendMessageAsync(this WebSocket s, Message m, CancellationToken token = default)
     {
-        if (s.State != WebSocketState.Open) return Task.CompletedTask;
-        return s.SendAsync(new ArraySegment<byte>(m.Bytes.SliceUntilNull().ToArray()), WebSocketMessageType.Binary, true, token);
+        return s.State != WebSocketState.Open
+            ? Task.CompletedTask
+            : s.SendAsync(new ArraySegment<byte>(m.Bytes.SliceUntilNull().ToArray()), WebSocketMessageType.Binary, true,
+                token);
     }
 
-    public static async Task ListenAsync(this WebSocket webSocket, HandleMessage onReceived, CancellationToken token=default)
+    public static async Task ListenAsync(this WebSocket webSocket, HandleMessage onReceived,
+        CancellationToken token = default)
     {
         WebSocketReceiveResult? result;
         do
@@ -34,6 +39,7 @@ public static class WebSocketExtensions
                 {
                     return;
                 }
+
                 if (!result.EndOfMessage) await webSocket.SendAckAsync(Ack.ExpectedEndOfMessage, token);
 
                 static Task? OnReceived(ReadOnlySpan<byte> buffer, HandleMessage onReceived, CancellationToken token)
@@ -52,7 +58,6 @@ public static class WebSocketExtensions
             {
                 ArrayPool<byte>.Shared.Return(buffer, true);
             }
-
         } while (!result.CloseStatus.HasValue && !token.IsCancellationRequested);
     }
 

@@ -4,8 +4,8 @@ using Microsoft.Extensions.Configuration;
 namespace ATech.Ring.DotNet.Cli.Infrastructure;
 
 using System.Threading.Tasks;
-using ATech.Ring.DotNet.Cli.Infrastructure.Cli;
-using ATech.Ring.DotNet.Cli.Workspace;
+using Cli;
+using Workspace;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 

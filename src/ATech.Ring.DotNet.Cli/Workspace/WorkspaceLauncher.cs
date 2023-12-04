@@ -1,22 +1,22 @@
-﻿using System;
+﻿namespace ATech.Ring.DotNet.Cli.Workspace;
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration;
-using ATech.Ring.Configuration.Interfaces;
-using ATech.Ring.DotNet.Cli.Abstractions;
-using ATech.Ring.DotNet.Cli.Dtos;
-using ATech.Ring.DotNet.Cli.Infrastructure;
-using ATech.Ring.DotNet.Cli.Logging;
-using ATech.Ring.Protocol.v2;
-using ATech.Ring.Protocol.v2.Events;
+using Configuration;
+using Configuration.Interfaces;
+using Abstractions;
+using Dtos;
+using Infrastructure;
+using Logging;
+using Protocol;
+using Protocol.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
-namespace ATech.Ring.DotNet.Cli.Workspace;
 
 public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 {
@@ -37,7 +37,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     private int _initCounter;
     private readonly Random _rnd = new();
 
-    public event EventHandler OnInitiated;
+    public event EventHandler? OnInitiated;
     public async Task<ApplyFlavourResult> ApplyFlavourAsync(string flavour, CancellationToken token)
     {
         if (CurrentFlavour == flavour) return ApplyFlavourResult.Ok;

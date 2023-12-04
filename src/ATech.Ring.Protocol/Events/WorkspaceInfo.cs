@@ -1,11 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace ATech.Ring.Protocol.v2.Events;
-
-using System;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
+namespace ATech.Ring.Protocol.Events;
 
 public class WorkspaceInfo : IEquatable<WorkspaceInfo>
 {

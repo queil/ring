@@ -1,17 +1,17 @@
-﻿using System;
+﻿namespace ATech.Ring.DotNet.Cli.Workspace;
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration.Interfaces;
-using ATech.Ring.DotNet.Cli.Abstractions;
-
-namespace ATech.Ring.DotNet.Cli.Workspace;
+using Configuration.Interfaces;
+using Abstractions;
 
 internal sealed class RunnableContainer : IDisposable
 {
     private readonly CancellationTokenSource _aggregateCts;
     private readonly CancellationTokenSource _cts = new();
-    public IRunnable Runnable { get; private set; }
-    public Task? Task { get; private set; }
+    public IRunnable Runnable { get; }
+    private Task? Task { get; set; }
 
     private RunnableContainer(IRunnable runnable, CancellationToken token) 
     {
@@ -37,12 +37,12 @@ internal sealed class RunnableContainer : IDisposable
     {
         _cts.Cancel();
         if (Task is { } t) await t;
-        if (Runnable is { } r) await r.TerminateAsync();
+        await Runnable.TerminateAsync();
     }
 
     public void Dispose()
     {
-        _aggregateCts?.Dispose();
-        _cts?.Dispose();
+        _aggregateCts.Dispose();
+        _cts.Dispose();
     }
 }

@@ -4,8 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using ATech.Ring.Configuration.Interfaces;
 using ATech.Ring.DotNet.Cli.CsProj;
+using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Tools;
-using ATech.Ring.Protocol.v2;
 using Microsoft.Extensions.Logging;
 
 namespace ATech.Ring.DotNet.Cli.Runnables.Dotnet;

@@ -1,8 +1,9 @@
-﻿namespace ATech.Ring.Protocol.v2;
+﻿namespace ATech.Ring.Protocol;
 
-using Events;
 using System;
 using System.Text;
+using Events;
+
 // ReSharper disable InconsistentNaming
 public enum M : byte
 {
@@ -38,12 +39,6 @@ public enum M : byte
     SERVER_LOADED = 23,
     SERVER_RUNNING = 24,
     SERVER_SHUTDOWN = 25
-}
-
-public interface IAsMessage
-{
-    Message AsMessage();
-    M Type { get; }
 }
 
 public static class ReadOnlySpanExtensions
@@ -83,7 +78,7 @@ public readonly ref struct Message
         Bytes = new ReadOnlySpan<byte>(newBytes).SliceUntilNull();
     }
 
-    public Message(M type) => Bytes = new byte[] { (byte)type };
+    public Message(M type) => Bytes = new[] { (byte)type };
 
     public void Deconstruct(out M type, out ReadOnlySpan<byte> payload)
     {

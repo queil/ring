@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using ATech.Ring.Configuration.Interfaces;
 using ATech.Ring.DotNet.Cli.Abstractions.Context;
 using ATech.Ring.DotNet.Cli.CsProj;
-using ATech.Ring.Protocol.v2;
+using ATech.Ring.DotNet.Cli.Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace ATech.Ring.DotNet.Cli.Runnables;

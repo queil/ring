@@ -16,7 +16,7 @@ public class WorkspaceInitHook : IWorkspaceInitHook
     {
         _logger = logger;
         _runner = runner;
-        var config = opts?.Value?.Hooks?.Init;
+        var config = opts.Value?.Hooks?.Init;
         if (config is not { Command: { } c, Args: { } args }) return;
         _configured = true;
         _runner.Command = c;

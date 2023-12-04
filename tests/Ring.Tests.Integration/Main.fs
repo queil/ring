@@ -1,4 +1,5 @@
 ﻿module Ring.Tests.Integration.Main
+
 open Expecto
 
 [<EntryPoint>]

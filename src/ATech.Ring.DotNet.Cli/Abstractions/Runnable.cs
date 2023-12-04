@@ -1,17 +1,18 @@
+namespace ATech.Ring.DotNet.Cli.Abstractions;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration.Interfaces;
-using ATech.Ring.DotNet.Cli.Abstractions.Context;
-using ATech.Ring.DotNet.Cli.Dtos;
-using ATech.Ring.DotNet.Cli.Logging;
-using ATech.Ring.Protocol.v2;
+using Configuration.Interfaces;
+using Context;
+using Dtos;
+using Infrastructure;
+using Logging;
+using Protocol;
 using Microsoft.Extensions.Logging;
-
-namespace ATech.Ring.DotNet.Cli.Abstractions;
 
 [DebuggerDisplay("{UniqueId}")]
 public abstract class Runnable<TContext, TConfig> : IRunnable

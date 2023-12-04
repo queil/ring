@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,11 +12,10 @@
 
   <ItemGroup>
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ATech.Ring.Protocol.v2\ATech.Ring.Protocol.v2.csproj" />
+    <ProjectReference Include="..\ATech.Ring.Protocol\ATech.Ring.Protocol.csproj" />
   </ItemGroup>
 
 </Project>

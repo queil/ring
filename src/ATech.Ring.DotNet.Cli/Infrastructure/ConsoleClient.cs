@@ -1,13 +1,12 @@
-﻿using ATech.Ring.DotNet.Cli.Logging;
+﻿namespace ATech.Ring.DotNet.Cli.Infrastructure;
 
-namespace ATech.Ring.DotNet.Cli.Infrastructure;
-
+using Logging;
+using Protocol;
 using System;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.DotNet.Cli.Infrastructure.Cli;
-using ATech.Ring.Protocol.v2;
+using Cli;
 using Microsoft.Extensions.Logging;
 
 public class ConsoleClient
@@ -17,6 +16,7 @@ public class ConsoleClient
     private Task _clientTask = Task.CompletedTask;
     private ClientWebSocket? _clientSocket;
     private static readonly Guid ClientId = Guid.Parse("842fcc9e-c1bb-420d-b1e7-b3465aafa4e2");
+
     public ConsoleClient(ILogger<ConsoleClient> logger, ServeOptions options)
     {
         _logger = logger;
@@ -42,16 +42,15 @@ public class ConsoleClient
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(consoleOpts.StartupDelaySeconds), token);
-                await _clientSocket.ConnectAsync(new Uri($"ws://localhost:{_options.Port}/ws?clientId={ClientId}"), token);
+                await _clientSocket.ConnectAsync(new Uri($"ws://localhost:{_options.Port}/ws?clientId={ClientId}"),
+                    token);
                 await _clientSocket.SendMessageAsync(new Message(M.LOAD, consoleOpts.WorkspacePath), token);
                 await _clientSocket.SendMessageAsync(M.START, token);
-
             }
             catch (Exception ex)
             {
                 _logger.LogError("Exception: {exception}", ex);
             }
-
         }, token);
         return Task.CompletedTask;
     }
@@ -62,7 +61,8 @@ public class ConsoleClient
         {
             if (_options is not ConsoleOptions) return;
             await _clientTask;
-            if (_clientSocket is { } s) await s.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "terminating", token);
+            if (_clientSocket is { } s)
+                await s.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "terminating", token);
         }
         catch (OperationCanceledException)
         {
