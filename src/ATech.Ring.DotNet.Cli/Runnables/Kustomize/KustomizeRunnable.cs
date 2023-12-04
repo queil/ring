@@ -11,7 +11,7 @@ using ATech.Ring.DotNet.Cli.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static ATech.Ring.DotNet.Cli.Tools.ToolExtensions;
-using KustomizeConfig = ATech.Ring.Configuration.Runnables.Kustomize;
+using KustomizeConfig = Queil.Ring.Configuration.Runnables.Kustomize;
 
 namespace ATech.Ring.DotNet.Cli.Runnables.Kustomize;
 

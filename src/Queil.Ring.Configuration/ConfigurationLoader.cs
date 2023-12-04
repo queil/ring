@@ -1,7 +1,7 @@
-﻿using ATech.Ring.Configuration.Interfaces;
-using Nett;
+﻿using Nett;
+using Queil.Ring.Configuration.Interfaces;
 
-namespace ATech.Ring.Configuration;
+namespace Queil.Ring.Configuration;
 
 public class ConfigurationLoader : IConfigurationLoader
 {

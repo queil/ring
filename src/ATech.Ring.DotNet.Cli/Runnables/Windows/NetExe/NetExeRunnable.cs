@@ -5,7 +5,7 @@ using ATech.Ring.DotNet.Cli.Dtos;
 using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Tools;
 using Microsoft.Extensions.Logging;
-using NetExeConfig = ATech.Ring.Configuration.Runnables.NetExe;
+using NetExeConfig = Queil.Ring.Configuration.Runnables.NetExe;
 
 namespace ATech.Ring.DotNet.Cli.Runnables.Windows.NetExe;
 

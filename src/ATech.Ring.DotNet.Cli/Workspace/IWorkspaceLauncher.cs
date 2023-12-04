@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration;
+using Queil.Ring.Configuration;
 using ATech.Ring.DotNet.Cli.Dtos;
 using ATech.Ring.Protocol.Events;
 

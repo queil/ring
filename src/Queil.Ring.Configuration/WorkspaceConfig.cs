@@ -1,10 +1,10 @@
-﻿using ATech.Ring.Configuration.Interfaces;
-using ATech.Ring.Configuration.Runnables;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Queil.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration.Runnables;
 
-namespace ATech.Ring.Configuration;
+namespace Queil.Ring.Configuration;
 
 public class WorkspaceConfig : IWorkspaceConfig
 {

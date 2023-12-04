@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.XPath;
-using ATech.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration.Interfaces;
 using ATech.Ring.DotNet.Cli.CsProj.LaunchSettings;
 
 namespace ATech.Ring.DotNet.Cli.CsProj;

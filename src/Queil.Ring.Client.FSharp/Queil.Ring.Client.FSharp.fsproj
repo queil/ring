@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ATech.Ring.Protocol\ATech.Ring.Protocol.csproj" />
+    <ProjectReference Include="..\Queil.Ring.Protocol\Queil.Ring.Protocol.csproj" />
   </ItemGroup>
 
 </Project>

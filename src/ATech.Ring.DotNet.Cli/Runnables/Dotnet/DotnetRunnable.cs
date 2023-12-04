@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration.Interfaces;
 using ATech.Ring.DotNet.Cli.CsProj;
 using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Tools;

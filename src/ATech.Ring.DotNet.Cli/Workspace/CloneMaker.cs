@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration;
-using ATech.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration;
+using Queil.Ring.Configuration.Interfaces;
 using ATech.Ring.DotNet.Cli.Logging;
 using ATech.Ring.DotNet.Cli.Tools;
 using Microsoft.Extensions.Logging;

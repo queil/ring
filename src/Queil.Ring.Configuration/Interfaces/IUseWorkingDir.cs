@@ -1,4 +1,4 @@
-﻿namespace ATech.Ring.Configuration.Interfaces;
+﻿namespace Queil.Ring.Configuration.Interfaces;
 
 public interface IUseWorkingDir
 {

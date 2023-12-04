@@ -1,7 +1,7 @@
 ﻿namespace ATech.Ring.DotNet.Cli.Workspace;
 
 using System.Collections.Generic;
-using Configuration.Interfaces;
+using Queil.Ring.Configuration.Interfaces;
 
 public class ConfigurationChangedArgs
 {

@@ -1,6 +1,6 @@
-﻿using ATech.Ring.Configuration.Interfaces;
+﻿using Queil.Ring.Configuration.Interfaces;
 
-namespace ATech.Ring.Configuration.Runnables;
+namespace Queil.Ring.Configuration.Runnables;
 
 public class DockerCompose : RunnableConfigBase, IUseWorkingDir, IFromGit
 {

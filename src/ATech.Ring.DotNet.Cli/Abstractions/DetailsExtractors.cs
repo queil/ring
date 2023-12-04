@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using ATech.Ring.Configuration.Interfaces;
-using ATech.Ring.Configuration.Runnables;
+using Queil.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration.Runnables;
 using ATech.Ring.DotNet.Cli.Dtos;
 
 namespace ATech.Ring.DotNet.Cli.Abstractions;

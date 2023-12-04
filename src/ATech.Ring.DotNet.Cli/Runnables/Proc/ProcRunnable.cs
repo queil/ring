@@ -12,12 +12,12 @@ public class ProcContext : ITrackProcessId
     public int ProcessId { get; set; }
 }
 
-public class ProcRunnable : ProcessRunnable<ProcContext, Configuration.Runnables.Proc>
+public class ProcRunnable : ProcessRunnable<ProcContext, Queil.Ring.Configuration.Runnables.Proc>
 {
     private readonly ProcessRunner _runner;
 
-    public ProcRunnable(Configuration.Runnables.Proc config,
-        ILogger<ProcessRunnable<ProcContext, Configuration.Runnables.Proc>> logger, 
+    public ProcRunnable(Queil.Ring.Configuration.Runnables.Proc config,
+        ILogger<ProcessRunnable<ProcContext, Queil.Ring.Configuration.Runnables.Proc>> logger, 
         ISender sender,
         ProcessRunner runner) : base(config, logger, sender)
     {

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ATech.Ring.Configuration;
+namespace Queil.Ring.Configuration;
 
 public class ConfiguratorPaths
 {

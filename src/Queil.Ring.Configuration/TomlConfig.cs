@@ -1,6 +1,6 @@
 ﻿using Nett;
 
-namespace ATech.Ring.Configuration;
+namespace Queil.Ring.Configuration;
 
 public static class TomlConfig
 {

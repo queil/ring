@@ -1,7 +1,7 @@
 ﻿using System.IO;
-using ATech.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration.Interfaces;
 
-namespace ATech.Ring.Configuration;
+namespace Queil.Ring.Configuration;
 
 public class ConfigurationTreeReader : IConfigurationTreeReader
 {

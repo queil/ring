@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration.Interfaces;
 using ATech.Ring.DotNet.Cli.Abstractions.Tools;
 using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Logging;

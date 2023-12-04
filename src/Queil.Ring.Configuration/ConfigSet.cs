@@ -1,8 +1,8 @@
-﻿using ATech.Ring.Configuration.Interfaces;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Queil.Ring.Configuration.Interfaces;
 
-namespace ATech.Ring.Configuration;
+namespace Queil.Ring.Configuration;
 
 public class ConfigSet : Dictionary<string, IRunnableConfig>
 {
