@@ -32,7 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ATech.Ring.Configuration\ATech.Ring.Configuration.csproj" />
-    <ProjectReference Include="..\Ring.Client\Ring.Client.fsproj" />
+    <ProjectReference Include="..\..\src\Ring.Client.FSharp\Ring.Client.FSharp.fsproj" />
   </ItemGroup>
 
   <!-- Hack for https://github.com/dotnet/sdk/issues/11484 (Windows) -->

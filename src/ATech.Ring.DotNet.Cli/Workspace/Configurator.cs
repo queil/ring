@@ -1,21 +1,22 @@
-﻿using System;
+﻿namespace ATech.Ring.DotNet.Cli.Workspace;
+
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Configuration;
-using ATech.Ring.Configuration.Interfaces;
-using ATech.Ring.DotNet.Cli.Logging;
+using Configuration;
+using Configuration.Interfaces;
+using Logging;
 using Microsoft.Extensions.Logging;
 
-namespace ATech.Ring.DotNet.Cli.Workspace;
-
-public class Configurator : IConfigurator, IDisposable
+public sealed class Configurator : IConfigurator, IDisposable
 {
     private readonly IConfigurationTreeReader _configReader;
     private readonly ILogger<Configurator> _logger;
-    private static readonly object FswLock = new object();
-    public ConfigSet Current { get; private set; } = new ConfigSet();
-    private FileSystemWatcher _currentWatcher;
+    private static readonly object FswLock = new();
+    public ConfigSet Current { get; private set; } = new();
+    private FileSystemWatcher? _currentWatcher;
 
     public Configurator(IConfigurationTreeReader configReader, ILogger<Configurator> logger)
     {
@@ -23,17 +24,18 @@ public class Configurator : IConfigurator, IDisposable
         _logger = logger;
     }
 
-    public event EventHandler<ConfigurationChangedArgs> OnConfigurationChanged;
+    public event EventHandler<ConfigurationChangedArgs>? OnConfigurationChanged;
 
-    public bool TryGet(string key, out IRunnableConfig cfg) => Current.TryGetValue(key, out cfg);
+    public bool TryGet(string key, [NotNullWhen(true)] out IRunnableConfig? cfg) => Current.TryGetValue(key, out cfg);
 
     public async Task LoadAsync(ConfiguratorPaths paths, CancellationToken token)
     {
         Current = await LoadConfigurationAsync(paths);
-        _currentWatcher = Watch(paths.WorkspacePath, async () =>
-        {
-            OnConfigurationChanged?.Invoke(this, new ConfigurationChangedArgs(await LoadConfigurationAsync(paths)));
-        });
+        _currentWatcher = Watch(paths.WorkspacePath,
+            async () =>
+            {
+                OnConfigurationChanged?.Invoke(this, new ConfigurationChangedArgs(await LoadConfigurationAsync(paths)));
+            });
     }
 
     public Task UnloadAsync(CancellationToken token)
@@ -47,7 +49,8 @@ public class Configurator : IConfigurator, IDisposable
     {
         var directoryName = Path.GetDirectoryName(path);
 
-        if (directoryName == null) throw new InvalidOperationException($"Workspace path does not have a directory ({path}).");
+        if (directoryName == null)
+            throw new InvalidOperationException($"Workspace path does not have a directory ({path}).");
 
         var fsw = new FileSystemWatcher
         {
@@ -56,7 +59,7 @@ public class Configurator : IConfigurator, IDisposable
             NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName
         };
 
-        fsw.Changed += async (sender, args) =>
+        fsw.Changed += async (sender, _) =>
         {
             var w = (FileSystemWatcher)sender;
             if (!w.EnableRaisingEvents) return;
@@ -82,7 +85,7 @@ public class Configurator : IConfigurator, IDisposable
 
     private async Task<ConfigSet> LoadConfigurationAsync(ConfiguratorPaths paths)
     {
-        WorkspaceConfig tree = null;
+        WorkspaceConfig? tree = null;
         const int retries = 5;
         var tryCount = retries;
         while (tryCount > 0)
@@ -95,12 +98,15 @@ public class Configurator : IConfigurator, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Could not open workspace '{paths.WorkspacePath}'. {tryCount} retries left");
+                _logger.LogError(ex, "Could not open workspace '{WorkspacePath}'. {RetriesLeft} retries left",
+                    paths.WorkspacePath, tryCount);
                 await Task.Delay(1000);
             }
         }
 
-        if (tree == null) throw new FileLoadException($"Could not (re)load workspace after {retries} tries. Path: '{paths.WorkspacePath}'");
+        if (tree == null)
+            throw new FileLoadException(
+                $"Could not (re)load workspace after {retries} tries. Path: '{paths.WorkspacePath}'");
         var effectiveConfig = tree.ToEffectiveConfig();
 
         using (_logger.WithHostScope(Phase.CONFIG))
@@ -113,8 +119,5 @@ public class Configurator : IConfigurator, IDisposable
         return effectiveConfig;
     }
 
-    public void Dispose()
-    {
-        _currentWatcher?.Dispose();
-    }
+    public void Dispose() => _currentWatcher?.Dispose();
 }

@@ -227,7 +227,7 @@
           "System.Threading.Channels": "[6.*, )"
         }
       },
-      "ring.client": {
+      "ring.client.fsharp": {
         "type": "Project",
         "dependencies": {
           "ATech.Ring.Protocol": "[1.0.0, )",

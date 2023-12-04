@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using ATech.Ring.Configuration;
@@ -11,6 +12,6 @@ public interface IConfigurator
     event EventHandler<ConfigurationChangedArgs> OnConfigurationChanged;
     Task LoadAsync(ConfiguratorPaths paths, CancellationToken token);
     Task UnloadAsync(CancellationToken token);
-    bool TryGet(string key, out IRunnableConfig cfg);
+    bool TryGet(string key, [NotNullWhen(true)]out IRunnableConfig? cfg);
     ConfigSet Current { get; }
 }

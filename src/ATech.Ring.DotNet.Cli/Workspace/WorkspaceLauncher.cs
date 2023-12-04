@@ -18,7 +18,6 @@ using Protocol.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-
 public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 {
     private readonly IConfigurator _configurator;
@@ -38,7 +37,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     private int _initCounter;
     private readonly Random _rnd = new();
 
-    public event EventHandler OnInitiated;
+    public event EventHandler? OnInitiated;
     public async Task<ApplyFlavourResult> ApplyFlavourAsync(string flavour, CancellationToken token)
     {
         if (CurrentFlavour == flavour) return ApplyFlavourResult.Ok;

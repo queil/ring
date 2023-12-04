@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using ATech.Ring.Configuration.Interfaces;
+﻿namespace ATech.Ring.DotNet.Cli.Workspace;
 
-namespace ATech.Ring.DotNet.Cli.Workspace;
+using System.Collections.Generic;
+using Configuration.Interfaces;
 
 public class ConfigurationChangedArgs
 {
