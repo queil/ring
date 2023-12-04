@@ -2,8 +2,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using ATech.Ring.DotNet.Cli.Abstractions;
 using ATech.Ring.DotNet.Cli.Dtos;
+using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Tools;
-using ATech.Ring.Protocol.v2;
 using Microsoft.Extensions.Logging;
 using DockerComposeConfig = ATech.Ring.Configuration.Runnables.DockerCompose;
 

@@ -40,12 +40,6 @@ public enum M : byte
     SERVER_SHUTDOWN = 25
 }
 
-public interface IAsMessage
-{
-    Message AsMessage();
-    M Type { get; }
-}
-
 public static class ReadOnlySpanExtensions
 {
     public static string AsUtf8String(this ReadOnlySpan<byte> span) => Encoding.UTF8.GetString(span);
@@ -83,7 +77,7 @@ public readonly ref struct Message
         Bytes = new ReadOnlySpan<byte>(newBytes).SliceUntilNull();
     }
 
-    public Message(M type) => Bytes = new byte[] { (byte)type };
+    public Message(M type) => Bytes = new[] { (byte)type };
 
     public void Deconstruct(out M type, out ReadOnlySpan<byte> payload)
     {

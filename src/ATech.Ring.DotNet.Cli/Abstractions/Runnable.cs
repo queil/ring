@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ATech.Ring.Configuration.Interfaces;
 using ATech.Ring.DotNet.Cli.Abstractions.Context;
 using ATech.Ring.DotNet.Cli.Dtos;
+using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Logging;
 using ATech.Ring.Protocol.v2;
 using Microsoft.Extensions.Logging;

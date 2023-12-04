@@ -2,9 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ATech.Ring.DotNet.Cli.Dtos;
+using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Tools;
 using ATech.Ring.DotNet.Cli.Tools.Windows;
-using ATech.Ring.Protocol.v2;
 using Microsoft.Extensions.Logging;
 using IISXCoreConfig = ATech.Ring.Configuration.Runnables.IISXCore;
 

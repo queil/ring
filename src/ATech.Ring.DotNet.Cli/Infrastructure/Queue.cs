@@ -1,10 +1,11 @@
-﻿namespace ATech.Ring.Protocol.v2;
-
-using System;
+﻿using System;
 using System.Buffers;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using ATech.Ring.Protocol.v2;
+
+namespace ATech.Ring.DotNet.Cli.Infrastructure;
 
 public sealed class Queue : ISender, IReceiver
 {

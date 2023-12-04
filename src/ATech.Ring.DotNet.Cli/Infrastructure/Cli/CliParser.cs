@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace ATech.Ring.DotNet.Cli.Infrastructure.Cli;
+﻿namespace ATech.Ring.DotNet.Cli.Infrastructure.Cli;
 
 using System;
 using System.IO;
