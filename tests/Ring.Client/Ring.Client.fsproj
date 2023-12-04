@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ATech.Ring.Protocol.v2\ATech.Ring.Protocol.v2.csproj" />
+    <ProjectReference Include="..\..\src\ATech.Ring.Protocol\ATech.Ring.Protocol.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace ATech.Ring.Protocol.v2.Events;
+﻿namespace ATech.Ring.Protocol.Events;
 
 public enum RunnableState
 {

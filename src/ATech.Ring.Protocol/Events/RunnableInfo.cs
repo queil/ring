@@ -1,8 +1,8 @@
-﻿namespace ATech.Ring.Protocol.v2.Events;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
+namespace ATech.Ring.Protocol.Events;
 
 public class RunnableInfo : IEquatable<RunnableInfo>
 {

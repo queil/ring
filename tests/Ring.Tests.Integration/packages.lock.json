@@ -220,7 +220,7 @@
           "Nett": "[0.13.0, )"
         }
       },
-      "atech.ring.protocol.v2": {
+      "atech.ring.protocol": {
         "type": "Project",
         "dependencies": {
           "System.Text.Json": "[6.*, )",
@@ -230,7 +230,7 @@
       "ring.client": {
         "type": "Project",
         "dependencies": {
-          "ATech.Ring.Protocol.v2": "[1.0.0, )",
+          "ATech.Ring.Protocol": "[1.0.0, )",
           "FSharp.Control.AsyncSeq": "[3.2.1, )",
           "FSharp.Core": "[6.0.7, )"
         }

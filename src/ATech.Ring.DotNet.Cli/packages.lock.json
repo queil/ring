@@ -97,8 +97,8 @@
       "Stateless": {
         "type": "Direct",
         "requested": "[5.*, )",
-        "resolved": "5.13.0",
-        "contentHash": "M4Rb4b31TUEfhCd4en0WlRfuFgQ2rwva9e1CuXnto5vNGvRsNVimHENnvjegf6nKG9ZH+51McAZ/huqRtTziYg=="
+        "resolved": "5.14.0",
+        "contentHash": "hAbq0Duf7ZfAxQ3bMEq31FtThmgINJZ0mh7A/fZ2bS/11oXQDNmKsCNtvdsbgQbCZpBtqunf6jtV3VDLuq30ZQ=="
       },
       "Tomlyn.Extensions.Configuration": {
         "type": "Direct",
@@ -768,8 +768,8 @@
       },
       "System.Text.Json": {
         "type": "Transitive",
-        "resolved": "6.0.8",
-        "contentHash": "WhW6zPEgRZoo+c1NEvSSmrME4+LqXmW6tcsRFsEiSMeco+qZ9rpLs7tT53EIkE/s9GNTYS4/STQoaGiKDSWifQ==",
+        "resolved": "6.0.9",
+        "contentHash": "2j16oUgtIzl7Xtk7demG0i/v5aU/ZvULcAnJvPb63U3ZhXJ494UYcxuEj5Fs49i3XDrk5kU/8I+6l9zRCw3cJw==",
         "dependencies": {
           "System.Runtime.CompilerServices.Unsafe": "6.0.0",
           "System.Text.Encodings.Web": "6.0.0"
@@ -811,7 +811,7 @@
           "Nett": "[0.13.0, )"
         }
       },
-      "atech.ring.protocol.v2": {
+      "atech.ring.protocol": {
         "type": "Project",
         "dependencies": {
           "System.Text.Json": "[6.*, )",

@@ -50,7 +50,7 @@
         "resolved": "6.0.0",
         "contentHash": "TY8/9+tI0mNaUMgntOxxaq2ndTkdXqLSxvPmas7XEqOlv9lQtB7wLjYGd756lOaO7Dvb5r/WXhluM+0Xe87v5Q=="
       },
-      "atech.ring.protocol.v2": {
+      "atech.ring.protocol": {
         "type": "Project",
         "dependencies": {
           "System.Text.Json": "[6.*, )",

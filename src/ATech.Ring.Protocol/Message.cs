@@ -1,8 +1,9 @@
-﻿namespace ATech.Ring.Protocol.v2;
+﻿namespace ATech.Ring.Protocol;
 
-using Events;
 using System;
 using System.Text;
+using Events;
+
 // ReSharper disable InconsistentNaming
 public enum M : byte
 {

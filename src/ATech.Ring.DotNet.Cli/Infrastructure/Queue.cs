@@ -3,7 +3,7 @@ using System.Buffers;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using ATech.Ring.Protocol.v2;
+using ATech.Ring.Protocol;
 
 namespace ATech.Ring.DotNet.Cli.Infrastructure;
 

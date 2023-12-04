@@ -13,7 +13,7 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Ring.Client", "tests\Ring.C
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Ring.Tests.Integration", "tests\Ring.Tests.Integration\Ring.Tests.Integration.fsproj", "{067A6B0B-A594-493A-B147-7DB5BEB088E9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ATech.Ring.Protocol.v2", "src\ATech.Ring.Protocol.v2\ATech.Ring.Protocol.v2.csproj", "{FBBE43FC-98E8-40BD-924E-677B1C80F484}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ATech.Ring.Protocol", "src\ATech.Ring.Protocol\ATech.Ring.Protocol.csproj", "{FBBE43FC-98E8-40BD-924E-677B1C80F484}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

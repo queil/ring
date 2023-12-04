@@ -4,7 +4,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ATech.Ring.Protocol.v2;
+namespace ATech.Ring.Protocol;
 
 public static class WebSocketExtensions
 {

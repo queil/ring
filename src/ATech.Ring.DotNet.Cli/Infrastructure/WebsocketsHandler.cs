@@ -1,4 +1,6 @@
-﻿namespace ATech.Ring.DotNet.Cli.Infrastructure;
+﻿using ATech.Ring.Protocol;
+
+namespace ATech.Ring.DotNet.Cli.Infrastructure;
 
 using System;
 using System.Collections.Generic;
@@ -6,8 +8,7 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.DotNet.Cli.Logging;
-using ATech.Ring.Protocol.v2;
+using Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Linq;
