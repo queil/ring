@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ATech.Ring.Protocol.Events;
+namespace Queil.Ring.Protocol.Events;
 
 public class WorkspaceInfo : IEquatable<WorkspaceInfo>
 {

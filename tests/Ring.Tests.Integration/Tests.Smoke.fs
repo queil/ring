@@ -1,6 +1,6 @@
 module Ring.Tests.Integration.Smoke
 
-open ATech.Ring.Protocol
+open Queil.Ring.Protocol
 open Expecto
 open FSharp.Control
 open Fake.Core

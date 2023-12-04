@@ -1,13 +1,13 @@
 ﻿namespace ATech.Ring.DotNet.Cli.Infrastructure;
 
 using Logging;
-using Protocol;
 using System;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Cli;
 using Microsoft.Extensions.Logging;
+using Queil.Ring.Protocol;
 
 public class ConsoleClient
 {

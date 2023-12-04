@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ATech.Ring.Protocol.Events;
+namespace Queil.Ring.Protocol.Events;
 
 public class RunnableInfo : IEquatable<RunnableInfo>
 {

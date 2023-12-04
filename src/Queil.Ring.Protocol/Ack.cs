@@ -1,4 +1,4 @@
-﻿namespace ATech.Ring.Protocol;
+﻿namespace Queil.Ring.Protocol;
 
 public enum Ack : byte
 {

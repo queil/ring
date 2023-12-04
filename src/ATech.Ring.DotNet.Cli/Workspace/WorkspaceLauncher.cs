@@ -9,12 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Queil.Ring.Configuration;
 using Queil.Ring.Configuration.Interfaces;
+using Queil.Ring.Protocol;
+using Queil.Ring.Protocol.Events;
 using Abstractions;
 using Dtos;
 using Infrastructure;
 using Logging;
-using Protocol;
-using Protocol.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

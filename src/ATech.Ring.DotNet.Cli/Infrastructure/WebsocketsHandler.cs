@@ -1,6 +1,4 @@
-﻿using ATech.Ring.Protocol;
-
-namespace ATech.Ring.DotNet.Cli.Infrastructure;
+﻿namespace ATech.Ring.DotNet.Cli.Infrastructure;
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +9,7 @@ using System.Threading.Tasks;
 using Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Queil.Ring.Protocol;
 using System.Linq;
 
 public class WebsocketsHandler

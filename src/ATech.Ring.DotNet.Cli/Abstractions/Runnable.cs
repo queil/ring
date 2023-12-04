@@ -7,11 +7,11 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Queil.Ring.Configuration.Interfaces;
+using Queil.Ring.Protocol;
 using Context;
 using Dtos;
 using Infrastructure;
 using Logging;
-using Protocol;
 using Microsoft.Extensions.Logging;
 
 [DebuggerDisplay("{UniqueId}")]

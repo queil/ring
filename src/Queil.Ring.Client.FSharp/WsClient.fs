@@ -4,8 +4,8 @@ open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
 open System.Threading.Channels
-open ATech.Ring.Protocol
-open ATech.Ring.Protocol.Events
+open Queil.Ring.Protocol
+open Queil.Ring.Protocol.Events
 open System
 open System.Net.WebSockets
 open System.Threading
@@ -251,6 +251,12 @@ type WsClient(options: ClientOptions) =
         task {
             let! s = socket.Value
             do! s.SendMessageAsync(M.STOP)
+        }
+
+    member _.RequestWorkspaceInfo() =
+        task {
+            let! s = socket.Value
+            do! s.SendMessageAsync(M.WORKSPACE_INFO_RQ)
         }
 
     member _.Terminate() =

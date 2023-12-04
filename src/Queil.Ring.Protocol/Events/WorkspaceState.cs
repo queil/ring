@@ -1,4 +1,4 @@
-﻿namespace ATech.Ring.Protocol.Events;
+﻿namespace Queil.Ring.Protocol.Events;
 
 public enum WorkspaceState
 {
