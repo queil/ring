@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Queil.Ring.Configuration;
 using ATech.Ring.DotNet.Cli.Dtos;
-using ATech.Ring.Protocol.Events;
+using Queil.Ring.Protocol.Events;
 
 namespace ATech.Ring.DotNet.Cli.Workspace;
 

@@ -2,7 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Protocol;
+using Queil.Ring.Protocol;
 
 public interface IServer
 {

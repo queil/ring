@@ -1,6 +1,5 @@
 ﻿namespace ATech.Ring.DotNet.Cli.Infrastructure;
 
-using Protocol;
 using System;
 using System.Net.WebSockets;
 using System.Threading;
@@ -8,6 +7,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Logging;
+using Queil.Ring.Protocol;
 using Microsoft.Extensions.Logging;
 
 public delegate Task<Ack> Dispatch(Message m, CancellationToken t);

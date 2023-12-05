@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ATech.Ring.Protocol;
+using Queil.Ring.Protocol;
 
 namespace ATech.Ring.DotNet.Cli.Infrastructure;
 
