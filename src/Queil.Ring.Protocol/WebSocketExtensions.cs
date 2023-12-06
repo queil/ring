@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,25 +30,23 @@ public static class WebSocketExtensions
         WebSocketReceiveResult? result;
         do
         {
+            using var ms = new MemoryStream(Constants.MaxMessageSize);
             var buffer = ArrayPool<byte>.Shared.Rent(Constants.MaxMessageSize);
             try
             {
-                Array.Clear(buffer);
-                result = await webSocket.ReceiveAsync(buffer, token);
-
-                if (result.MessageType == WebSocketMessageType.Close)
+                do
                 {
-                    return;
-                }
+                    Array.Clear(buffer);
+                    result = await webSocket.ReceiveAsync(buffer, token);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        return;
+                    }
+                    await ms.WriteAsync(buffer.AsMemory(0, result.Count), token);
+                    
+                } while (!result.EndOfMessage);
 
-                if (!result.EndOfMessage) await webSocket.SendAckAsync(Ack.ExpectedEndOfMessage, token);
-
-                static Task? OnReceived(ReadOnlySpan<byte> buffer, HandleMessage onReceived, CancellationToken token)
-                {
-                    var m = new Message(buffer.SliceUntilNull());
-                    return onReceived(ref m, token);
-                }
-
+                ms.Seek(0, SeekOrigin.Begin);
                 var maybeAck = OnReceived(buffer, onReceived, token);
                 if (maybeAck is Task<Ack> ack)
                 {
@@ -59,6 +58,14 @@ public static class WebSocketExtensions
                 ArrayPool<byte>.Shared.Return(buffer, true);
             }
         } while (!result.CloseStatus.HasValue && !token.IsCancellationRequested);
+
+        return;
+
+        static Task? OnReceived(ReadOnlySpan<byte> buffer, HandleMessage onReceived, CancellationToken token)
+        {
+            var m = new Message(buffer.SliceUntilNull());
+            return onReceived(ref m, token);
+        }
     }
 
     public delegate Task? HandleMessage(ref Message message, CancellationToken token);

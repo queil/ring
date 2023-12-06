@@ -230,7 +230,7 @@ type WsClient(options: ClientOptions) =
 
                 return s
             })
-
+   
     member _.AllEvents = allEvents
 
     member _.NewEvents = events
