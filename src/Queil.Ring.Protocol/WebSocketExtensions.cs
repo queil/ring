@@ -47,7 +47,8 @@ public static class WebSocketExtensions
                 } while (!result.EndOfMessage);
 
                 ms.Seek(0, SeekOrigin.Begin);
-                var maybeAck = OnReceived(buffer, onReceived, token);
+                await ms.FlushAsync(token);
+                var maybeAck = OnReceived(ms.ToArray(), onReceived, token);
                 if (maybeAck is Task<Ack> ack)
                 {
                     await webSocket.SendAckAsync(await ack, token);
