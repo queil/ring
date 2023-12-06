@@ -29,7 +29,7 @@ public enum M : byte
     RUNNABLE_UNRECOVERABLE = 16,
     RUNNABLE_RECOVERING = 17,
     RUNNABLE_DESTROYED = 18,
-
+    RUNNABLE_LOGS = 28,
     WORKSPACE_DEGRADED = 19,
     WORKSPACE_HEALTHY = 20,
     WORKSPACE_STOPPED = 21,
@@ -104,6 +104,7 @@ public readonly ref struct Message
     public static Message RunnableRecovering(ReadOnlySpan<char> id) => new(M.RUNNABLE_RECOVERING, id);
     public static Message RunnableStopped(ReadOnlySpan<char> id) => new(M.RUNNABLE_STOPPED, id);
     public static Message RunnableDestroyed(ReadOnlySpan<char> id) => new(M.RUNNABLE_DESTROYED, id);
+    public static Message RunnableLogs(RunnableLogLine line) => new(M.RUNNABLE_LOGS, line.Serialize());
     public static Message ServerIdle() => new(M.SERVER_IDLE);
     public static Message ServerLoaded(ReadOnlySpan<char> workspacePath) => new(M.SERVER_LOADED, workspacePath);
     public static Message ServerRunning(ReadOnlySpan<char> workspacePath) => new(M.SERVER_RUNNING, workspacePath);

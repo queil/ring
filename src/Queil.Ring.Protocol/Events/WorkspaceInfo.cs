@@ -55,7 +55,8 @@ public class WorkspaceInfo : IEquatable<WorkspaceInfo>
     public override int GetHashCode() => HashCode.Combine(Path, Runnables, Flavours, CurrentFlavour, ServerState, WorkspaceState);
     public static WorkspaceInfo Empty { get; } = new(string.Empty, Array.Empty<RunnableInfo>(), Array.Empty<string>(), string.Empty, ServerState.IDLE, WorkspaceState.NONE);
     public ReadOnlySpan<byte> Serialize() => JsonSerializer.SerializeToUtf8Bytes(this, SerializerOptions.Value);
-
+    public static WorkspaceInfo? Deserialize(ReadOnlySpan<byte> bytes) => JsonSerializer.Deserialize<WorkspaceInfo>(bytes);
+    
     private static readonly Lazy<JsonSerializerOptions> SerializerOptions = new(() =>
     {
         var options = new JsonSerializerOptions();

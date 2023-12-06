@@ -15,8 +15,8 @@ public class NetExeRunnable : CsProjRunnable<NetExeContext, NetExeConfig>
 
     public NetExeRunnable(
         NetExeConfig config,
-        ProcessRunner processRunner, 
-        ILogger<NetExeRunnable> logger, 
+        ProcessRunner processRunner,
+        ILogger<NetExeRunnable> logger,
         ISender sender) : base(config, logger, sender)
     {
         _processRunner = processRunner;
@@ -41,7 +41,7 @@ public class NetExeRunnable : CsProjRunnable<NetExeContext, NetExeConfig>
     protected override async Task StartAsync(NetExeContext ctx, CancellationToken token)
     {
         _processRunner.Command = ctx.EntryAssemblyPath;
-        var result = await _processRunner.RunProcessAsync(Config.Args, token);
+        var result = await _processRunner.RunProcessAsync(args: Config.Args, onData: PublishLogs, token: token);
         ctx.ProcessId = result.Pid;
         ctx.Output = result.Output;
     }

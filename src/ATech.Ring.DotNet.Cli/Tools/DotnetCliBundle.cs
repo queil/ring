@@ -24,18 +24,18 @@ public class DotnetCliBundle : ITool
         Logger = logger;
     }
 
-    public async Task<ExecutionInfo> RunAsync(DotnetContext ctx, CancellationToken token, string[]? urls = null)
+    public async Task<ExecutionInfo> RunAsync(DotnetContext ctx, string[]? urls = null, Action<string>? logger=null, CancellationToken token=default)
     {          
         HandleUrls();
         if (File.Exists(ctx.ExePath))
         {
             _processRunner.Command = ctx.ExePath;
-            return await _processRunner.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, null, token);
+            return await _processRunner.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, onData: logger, token:token);
         }
         if (File.Exists(ctx.EntryAssemblyPath))
         {
             // Using dotnet exec here because dotnet run spawns subprocesses and killing it doesn't actually kill them
-            return await this.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, new object[] { "exec", $"\"{ctx.EntryAssemblyPath}\"" }, token);
+            return await this.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, new object[] { "exec", $"\"{ctx.EntryAssemblyPath}\"" }, token:token);
         }
         throw new InvalidOperationException($"Neither Exe path nor Dll path specified. {ctx.CsProjPath}");
 

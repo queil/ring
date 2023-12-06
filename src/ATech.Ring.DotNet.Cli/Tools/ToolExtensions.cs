@@ -51,17 +51,9 @@ public static class ToolExtensions
     public static Task<ExecutionInfo> RunProcessWaitAsync(this ITool tool, object[] args, CancellationToken token)
         => tool.RunProcessCoreAsync(args: args, wait: true, token: token);
 
-    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, object[] args, CancellationToken token)
-        => tool.RunProcessCoreAsync(args, token: token);
-
-    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, string workingDirectory,
-        IDictionary<string, string>? envVars, object[]? args, CancellationToken token)
-        => tool.RunProcessCoreAsync(args, envVars: envVars, workingDirectory: workingDirectory, captureStdOut: false,
-            token: token);
-
-    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, Action<string> onErrorData,
-        IDictionary<string, string>? envVars, object[]? args, CancellationToken token)
-        => tool.RunProcessCoreAsync(args: args, onErrorData: onErrorData, envVars: envVars, token: token);
+    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, string? workingDir = null,
+        IDictionary<string, string>? envVars = null, object[]? args = null, Action<string>? onData = null, Action<string>? onErrorData =null, CancellationToken token=default)
+        => tool.RunProcessCoreAsync(workingDirectory: workingDir, args: args, onErrorData: onErrorData, onData: onData, envVars: envVars, token: token);
 
     //TODO: this should be configurable
     private static readonly string[] FailureWords = { "err", "error", "fail" };
@@ -72,6 +64,7 @@ public static class ToolExtensions
         string? workingDirectory = null,
         IDictionary<string, string>? envVars = null,
         Action<string>? onErrorData = null,
+        Action<string>? onData = null,
         bool captureStdOut = true,
         CancellationToken token = default)
     {
@@ -86,6 +79,8 @@ public static class ToolExtensions
             void OnData(object _, DataReceivedEventArgs line)
             {
                 if (line.Data == null) return;
+                onData?.Invoke(line.Data);
+                
                 if (captureStdOut) sb.AppendLine(line.Data);
 
                 if (FailureWords.Any(x => line.Data.Contains(x, StringComparison.OrdinalIgnoreCase)))
