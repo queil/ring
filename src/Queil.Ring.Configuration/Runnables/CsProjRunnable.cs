@@ -8,6 +8,7 @@ public abstract class CsProjRunnable : RunnableConfigBase, IUseCsProjFile, IFrom
     public string? WorkingDir { get; set; }
     public string CsProj { get; set; }
     public string SshRepoUrl { get; set; }
+    public string Configuration { get; set; } = "Debug";
     public string FullPath => GetFullPath(WorkingDir, CsProj);
     public string LaunchSettingsJsonPath => Path.Combine(Path.GetDirectoryName(FullPath), "Properties/launchSettings.json");
     private string _id;
