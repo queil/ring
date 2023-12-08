@@ -1,5 +1,17 @@
 # Release notes
 
+## 4.2.0
+
+* add: enable setting env vars in dotnet apps
+
+## 4.1.0
+
+* add: enable setting build configuration (Debug/Release) in dotnet apps
+
+## 4.0.1
+
+* fix: correctly read chunked messages on the client side
+
 ## 4.0.0
 
 * BREAKING feat: use toml for configuring the ring itself
