@@ -45,7 +45,7 @@ Windows-only:
 
 ## Ring dotnet tool
 ```
-dotnet tool install --global ATech.Ring.DotNet.Cli --version '4.0.0-alpha.*'
+dotnet tool install --global ATech.Ring.DotNet.Cli
 ```
 
 ## Visual Studio Extension
