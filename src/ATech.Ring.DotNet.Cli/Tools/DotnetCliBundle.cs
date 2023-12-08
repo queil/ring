@@ -27,6 +27,10 @@ public class DotnetCliBundle : ITool
     public async Task<ExecutionInfo> RunAsync(DotnetContext ctx, CancellationToken token, string[]? urls = null)
     {          
         HandleUrls();
+        foreach (var (k,v) in ctx.Env)
+        {
+            DefaultEnvVars[k] = v;
+        }
         if (File.Exists(ctx.ExePath))
         {
             _processRunner.Command = ctx.ExePath;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using Queil.Ring.Configuration.Interfaces;
@@ -17,6 +18,7 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
     public string TargetRuntime { get; set; }
     public string EntryAssemblyPath { get; set; }
     public string ExePath => Path.ChangeExtension(EntryAssemblyPath, "exe");
+    public Dictionary<string,string> Env { get; set; } = new();
     public int ConsecutiveFailures { get; set; }
     public int TotalFailures { get; set; }
     public static T Create<T, C>(C config, Func<IFromGit,string> resolveFullClonePath) where C : IUseCsProjFile where T : DotnetContext
@@ -41,6 +43,7 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
             ctx.WorkingDir = config.GetWorkingDir();
             var runtimePathSegment = ctx.TargetRuntime == null ? "" : $"{Path.DirectorySeparatorChar}{ctx.TargetRuntime}";
             ctx.EntryAssemblyPath = Path.Combine(ctx.WorkingDir, $"bin{Path.DirectorySeparatorChar}{config.Configuration}{Path.DirectorySeparatorChar}{ctx.TargetFramework}{runtimePathSegment}{Path.DirectorySeparatorChar}{config.GetProjName()}.dll");
+            ctx.Env = config.Env;
             return ctx;
         }
         finally
