@@ -26,7 +26,7 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
         {
             var ctx = (T)FormatterServices.GetUninitializedObject(typeof(T));
 
-            if (config is IFromGit { SshRepoUrl: string _ } fromGit)
+            if (config is IFromGit { SshRepoUrl: not null } fromGit)
             {
                 if (Path.IsPathRooted(config.CsProj))
                 {
@@ -40,7 +40,7 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
             (ctx.TargetFramework, ctx.TargetRuntime) = config.GetTargetFrameworkAndRuntime();
             ctx.WorkingDir = config.GetWorkingDir();
             var runtimePathSegment = ctx.TargetRuntime == null ? "" : $"{Path.DirectorySeparatorChar}{ctx.TargetRuntime}";
-            ctx.EntryAssemblyPath = Path.Combine(ctx.WorkingDir, $"bin{Path.DirectorySeparatorChar}Debug{Path.DirectorySeparatorChar}{ctx.TargetFramework}{runtimePathSegment}{Path.DirectorySeparatorChar}{config.GetProjName()}.dll");
+            ctx.EntryAssemblyPath = Path.Combine(ctx.WorkingDir, $"bin{Path.DirectorySeparatorChar}{config.Configuration}{Path.DirectorySeparatorChar}{ctx.TargetFramework}{runtimePathSegment}{Path.DirectorySeparatorChar}{config.GetProjName()}.dll");
             return ctx;
         }
         finally
