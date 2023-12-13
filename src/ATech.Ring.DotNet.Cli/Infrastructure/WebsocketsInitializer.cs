@@ -18,6 +18,6 @@ public class WebsocketsInitializer : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_messageLoop is Task t) await t;
+        if (_messageLoop is { } t) await t;
     }
 }

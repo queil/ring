@@ -307,6 +307,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
             _logger.LogDebug(PhaseStatus.OK);
         }
     }
+    
     private async Task DestroyCoreAsync(TContext ctx, CancellationToken token)
     {
         using var _ = _logger.BeginScope(Scope.Phase(Phase.DESTROY));

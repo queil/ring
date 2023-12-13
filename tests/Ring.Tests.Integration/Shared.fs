@@ -50,8 +50,12 @@ module Expect =
 
         for event in events do
             let event, typ = event
-            let runnable = $"Should receive a message of type {typ}" |> Expect.wantSome event
-            "Runnable Id should be correct" |> Expect.equal runnable.Payload id
+            let scope = ($"Should receive a message of type {typ}" |> Expect.wantSome event).Scope
+            
+            match scope with
+            | Runnable expectedId -> 
+                "Runnable Id should be correct" |> Expect.equal expectedId id
+            | s -> failtestf $"Expected runnable scope but got: %A{s}"
 
 type Ring with
 

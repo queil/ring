@@ -8,5 +8,7 @@ public enum Ack : byte
     ServerError = 3,
     Terminating = 4,
     NotFound = 5,
-    Alive
+    Alive = 6,
+    TaskFailed = 7,
+    TaskOk = 8
 }

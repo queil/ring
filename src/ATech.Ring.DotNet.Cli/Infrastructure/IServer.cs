@@ -3,6 +3,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Queil.Ring.Protocol;
+using Queil.Ring.Protocol.Events;
 
 public interface IServer
 {
@@ -16,5 +17,6 @@ public interface IServer
     Task<Ack> ExcludeAsync(string id, CancellationToken token);
     Task<Ack> IncludeAsync(string id, CancellationToken token);
     Task<Ack> ApplyFlavourAsync(string flavour, CancellationToken token);
+    Task<Ack> ExecuteTaskAsync(RunnableTask task, CancellationToken token);
     Ack RequestWorkspaceInfo();
 }

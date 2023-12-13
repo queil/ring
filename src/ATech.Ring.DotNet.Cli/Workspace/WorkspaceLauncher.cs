@@ -1,4 +1,7 @@
-﻿namespace ATech.Ring.DotNet.Cli.Workspace;
+﻿using ATech.Ring.DotNet.Cli.Tools;
+using Queil.Ring.Configuration.Runnables;
+
+namespace ATech.Ring.DotNet.Cli.Workspace;
 
 using System;
 using System.Collections.Concurrent;
@@ -25,6 +28,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     private readonly Func<IRunnableConfig, IRunnable> _createRunnable;
     private readonly IWorkspaceInitHook _initHook;
     private readonly ISender _sender;
+    private readonly Func<ProcessRunner> _newProcRunner;
     private readonly int _spreadFactor;
     private readonly ConcurrentDictionary<string, RunnableContainer> _runnables = new();
     private Task? _startTask;
@@ -36,6 +40,36 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     private string CurrentFlavour { get; set; } = ConfigSet.AllFlavours;
     private int _initCounter;
     private readonly Random _rnd = new();
+
+    public string WorkspacePath => _configurator.Current.Path;
+
+    public WorkspaceLauncher(IConfigurator configurator,
+        ILogger<WorkspaceLauncher> logger,
+        Func<IRunnableConfig, IRunnable> createRunnable,
+        IWorkspaceInitHook initHook,
+        ISender sender,
+        Func<ProcessRunner> newProcRunner,
+        IOptions<RingConfiguration> options)
+    {
+        _configurator = configurator;
+        _logger = logger;
+        _createRunnable = createRunnable;
+        _initHook = initHook;
+        _sender = sender;
+        _newProcRunner = newProcRunner;
+        _spreadFactor = options.Value.Workspace.StartupSpreadFactor;
+        OnInitiated += WorkspaceLauncher_OnInitiated;
+    }
+    
+    public async Task<ExecuteTaskResult> ExecuteTaskAsync(RunnableTask task, CancellationToken token)
+    {
+        if (!_runnables.TryGetValue(task.RunnableId, out var r)) return ExecuteTaskResult.UnknownRunnable;
+        var (func, bringDown) = r.PrepareTask(task.TaskId);
+        if (bringDown) await ExcludeAsync(task.RunnableId, token);
+        var result = await func(_newProcRunner(), token);
+        if (bringDown) await IncludeAsync(task.RunnableId, token);
+        return result;
+    }
 
     public event EventHandler? OnInitiated;
     public async Task<ApplyFlavourResult> ApplyFlavourAsync(string flavour, CancellationToken token)
@@ -60,23 +94,6 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         return ApplyFlavourResult.Ok;
     }
 
-    public string WorkspacePath => _configurator.Current.Path;
-
-    public WorkspaceLauncher(IConfigurator configurator,
-        ILogger<WorkspaceLauncher> logger,
-        Func<IRunnableConfig, IRunnable> createRunnable,
-        IWorkspaceInitHook initHook,
-        ISender sender,
-        IOptions<RingConfiguration> options)
-    {
-        _configurator = configurator;
-        _logger = logger;
-        _createRunnable = createRunnable;
-        _initHook = initHook;
-        _sender = sender;
-        _spreadFactor = options.Value.Workspace.StartupSpreadFactor;
-        OnInitiated += WorkspaceLauncher_OnInitiated;
-    }
 
     private void WorkspaceLauncher_OnInitiated(object? sender, EventArgs e)
     {
@@ -209,7 +226,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     private async Task AddAsync(string id, IRunnableConfig cfg, TimeSpan delay, CancellationToken token)
     {
         if (_runnables.ContainsKey(id)) return;
-        var container = await RunnableContainer.CreateAsync(cfg, _createRunnable, delay, token);
+        var container = await RunnableContainer.CreateAsync(cfg, _createRunnable, _newProcRunner, delay, token);
 
         container.Runnable.OnHealthCheckCompleted += OnPublishStatus;
         container.Runnable.OnInitExecuted += OnRunnableInitExecuted;
@@ -226,8 +243,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         Interlocked.Decrement(ref _initCounter);
         container.Runnable.OnHealthCheckCompleted -= OnPublishStatus;
         container.Runnable.OnInitExecuted -= OnRunnableInitExecuted;
-        await container.CancelAsync();
-        container.Dispose();
+        await container.DisposeAsync();
         return true;
     }
 

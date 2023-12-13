@@ -133,6 +133,14 @@ public class Server : IServer
         return await _launcher.ApplyFlavourAsync(flavour, token) == ApplyFlavourResult.UnknownFlavour ? Ack.NotFound : Ack.Ok;
     }
 
+    public async Task<Ack> ExecuteTaskAsync(RunnableTask task, CancellationToken token) =>
+        await _launcher.ExecuteTaskAsync(task, token) switch
+        {
+            ExecuteTaskResult.UnknownRunnable or ExecuteTaskResult.UnknownTask => Ack.NotFound,
+            ExecuteTaskResult.Failed => Ack.TaskFailed,
+            _ => Ack.TaskOk
+        };
+
     public Ack RequestWorkspaceInfo()
     {
         _launcher.PublishStatus(_fsm.State switch

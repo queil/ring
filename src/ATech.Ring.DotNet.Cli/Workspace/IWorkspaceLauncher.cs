@@ -19,5 +19,6 @@ public interface IWorkspaceLauncher
     Task<ApplyFlavourResult> ApplyFlavourAsync(string flavour, CancellationToken token);
     string WorkspacePath { get; }
     void PublishStatus(ServerState serverState);
+    Task<ExecuteTaskResult> ExecuteTaskAsync(RunnableTask task, CancellationToken token);
     event EventHandler OnInitiated;
 }
