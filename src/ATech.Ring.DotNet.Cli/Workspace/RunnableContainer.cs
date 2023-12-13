@@ -15,14 +15,12 @@ internal sealed class RunnableContainer : IAsyncDisposable
     private readonly CancellationTokenSource _aggregateCts;
     private readonly CancellationTokenSource _cts = new();
     private readonly IRunnableConfig _config;
-    private readonly Func<ProcessRunner> _runnerFactory;
     private Task? Task { get; set; }
 
-    private RunnableContainer(IRunnable runnable, IRunnableConfig config, Func<ProcessRunner> runnerFactory,
+    private RunnableContainer(IRunnable runnable, IRunnableConfig config,
         CancellationToken token)
     {
         _config = config;
-        _runnerFactory = runnerFactory;
         Runnable = runnable;
         _aggregateCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, token);
     }
@@ -33,17 +31,17 @@ internal sealed class RunnableContainer : IAsyncDisposable
     }
 
     public static async Task<RunnableContainer> CreateAsync(IRunnableConfig cfg,
-        Func<IRunnableConfig, IRunnable> factory, Func<ProcessRunner> runnerFactory, TimeSpan delay,
+        Func<IRunnableConfig, IRunnable> factory, TimeSpan delay,
         CancellationToken token)
     {
-        var container = new RunnableContainer(factory(cfg), cfg, runnerFactory, token);
+        var container = new RunnableContainer(factory(cfg), cfg, token);
         await container.InitialiseAsync(delay);
         return container;
     }
 
     public void Start() => Task = Runnable.RunAsync(_aggregateCts.Token);
 
-    public async Task CancelAsync()
+    private async Task CancelAsync()
     {
         _cts.Cancel();
         if (Task is { } t) await t;

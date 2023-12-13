@@ -111,7 +111,7 @@ public class Server : IServer
 
     public async Task<Ack> TerminateAsync(CancellationToken token)
     {
-        using var _ = _logger.WithHostScope(Phase.DESTROY);
+        using var _ = _logger.WithHostScope(LogEvent.DESTROY);
         _logger.LogInformation("Shutdown requested");
         await _fsm.FireAsync(T.Stop);
         await _launcher.WaitUntilStoppedAsync(token);

@@ -109,10 +109,10 @@ public sealed class Configurator : IConfigurator, IDisposable
                 $"Could not (re)load workspace after {retries} tries. Path: '{paths.WorkspacePath}'");
         var effectiveConfig = tree.ToEffectiveConfig();
 
-        using (_logger.WithHostScope(Phase.CONFIG))
+        using (_logger.WithHostScope(LogEvent.CONFIG))
         {
             _logger.LogInformation("Workspace: {WorkspaceFile}", paths.WorkspacePath);
-            _logger.LogInformation(PhaseStatus.OK);
+            _logger.LogInformation(LogEventStatus.OK);
         }
 
         Current = effectiveConfig;

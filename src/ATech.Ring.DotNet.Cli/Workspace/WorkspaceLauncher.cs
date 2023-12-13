@@ -60,18 +60,23 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         _spreadFactor = options.Value.Workspace.StartupSpreadFactor;
         OnInitiated += WorkspaceLauncher_OnInitiated;
     }
-    
+
     public async Task<ExecuteTaskResult> ExecuteTaskAsync(RunnableTask task, CancellationToken token)
     {
         if (!_runnables.TryGetValue(task.RunnableId, out var r)) return ExecuteTaskResult.UnknownRunnable;
         var (func, bringDown) = r.PrepareTask(task.TaskId);
         if (bringDown) await ExcludeAsync(task.RunnableId, token);
-        var result = await func(_newProcRunner(), token);
+        ExecuteTaskResult result;
+        using (_logger.WithTaskScope(task.RunnableId, task.TaskId))
+        {
+            result = await func(_newProcRunner(), token);
+        }
         if (bringDown) await IncludeAsync(task.RunnableId, token);
         return result;
     }
 
     public event EventHandler? OnInitiated;
+
     public async Task<ApplyFlavourResult> ApplyFlavourAsync(string flavour, CancellationToken token)
     {
         if (CurrentFlavour == flavour) return ApplyFlavourResult.Ok;
@@ -102,26 +107,31 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
     public async Task LoadAsync(ConfiguratorPaths paths, CancellationToken token)
     {
-        _configurator.OnConfigurationChanged += async (_, args) => { await ApplyConfigChanges(args.Configuration, _cts.Token); };
+        _configurator.OnConfigurationChanged += async (_, args) =>
+        {
+            await ApplyConfigChanges(args.Configuration, _cts.Token);
+        };
 
         var configDirectory = new FileInfo(paths.WorkspacePath).DirectoryName;
-        if (configDirectory == null) 
+        if (configDirectory == null)
         {
             throw new InvalidOperationException($"Path '{configDirectory}' does not have directory name");
         }
+
         Directory.SetCurrentDirectory(configDirectory);
 
         await _configurator.LoadAsync(paths, _cts.Token);
-        using (_logger.WithHostScope(Phase.INIT))
+        using (_logger.WithHostScope(LogEvent.INIT))
         {
-            _logger.LogInformation(PhaseStatus.OK);
+            _logger.LogInformation(LogEventStatus.OK);
         }
     }
 
     public Task StartAsync(CancellationToken token)
     {
         _cts = new CancellationTokenSource();
-        _startTask = Task.Factory.StartNew(async () => await ApplyConfigChanges(_configurator.Current, _cts.Token), _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        _startTask = Task.Factory.StartNew(async () => await ApplyConfigChanges(_configurator.Current, _cts.Token),
+            _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         return Task.CompletedTask;
     }
 
@@ -160,9 +170,10 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
             var deletions = _runnables.Keys.Except(configs.Keys).ToArray();
             var deletionsTask = deletions.Select(RemoveAsync);
             var additions = configs.Keys.Except(_runnables.Keys).ToArray();
-            var additionsTask = additions.Select(key => {
+            var additionsTask = additions.Select(key =>
+            {
                 var delay = CalculateDelay(additions.Length);
-                _logger.LogDebug("Starting in {delay}", delay);
+                using (_logger.WithScope(key, LogEvent.TRACE)) _logger.LogDebug("Starting in {delay}", delay);
                 return AddAsync(key, configs[key], delay, token);
             });
 
@@ -182,7 +193,9 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     {
         lock (_rnd)
         {
-            return TimeSpan.FromMilliseconds(runnablesCount <= 7 ? 1000 : _rnd.Next(0, Math.Max(runnablesCount - 1, 0) * _spreadFactor));
+            return TimeSpan.FromMilliseconds(runnablesCount <= 7
+                ? 1000
+                : _rnd.Next(0, Math.Max(runnablesCount - 1, 0) * _spreadFactor));
         }
     }
 
@@ -209,28 +222,28 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
             var details = isRunning ? container!.Runnable.Details : DetailsExtractors.Extract(cfg);
 
-            var runnableInfo = new RunnableInfo(id, 
-                cfg.DeclaredPaths.ToArray(), 
-                cfg.GetType().Name, 
-                runnableState, 
+            var runnableInfo = new RunnableInfo(id,
+                cfg.DeclaredPaths.ToArray(),
+                cfg.GetType().Name,
+                runnableState,
                 cfg.Tags.ToArray(),
                 details);
 
             return runnableInfo;
-
         }).OrderBy(x => x.Id).ToArray();
-        
-        return new WorkspaceInfo(WorkspacePath, runnables, _configurator.Current.Flavours.ToArray(), CurrentFlavour, serverState, state);
+
+        return new WorkspaceInfo(WorkspacePath, runnables, _configurator.Current.Flavours.ToArray(), CurrentFlavour,
+            serverState, state);
     }
 
     private async Task AddAsync(string id, IRunnableConfig cfg, TimeSpan delay, CancellationToken token)
     {
         if (_runnables.ContainsKey(id)) return;
-        var container = await RunnableContainer.CreateAsync(cfg, _createRunnable, _newProcRunner, delay, token);
+        var container = await RunnableContainer.CreateAsync(cfg, _createRunnable, delay, token);
 
         container.Runnable.OnHealthCheckCompleted += OnPublishStatus;
         container.Runnable.OnInitExecuted += OnRunnableInitExecuted;
-            
+
         _runnables.TryAdd(id, container);
 
         container.Start();
@@ -250,16 +263,19 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     private void OnRunnableInitExecuted(object? sender, EventArgs e)
     {
         if (_configurator.Current.Count != Interlocked.Increment(ref _initCounter)) return;
-        using var _ = _logger.WithHostScope(Phase.INIT);
+        using var _ = _logger.WithHostScope(LogEvent.INIT);
         OnInitiated?.Invoke(this, EventArgs.Empty);
     }
-    private void OnPublishStatus(object? sender, EventArgs args) => PublishStatusCore(ServerState.RUNNING, force: false);
+
+    private void OnPublishStatus(object? sender, EventArgs args) =>
+        PublishStatusCore(ServerState.RUNNING, force: false);
 
     private void PublishStatusCore(ServerState serverState, bool force)
     {
         var state = serverState == ServerState.IDLE ? WorkspaceState.NONE :
             !_runnables.Any() ? WorkspaceState.IDLE :
-            _runnables.Values.Select(x => x.Runnable).All(r => r.State == State.ProbingHealth || r.State == State.Healthy) ? WorkspaceState.HEALTHY :
+            _runnables.Values.Select(x => x.Runnable)
+                .All(r => r.State == State.ProbingHealth || r.State == State.Healthy) ? WorkspaceState.HEALTHY :
             WorkspaceState.DEGRADED;
 
         if (!force && state == CurrentStatus) return;

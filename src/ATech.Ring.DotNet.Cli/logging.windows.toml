@@ -14,7 +14,7 @@ override = { Microsoft = "Warning", System = "Warning"}
 name = "Console"
 
 [serilog.writeto.args]
-outputtemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] | {Phase} | {UniqueId} | {Message}{NewLine}{Exception}"
+outputtemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] | {LogEvent} | {UniqueId} | {Message}{NewLine}{Exception}"
 
 [[serilog.writeto]]
 name = "File"

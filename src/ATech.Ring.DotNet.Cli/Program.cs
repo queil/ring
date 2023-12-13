@@ -29,6 +29,7 @@ using Nett;
 using Serilog;
 using Serilog.Events;
 using Tomlyn.Extensions.Configuration;
+using LogEvent = ATech.Ring.DotNet.Cli.Logging.LogEvent;
 
 static string Ring(string ver) => $"       _ _\n     *'   '*\n    * .*'*. 3\n   '  @   a  ;     ring! v{ver}\n    * '*.*' *\n     *. _ .*\n";
 var originalWorkingDir = Directory.GetCurrentDirectory();
@@ -155,7 +156,7 @@ try
     Log.Logger = loggingConfig.CreateLogger();
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
-    using (logger.WithHostScope(Phase.INIT))
+    using (logger.WithHostScope(LogEvent.INIT))
     {
         if (options is ServeOptions { Port: var port }) logger.LogInformation("Listening on port {Port}", port);
     }

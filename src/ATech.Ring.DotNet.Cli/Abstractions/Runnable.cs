@@ -139,13 +139,18 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
                 })
             .Permit(Trigger.Stop, State.Idle);
 
-        _fsm.OnTransitioned(t => _logger.LogDebug("{Source} -> {Trigger} -> {Destination}", t.Source, t.Trigger, t.Destination));
+        _fsm.OnTransitioned(t =>
+        {
+            using var _ = _logger.WithScope(UniqueId, LogEvent.TRACE);
+            _logger.LogDebug("{Source} -> {Trigger} -> {Destination}", t.Source, t.Trigger, t.Destination);
+        });
 
         await _fsm.ActivateAsync();
         return _fsm;
 
         async Task QueueHealthCheckAsync(CancellationToken t)
         {
+            using var _ = _logger.WithScope(UniqueId, LogEvent.HEALTH);
             try
             {
                 if (t.IsCancellationRequested) return;
@@ -183,11 +188,11 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
     {
         try
         {
-            using var _ = _logger.BeginScope(Scope.Phase(Phase.INIT));
-            _logger.LogDebug(PhaseStatus.PENDING);
+            using var _ = _logger.BeginScope(Scope.Event(LogEvent.INIT));
+            _logger.LogDebug(LogEventStatus.PENDING);
             _context = await InitAsync(token);
             _logger.LogContextDebug(_context);
-            _logger.LogDebug(PhaseStatus.OK);
+            _logger.LogDebug(LogEventStatus.OK);
             await Sender.EnqueueAsync(Message.RunnableInitiated(UniqueId), token);
             await _fsm.FireAsync(Trigger.Start);
         }
@@ -204,20 +209,20 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
     }
     protected async Task StartCoreAsync(TContext ctx, CancellationToken token)
     {
-        using var _ = _logger.BeginScope(Scope.Phase(Phase.START));
-        _logger.LogDebug(PhaseStatus.PENDING);
+        using var _ = _logger.BeginScope(Scope.Event(LogEvent.START));
+        _logger.LogDebug(LogEventStatus.PENDING);
         await StartAsync(ctx, token);
         _logger.LogContextDebug(ctx);
-        _logger.LogInformation(PhaseStatus.OK);
+        _logger.LogInformation(LogEventStatus.OK);
         await Sender.EnqueueAsync(Message.RunnableStarted(UniqueId), token);
     }
     private async Task<HealthStatus> CheckHealthCoreAsync(TContext ctx, CancellationToken token)
     {
         try
         {
-            using var _ = _logger.BeginScope(Scope.Phase(Phase.HEALTH));
+            using var _ = _logger.BeginScope(Scope.Event(LogEvent.HEALTH));
             if (token.IsCancellationRequested) return HealthStatus.Ignore;
-            _logger.LogDebug(PhaseStatus.PENDING);
+            _logger.LogDebug(LogEventStatus.PENDING);
             HealthStatus result;
             try
             {
@@ -238,7 +243,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
                     _logger.LogError("UNHEALTHY");
                     break;
                 case HealthStatus.Ok:
-                    _logger.LogDebug(PhaseStatus.OK);
+                    _logger.LogDebug(LogEventStatus.OK);
                     break;
                 case HealthStatus.Ignore:
                     break;
@@ -279,18 +284,18 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
 
     private async Task RecoverCoreAsync(TContext ctx, CancellationToken token)
     {
-        using var _ = _logger.BeginScope(Scope.Phase(Phase.RECOVERY));
-        _logger.LogDebug(PhaseStatus.PENDING);
+        using var _ = _logger.BeginScope(Scope.Event(LogEvent.RECOVERY));
+        _logger.LogDebug(LogEventStatus.PENDING);
         await RecoverAsync(ctx, token);
         _logger.LogContextDebug(ctx);
     }
 
     protected async Task StopCoreAsync(TContext ctx, CancellationToken token)
     {
-        using var _ = _logger.BeginScope(Scope.Phase(Phase.STOP));
+        using var _ = _logger.BeginScope(Scope.Event(LogEvent.STOP));
         try
         {
-            _logger.LogDebug(PhaseStatus.PENDING);
+            _logger.LogDebug(LogEventStatus.PENDING);
             await StopAsync(ctx, token);
         }
         catch (OperationCanceledException)
@@ -304,16 +309,16 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         {
             await Sender.EnqueueAsync(Message.RunnableStopped(UniqueId), default);
             _logger.LogContextDebug(ctx);
-            _logger.LogDebug(PhaseStatus.OK);
+            _logger.LogDebug(LogEventStatus.OK);
         }
     }
     
     private async Task DestroyCoreAsync(TContext ctx, CancellationToken token)
     {
-        using var _ = _logger.BeginScope(Scope.Phase(Phase.DESTROY));
+        using var _ = _logger.BeginScope(Scope.Event(LogEvent.DESTROY));
         try
         {
-            _logger.LogDebug(PhaseStatus.PENDING);
+            _logger.LogDebug(LogEventStatus.PENDING);
             await DestroyAsync(ctx, token);
         }
         catch (OperationCanceledException)
@@ -328,7 +333,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         {
             await Sender.EnqueueAsync(Message.RunnableDestroyed(UniqueId), default);
             _logger.LogContextDebug(ctx);
-            _logger.LogInformation(PhaseStatus.OK);
+            _logger.LogInformation(LogEventStatus.OK);
         }
     }
 

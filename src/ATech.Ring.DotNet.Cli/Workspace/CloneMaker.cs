@@ -24,7 +24,7 @@ public class CloneMaker : ICloneMaker
 
     public async Task CloneWorkspaceRepos(string workspacePath, string? outputDir = null, CancellationToken token = default)
     {
-        using var _ = _logger.WithScope(nameof(CloneMaker), Phase.GIT);
+        using var _ = _logger.WithScope(nameof(CloneMaker), LogEvent.GIT);
         await _configurator.LoadAsync(new ConfiguratorPaths { WorkspacePath = workspacePath }, token);
         var haveValidGitUrl = _configurator.Current.Values.OfType<IFromGit>().ToLookup(x => !string.IsNullOrWhiteSpace(x.SshRepoUrl));
 

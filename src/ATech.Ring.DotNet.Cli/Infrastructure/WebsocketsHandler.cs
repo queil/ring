@@ -46,7 +46,7 @@ public class WebsocketsHandler
     {
         try
         {
-            using var _ = _logger.WithProtocolScope(PhaseStatus.OK);
+            using var _ = _logger.WithClientScope();
             await _server.InitializeAsync(token);
 
             var messageLoop = Task.Run(async () =>
@@ -66,7 +66,7 @@ public class WebsocketsHandler
 
             _appLifetime.ApplicationStopping.Register(async () =>
             {
-                using var _ = _logger.WithHostScope(Phase.DESTROY);
+                using var _ = _logger.WithHostScope(LogEvent.DESTROY);
                 await _server.TerminateAsync(default);
                 _logger.LogInformation("Workspace terminated");
                 _logger.LogDebug("Draining pub-sub");
@@ -78,7 +78,7 @@ public class WebsocketsHandler
         }
         catch (OperationCanceledException)
         {
-            using var _ = _logger.WithHostScope(Phase.DESTROY);
+            using var _ = _logger.WithHostScope(LogEvent.DESTROY);
             _logger.LogInformation("Shutting down");
         }
         catch (Exception ex)

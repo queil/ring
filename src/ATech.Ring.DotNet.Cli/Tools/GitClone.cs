@@ -51,7 +51,7 @@ public class GitClone : ITool
 
     public async Task<ExecutionInfo> CloneOrPullAsync(IFromGit gitCfg, CancellationToken token, bool shallow = false, bool defaultBranchOnly = false, string? rootPathOverride = null)
     {
-        using var _ = Logger.WithScope(gitCfg.SshRepoUrl, Phase.GIT);
+        using var _ = Logger.WithScope(gitCfg.SshRepoUrl, LogEvent.GIT);
         var depthArg = shallow ? "--depth=1" : "";
         var singleBranchArg = defaultBranchOnly ? "--single-branch" : "";
         var repoFullPath = ResolveFullClonePath(gitCfg, rootPathOverride);
@@ -60,7 +60,7 @@ public class GitClone : ITool
         {
             Logger.LogDebug("Cloning to {OutputPath}", repoFullPath);
             var result = await Git("clone", singleBranchArg, depthArg, "--", gitCfg.SshRepoUrl, repoFullPath)(token);
-            Logger.LogInformation(result.IsSuccess ? PhaseStatus.OK : PhaseStatus.FAILED);
+            Logger.LogInformation(result.IsSuccess ? LogEventStatus.OK : LogEventStatus.FAILED);
             return result;
         }
 
@@ -85,7 +85,7 @@ public class GitClone : ITool
             }
 
             var result = await Git("-C", repoFullPath, "pull", depthArg)(token);
-            Logger.LogInformation(result.IsSuccess ? PhaseStatus.OK : PhaseStatus.FAILED);
+            Logger.LogInformation(result.IsSuccess ? LogEventStatus.OK : LogEventStatus.FAILED);
             return result;
         }
 
