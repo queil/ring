@@ -29,7 +29,7 @@ public class AspNetCoreRunnable : DotnetRunnableBase<AspNetCoreContext, AspNetCo
 
     protected override async Task StartAsync(AspNetCoreContext ctx, CancellationToken token)
     {
-        var info = await Dotnet.RunAsync(ctx, token, ctx.Urls);
+        var info = await Dotnet.RunAsync(ctx, ctx.Urls, PublishLogs, token);
         ctx.ProcessId = info.Pid;
         ctx.Output = info.Output;
     }

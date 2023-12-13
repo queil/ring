@@ -1,3 +1,5 @@
+using Queil.Ring.Protocol.Events;
+
 namespace ATech.Ring.DotNet.Cli.Abstractions;
 
 using System;
@@ -61,6 +63,11 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         await _fsm.FireAsync(Trigger.Start);
     }
 
+    protected virtual void PublishLogs(string line)
+    {
+        Sender.Enqueue(Message.RunnableLogs(new RunnableLogLine { RunnableId = UniqueId, Line = line }));
+    }
+    
     private async Task<Fsm> InitFsm(CancellationToken token)
     {
         _fsm.Configure(State.Zero)

@@ -12,6 +12,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="MessagePack" Version="2.5.140" />
     <PackageReference Include="System.Text.Json" Version="6.*" />
     <PackageReference Include="System.Threading.Channels" Version="6.*" />
   </ItemGroup>

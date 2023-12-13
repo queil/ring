@@ -17,7 +17,7 @@ public class ProcRunnable : ProcessRunnable<ProcContext, Queil.Ring.Configuratio
     private readonly ProcessRunner _runner;
 
     public ProcRunnable(Queil.Ring.Configuration.Runnables.Proc config,
-        ILogger<ProcessRunnable<ProcContext, Queil.Ring.Configuration.Runnables.Proc>> logger, 
+        ILogger<ProcessRunnable<ProcContext, Queil.Ring.Configuration.Runnables.Proc>> logger,
         ISender sender,
         ProcessRunner runner) : base(config, logger, sender)
     {
@@ -31,7 +31,8 @@ public class ProcRunnable : ProcessRunnable<ProcContext, Queil.Ring.Configuratio
 
     protected override async Task StartAsync(ProcContext ctx, CancellationToken token)
     {
-        var info = await _runner.RunProcessAsync(Config.WorkingDir, Config.Env, Config.Args, token);
+        var info = await _runner.RunProcessAsync(workingDir: Config.WorkingDir, onData: PublishLogs , envVars: Config.Env, args: Config.Args,
+            token: token);
         ctx.ProcessId = info.Pid;
     }
 }

@@ -26,7 +26,7 @@ public class DockerCompose : ITool
 
     public async Task<ExecutionInfo> UpAsync(string composeFilePath, CancellationToken token)
     {
-        return await this.RunProcessAsync(new object[] { "-f", $"\"{composeFilePath}\"", "up", "--force-recreate" }, token);
+        return await this.RunProcessAsync(args: new object[] { "-f", $"\"{composeFilePath}\"", "up", "--force-recreate" }, token: token);
     }
 
     public async Task<ExecutionInfo> DownAsync(string composeFilePath, CancellationToken token)

@@ -52,7 +52,7 @@ public abstract class DotnetRunnableBase<TContext, TConfig> : ProcessRunnable<TC
 
     protected override async Task StartAsync(TContext ctx, CancellationToken token)
     {
-        var info = await Dotnet.RunAsync(ctx, token);
+        var info = await Dotnet.RunAsync(ctx, logger: PublishLogs, token:token);
         ctx.ProcessId = info.Pid;
         ctx.Output = info.Output;
     }
