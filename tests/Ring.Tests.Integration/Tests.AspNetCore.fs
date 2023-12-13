@@ -50,7 +50,7 @@ let tests =
 
               let! (ring: Ring, dir: TestDir) = ctx.Init()
 
-              //ring.Headless(debugMode = true)
+              ring.Headless(debugMode = true)
               do! ring.Client.Connect()
               do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/aspnetcore-urls.toml")
               do! ring.Client.StartWorkspace()
