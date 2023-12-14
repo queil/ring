@@ -36,7 +36,7 @@ let logToFile fileName (options: Options) =
           "RING_Serilog__WriteTo__0__Args__path",
           Path.Combine(Directory.GetCurrentDirectory(), options.TestArtifactsDir, fileName)
           "RING_Serilog__WriteTo__0__Args__outputTemplate",
-          "{Timestamp:HH:mm:ss.fff}|{Level:u3}|{Phase}|{UniqueId}|{Message}{NewLine}{Exception}"
+          "{Timestamp:HH:mm:ss.fff}|{Level:u3}|{LogEvent}|{UniqueId}|{Message}{NewLine}{Exception}"
           "RING_Serilog__WriteTo__1__Name", "" ]
 
     withEnv vars options
@@ -50,11 +50,12 @@ module Expect =
 
         for event in events do
             let event, typ = event
-            let scope = ($"Should receive a message of type {typ}" |> Expect.wantSome event).Scope
-            
+
+            let scope =
+                ($"Should receive a message of type {typ}" |> Expect.wantSome event).Scope
+
             match scope with
-            | Runnable expectedId -> 
-                "Runnable Id should be correct" |> Expect.equal expectedId id
+            | Runnable expectedId -> "Runnable Id should be correct" |> Expect.equal expectedId id
             | s -> failtestf $"Expected runnable scope but got: %A{s}"
 
 type Ring with

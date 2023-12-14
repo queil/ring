@@ -25,7 +25,7 @@ type Msg =
       Payload: byte[]
       Type: M
       Scope: MsgScope }
-    
+
 and MsgScope =
     | Server
     | Workspace
@@ -97,21 +97,20 @@ module Patterns =
         match msg with
         | { Type = M.SERVER_SHUTDOWN } -> Some()
         | _ -> None
-        
+
     let (|Ack|_|) (msg: Msg) =
         match msg with
-        | { Type = M.ACK  } ->
-            let ack : Queil.Ring.Protocol.Ack = LanguagePrimitives.EnumOfValue msg.Payload[0]
-            Some ack
+        | { Scope = Ack ack } -> Some ack
         | _ -> None
 
-    type Ack = 
-      static member value(expectedId: Queil.Ring.Protocol.Ack) =
+    type Ack =
+        static member value(expectedId: Queil.Ring.Protocol.Ack) =
             function
             | Ack actualId when actualId = expectedId -> true
             | _ -> false
-      static member taskOk = Ack.value Ack.TaskOk
-      
+
+        static member taskOk = Ack.value Ack.TaskOk
+
     type Runnable =
 
         static member private idOrAny actual expected =
@@ -216,32 +215,44 @@ type WsClient(options: ClientOptions) =
                 listenTask <-
                     s.ListenAsync(
                         WebSocketExtensions.HandleMessage(fun m t ->
-                            let msg =
-                                { Timestamp = DateTime.Now.ToLocalTime()
-                                  Type = m.Type
-                                  Payload = m.Payload.ToArray()
-                                  Scope =
-                                    match m.Type with
-                                    | M.RUNNABLE_HEALTHY
-                                    | M.RUNNABLE_HEALTH_CHECK
-                                    | M.RUNNABLE_STARTED
-                                    | M.RUNNABLE_STOPPED
-                                    | M.RUNNABLE_DESTROYED
-                                    | M.RUNNABLE_INITIATED
-                                    | M.RUNNABLE_RECOVERING
-                                    | M.RUNNABLE_UNRECOVERABLE -> MsgScope.Runnable m.PayloadString
-                                    | M.WORKSPACE_INFO_PUBLISH -> Workspace
-                                    | M.SERVER_IDLE
-                                    | M.SERVER_LOADED
-                                    | M.SERVER_RUNNING
-                                    | M.SERVER_SHUTDOWN -> Server
-                                    | M.ACK
-                                    | _ -> Unknown }
 
-                            if not <| buffer.Writer.TryWrite(msg) then
-                                failwithf $"Could not write: %A{msg}"
+                            try
+                                let msg =
+                                    { Timestamp = DateTime.Now.ToLocalTime()
+                                      Type = m.Type
+                                      Payload = m.Payload.ToArray()
+                                      Scope =
+                                        match m.Type with
+                                        | M.RUNNABLE_HEALTHY
+                                        | M.RUNNABLE_HEALTH_CHECK
+                                        | M.RUNNABLE_STARTED
+                                        | M.RUNNABLE_STOPPED
+                                        | M.RUNNABLE_DESTROYED
+                                        | M.RUNNABLE_INITIATED
+                                        | M.RUNNABLE_RECOVERING
+                                        | M.RUNNABLE_UNRECOVERABLE -> MsgScope.Runnable m.PayloadString
+                                        | M.WORKSPACE_INFO_PUBLISH -> Workspace
+                                        | M.SERVER_IDLE
+                                        | M.SERVER_LOADED
+                                        | M.SERVER_RUNNING
+                                        | M.SERVER_SHUTDOWN -> Server
+                                        | M.ACK ->
+                                            Ack(
+                                                if m.Payload.Length > 0 then
+                                                    LanguagePrimitives.EnumOfValue m.Payload[0]
+                                                else
+                                                    Ack.Ok
+                                            )
+                                        | _ -> Unknown }
 
-                            Task.CompletedTask),
+                                if not <| buffer.Writer.TryWrite(msg) then
+                                    failwithf $"Could not write: %A{msg}"
+                            with ex ->
+                                eprintfn $"%A{ex}"
+                            
+                            Task.CompletedTask
+
+                        ),
                         cancellationToken
                     )
 

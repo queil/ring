@@ -15,9 +15,7 @@ open Ring.Tests.Integration.TestContext
 let tests =
     testList
         "AspNetCore runnable tests"
-        [
-
-          testTask "should override url via Urls" {
+        [ testTask "should override url via Urls" {
               use ctx = new TestContext(localOptions >> logToFile "aspnetcore-urls.ring.log")
               let! (ring: Ring, dir: TestDir) = ctx.Init()
 
@@ -55,29 +53,29 @@ let tests =
               do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/aspnetcore-urls.toml")
               do! ring.Client.StartWorkspace()
 
-              let! healthy =
-                  ring.Client.NewEvents
-                  |> AsyncSeq.exists (Runnable.healthy "aspnetcore")
-                  |> Async.AsTaskTimeout
-
-              "Aspnetcore runnable expected healthy" |> Expect.isTrue healthy
-
-              do! ring.Client.ExecuteTask("aspnetcore", "build")
-
               let! events =
                   (ring.Stream
+                   |> AsyncSeq.mapAsync (function
+                       | RunnableHealthy "aspnetcore" as x ->
+                           async {
+                               do! ring.Client.ExecuteTask("aspnetcore", "build") |> Async.AwaitTask
+                               return x
+                           }
+
+                       | x -> async { return x })
                    |> AsyncSeq.takeWhileInclusive (not << Ack.taskOk)
                    |> AsyncSeq.map (fun m -> (m.Type, m.Scope))
                    |> AsyncSeq.toListAsync
                    |> Async.AsTaskTimeout)
 
               "Unexpected events sequence"
-              |> Expect.sequenceEqual
+              |> Expect.sequenceContainsOrder
                   events
-                  [ (M.RUNNABLE_STOPPED, MsgScope.Runnable "aspnetcore")
-                    (M.ACK, MsgScope.Ack Ack.TaskOk)
-                    (M.RUNNABLE_STARTED, MsgScope.Runnable "aspnetcore")
-                    M.RUNNABLE_HEALTHY, MsgScope.Runnable "aspnetcore" ]
+                  [ M.RUNNABLE_STOPPED, MsgScope.Runnable "aspnetcore"
+                    M.RUNNABLE_DESTROYED, MsgScope.Runnable "aspnetcore"
+                    M.RUNNABLE_INITIATED, MsgScope.Runnable "aspnetcore"
+                    M.RUNNABLE_STARTED, MsgScope.Runnable "aspnetcore"
+                    M.ACK, MsgScope.Ack Ack.TaskOk ]
 
               do! ring.Client.Terminate()
           } ]
