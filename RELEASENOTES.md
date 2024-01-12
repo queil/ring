@@ -1,5 +1,10 @@
 # Release notes
 
+## 4.3.0
+
+* add: allow defining auxiliary tasks that can be run from the client
+* fix: improve logging scopes and readability 
+
 ## 4.2.0
 
 * add: enable setting env vars in dotnet apps
