@@ -9,7 +9,7 @@
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <Authors>Krzysztof Kraszewski</Authors>
-    <Configurations>Debug;Release;ReleaseVsix</Configurations>
+    <Configurations>Debug;Release</Configurations>
     <PackageType>DotNetCliTool</PackageType>
     <PackageTags>dotnet, cli, dotnet-cli, global, tool, ring, nuget, package</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
