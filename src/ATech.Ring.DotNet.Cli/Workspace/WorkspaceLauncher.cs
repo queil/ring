@@ -227,7 +227,8 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
                 cfg.GetType().Name,
                 runnableState,
                 cfg.Tags.ToArray(),
-                details);
+                details,
+                cfg.Tasks.Keys.ToArray());
 
             return runnableInfo;
         }).OrderBy(x => x.Id).ToArray();

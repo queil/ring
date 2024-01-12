@@ -2,13 +2,14 @@
 
 public enum Ack : byte
 {
-    Ok = 0,
-    ExpectedEndOfMessage = 1,
-    NotSupported = 2,
-    ServerError = 3,
-    Terminating = 4,
-    NotFound = 5,
-    Alive = 6,
-    TaskFailed = 7,
-    TaskOk = 8
+    None = 0,
+    Ok = 1,
+    ExpectedEndOfMessage = 2,
+    NotSupported = 3,
+    ServerError = 4,
+    Terminating = 5,
+    NotFound = 6,
+    Alive = 7,
+    TaskFailed = 8,
+    TaskOk = 9
 }
