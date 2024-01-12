@@ -60,7 +60,7 @@ internal sealed class RunnableContainer : IAsyncDisposable
                         : null;
                 runner.Command = taskDefinition.Command;
                 var result = await runner.RunProcessAsync(workDir, args: taskDefinition.Args, token: token);
-                var finalResult =  result.Task is {} t ? await t : result;
+                var finalResult = result.Task is { } t ? await t : result;
                 return finalResult.IsSuccess ? ExecuteTaskResult.Ok : ExecuteTaskResult.Failed;
             }, bringDown: taskDefinition.BringDown);
         }

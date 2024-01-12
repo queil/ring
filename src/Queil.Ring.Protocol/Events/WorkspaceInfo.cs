@@ -8,7 +8,7 @@ namespace Queil.Ring.Protocol.Events;
 
 public class WorkspaceInfo : IEquatable<WorkspaceInfo>
 {
-    public WorkspaceInfo(string path, 
+    public WorkspaceInfo(string path,
         RunnableInfo[] runnables,
         string[] flavours,
         string currentFlavour,
@@ -36,11 +36,11 @@ public class WorkspaceInfo : IEquatable<WorkspaceInfo>
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
-        return string.Equals(Path, other.Path) 
-               && Runnables.SequenceEqual(other.Runnables) 
+        return string.Equals(Path, other.Path)
+               && Runnables.SequenceEqual(other.Runnables)
                && Flavours.SequenceEqual(other.Flavours)
                && CurrentFlavour == other.CurrentFlavour
-               && ServerState == other.ServerState 
+               && ServerState == other.ServerState
                && WorkspaceState == other.WorkspaceState;
     }
 

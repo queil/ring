@@ -44,7 +44,7 @@ public class KubectlBundle : ITool
         var result = await this.RunProcessWaitAsync(new object[] { "apply", "--validate=true", "--dry-run=client", "-f", $"\"{filePath}\"" }, token);
         return result.IsSuccess;
     }
-    
+
     public async Task<ExecutionInfo> KustomizeBuildAsync(string kustomizeDir, string outputFilePath, CancellationToken token)
     {
         return await _kustomize.BuildAsync(kustomizeDir, outputFilePath, token);

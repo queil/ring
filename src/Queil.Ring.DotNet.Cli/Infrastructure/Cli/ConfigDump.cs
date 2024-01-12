@@ -12,10 +12,10 @@ public class ConfigPath : BaseOptions
 {
     [Option(Group = "scope")]
     public bool Local { get; set; }
-    
+
     [Option(Group = "scope")]
     public bool User { get; set; }
-    
+
     [Option(Group = "scope")]
     public bool Default { get; set; }
 }
@@ -25,7 +25,7 @@ public class ConfigCreate : BaseOptions
 {
     [Option(Group = "scope")]
     public bool Local { get; set; }
-    
+
     [Option(Group = "scope")]
     public bool User { get; set; }
 }

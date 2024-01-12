@@ -17,7 +17,7 @@ public class ProcRunnable : ProcessRunnable<ProcContext, Queil.Ring.Configuratio
     private readonly ProcessRunner _runner;
 
     public ProcRunnable(Queil.Ring.Configuration.Runnables.Proc config,
-        ILogger<ProcessRunnable<ProcContext, Queil.Ring.Configuration.Runnables.Proc>> logger, 
+        ILogger<ProcessRunnable<ProcContext, Queil.Ring.Configuration.Runnables.Proc>> logger,
         ISender sender,
         ProcessRunner runner) : base(config, logger, sender)
     {

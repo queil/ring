@@ -13,5 +13,5 @@ public interface IRunnable
     State State { get; }
     event EventHandler OnHealthCheckCompleted;
     event EventHandler OnInitExecuted;
-    IReadOnlyDictionary<string,object> Details { get; }
+    IReadOnlyDictionary<string, object> Details { get; }
 }

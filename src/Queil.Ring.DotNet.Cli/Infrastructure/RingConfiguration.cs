@@ -15,7 +15,7 @@ internal static class Env
         {
             path = string.Join(Path.DirectorySeparatorChar,
                 from c in path.Split(Path.DirectorySeparatorChar)
-                select c.Contains('$') ? string.Concat(c.Replace('$','%'),"%") : c);
+                select c.Contains('$') ? string.Concat(c.Replace('$', '%'), "%") : c);
         }
 
         return Environment.ExpandEnvironmentVariables(path);
@@ -71,7 +71,7 @@ public class KubernetesSettings
         set => _configPath = Env.ExpandPath(value);
     }
 
-    public string[]? AllowedContexts { get; set; } 
+    public string[]? AllowedContexts { get; set; }
 }
 
 public class InitHookConfig

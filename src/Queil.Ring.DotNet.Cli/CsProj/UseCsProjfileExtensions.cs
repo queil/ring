@@ -12,7 +12,7 @@ public static class UseCsProjFileExtensions
 {
     private const string MsBuildNs = "http://schemas.microsoft.com/developer/msbuild/2003";
 
-    public static string GetWorkingDir(this IUseCsProjFile proj) => 
+    public static string GetWorkingDir(this IUseCsProjFile proj) =>
         new FileInfo(proj.FullPath).DirectoryName
         ?? throw new InvalidOperationException($"Path '{proj.FullPath}' doesn't have directory name");
     public static string GetProjName(this IUseCsProjFile proj) => Path.GetFileNameWithoutExtension(proj.FullPath);
@@ -50,7 +50,7 @@ public static class UseCsProjFileExtensions
             if (originalUri is not Uri u) throw new InvalidOperationException("iisExpress.applicationUrl must not be empty");
             var builder = new UriBuilder(u)
             {
-                Port = settings.sslPort != 0 ? settings.sslPort : originalUri.Port, 
+                Port = settings.sslPort != 0 ? settings.sslPort : originalUri.Port,
                 Scheme = settings.sslPort != 0 ? Uri.UriSchemeHttps : originalUri.Scheme
             };
             return builder.Uri;

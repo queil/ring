@@ -20,14 +20,14 @@ public static class WebApplicationExtensions
                 await app.Services.GetRequiredService<ICloneMaker>().CloneWorkspaceRepos(c.WorkspacePath, c.OutputDir);
                 break;
             case ConfigDump:
-            {
-                var debugView = ((IConfigurationRoot)app.Services.GetRequiredService<IConfiguration>()).GetDebugView();
-                Console.WriteLine(debugView);
-                break;
-            }
+                {
+                    var debugView = ((IConfigurationRoot)app.Services.GetRequiredService<IConfiguration>()).GetDebugView();
+                    Console.WriteLine(debugView);
+                    break;
+                }
             case HeadlessOptions:
             case ConsoleOptions:
-                await app.RunAsync(); 
+                await app.RunAsync();
                 break;
             default:
                 throw new InvalidOperationException("CLI is misconfigured");

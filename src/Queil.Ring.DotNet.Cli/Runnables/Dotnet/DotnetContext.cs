@@ -18,10 +18,10 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
     public string TargetRuntime { get; set; }
     public string EntryAssemblyPath { get; set; }
     public string ExePath => Path.ChangeExtension(EntryAssemblyPath, "exe");
-    public Dictionary<string,string> Env { get; set; } = new();
+    public Dictionary<string, string> Env { get; set; } = new();
     public int ConsecutiveFailures { get; set; }
     public int TotalFailures { get; set; }
-    public static T Create<T, C>(C config, Func<IFromGit,string> resolveFullClonePath) where C : IUseCsProjFile where T : DotnetContext
+    public static T Create<T, C>(C config, Func<IFromGit, string> resolveFullClonePath) where C : IUseCsProjFile where T : DotnetContext
     {
         var originalCsProjPath = config.CsProj;
         try

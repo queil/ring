@@ -22,7 +22,7 @@ public class IISExpressExe : ITool
         Logger.LogError(message);
     }
 
-    public async Task<ExecutionInfo> StartWebsite(string configPath, CancellationToken token, IDictionary<string,string>? envVars = null)
+    public async Task<ExecutionInfo> StartWebsite(string configPath, CancellationToken token, IDictionary<string, string>? envVars = null)
     {
         return await this.RunProcessAsync(OnError, envVars, new object[] { $"/config:\"{configPath}\"", $"/siteid:1" }, token);
     }

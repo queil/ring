@@ -33,7 +33,7 @@ internal static class ChildProcessTracker
         // This feature requires Windows
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return;
-            
+
         // This feature requires Windows 8 or later. To support Windows 7 requires
         //  registry settings to be added if you are using Visual Studio plus an
         //  app.manifest change.
@@ -51,9 +51,9 @@ internal static class ChildProcessTracker
         // This is the key flag. When our process is killed, Windows will automatically
         //  close the job handle, and when that happens, we want the child processes to
         //  be killed, too.
-        var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION {LimitFlags = JOBOBJECTLIMIT.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE};
+        var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION { LimitFlags = JOBOBJECTLIMIT.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE };
 
-        var extendedInfo = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION {BasicLimitInformation = info};
+        var extendedInfo = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION { BasicLimitInformation = info };
 
         var length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
         var extendedInfoPtr = Marshal.AllocHGlobal(length);
@@ -62,7 +62,7 @@ internal static class ChildProcessTracker
             Marshal.StructureToPtr(extendedInfo, extendedInfoPtr, false);
 
             if (!SetInformationJobObject(s_jobHandle, JobObjectInfoType.ExtendedLimitInformation,
-                    extendedInfoPtr, (uint) length))
+                    extendedInfoPtr, (uint)length))
             {
                 throw new Win32Exception();
             }

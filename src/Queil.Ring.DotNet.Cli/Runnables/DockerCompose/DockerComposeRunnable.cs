@@ -25,7 +25,7 @@ public class DockerComposeRunnable : Runnable<DockerComposeContext, DockerCompos
     protected override async Task<DockerComposeContext> InitAsync(CancellationToken token)
     {
         AddDetail(DetailsKeys.DockerComposePath, Config.FullPath);
-        var ctx = new DockerComposeContext{ComposeFilePath = Config.FullPath };
+        var ctx = new DockerComposeContext { ComposeFilePath = Config.FullPath };
         await _dockerCompose.RmAsync(ctx.ComposeFilePath, token);
         await _dockerCompose.PullAsync(ctx.ComposeFilePath, token);
         return ctx;
@@ -48,7 +48,7 @@ public class DockerComposeRunnable : Runnable<DockerComposeContext, DockerCompos
     }
 
     protected override async Task DestroyAsync(DockerComposeContext ctx, CancellationToken token)
-    { 
+    {
         await _dockerCompose.DownAsync(ctx.ComposeFilePath, token);
     }
 }

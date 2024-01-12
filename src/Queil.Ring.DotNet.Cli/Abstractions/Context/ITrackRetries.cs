@@ -2,6 +2,6 @@
 
 public interface ITrackRetries
 {
-    int ConsecutiveFailures{ get; set; }
+    int ConsecutiveFailures { get; set; }
     int TotalFailures { get; set; }
 }

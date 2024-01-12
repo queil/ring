@@ -15,8 +15,8 @@ public class NetExeRunnable : CsProjRunnable<NetExeContext, NetExeConfig>
 
     public NetExeRunnable(
         NetExeConfig config,
-        ProcessRunner processRunner, 
-        ILogger<NetExeRunnable> logger, 
+        ProcessRunner processRunner,
+        ILogger<NetExeRunnable> logger,
         ISender sender) : base(config, logger, sender)
     {
         _processRunner = processRunner;

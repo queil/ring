@@ -3,8 +3,8 @@ using Queil.Ring.DotNet.Cli.CsProj;
 
 namespace Queil.Ring.DotNet.Cli.Runnables.Windows.NetExe;
 
-public class NetExeContext : ITrackProcessId, 
-    ITrackProcessOutput, 
+public class NetExeContext : ITrackProcessId,
+    ITrackProcessOutput,
     ICsProjContext,
     ITrackRetries
 {

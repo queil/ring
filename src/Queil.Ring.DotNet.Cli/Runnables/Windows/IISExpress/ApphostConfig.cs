@@ -31,7 +31,7 @@ public class ApphostConfig
         binding.Attributes["bindingInformation"].Value = $":{Uri.Port}:{Uri.Host}";
         binding.Attributes["protocol"].Value = Uri.Scheme;
         var cfgPath = Path.Combine(IISExpressTempDir, $"applicationhost{Guid.NewGuid():n}.config");
-           
+
         apphostConfig.Save(cfgPath);
         return cfgPath;
     }

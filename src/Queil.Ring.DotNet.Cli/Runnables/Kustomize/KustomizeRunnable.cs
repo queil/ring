@@ -75,7 +75,7 @@ public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
                     {
                         return false;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         _logger.LogError(ex, "Could not get pod status");
                         return false;
@@ -93,7 +93,7 @@ public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
             CachePath = GetCachePath(kustomizationDir)
         };
         Directory.CreateDirectory(_cacheDir);
-        
+
         if (!File.Exists(ctx.CachePath) || !await _bundle.IsValidManifestAsync(ctx.CachePath, token))
         {
             var kustomizeResult = await _bundle.KustomizeBuildAsync(kustomizationDir, ctx.CachePath, token);

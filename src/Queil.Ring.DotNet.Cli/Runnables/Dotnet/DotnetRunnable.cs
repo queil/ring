@@ -20,7 +20,7 @@ public abstract class DotnetRunnableBase<TContext, TConfig> : ProcessRunnable<TC
 
     protected DotnetRunnableBase(TConfig config,
         DotnetCliBundle dotnet,
-        ILogger<DotnetRunnableBase<TContext, TConfig>> logger, 
+        ILogger<DotnetRunnableBase<TContext, TConfig>> logger,
         ISender sender,
         GitClone gitClone
     ) : base(config, logger, sender)
@@ -35,8 +35,8 @@ public abstract class DotnetRunnableBase<TContext, TConfig> : ProcessRunnable<TC
     protected override async Task<TContext> InitAsync(CancellationToken token)
     {
         if (Config is IFromGit { SshRepoUrl: not null } gitCfg) await _gitClone.CloneOrPullAsync(gitCfg, token, shallow: true, defaultBranchOnly: true);
- 
-        var ctx = DotnetContext.Create<TContext,TConfig>(Config, c => _gitClone.ResolveFullClonePath(c));
+
+        var ctx = DotnetContext.Create<TContext, TConfig>(Config, c => _gitClone.ResolveFullClonePath(c));
         if (File.Exists(ctx.EntryAssemblyPath)) return ctx;
 
         _logger.LogDebug("Building {Project}", ctx.CsProjPath);

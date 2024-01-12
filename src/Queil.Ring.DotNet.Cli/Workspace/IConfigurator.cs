@@ -12,6 +12,6 @@ public interface IConfigurator
     event EventHandler<ConfigurationChangedArgs> OnConfigurationChanged;
     Task LoadAsync(ConfiguratorPaths paths, CancellationToken token);
     Task UnloadAsync(CancellationToken token);
-    bool TryGet(string key, [NotNullWhen(true)]out IRunnableConfig? cfg);
+    bool TryGet(string key, [NotNullWhen(true)] out IRunnableConfig? cfg);
     ConfigSet Current { get; }
 }

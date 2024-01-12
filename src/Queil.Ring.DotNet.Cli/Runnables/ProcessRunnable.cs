@@ -27,8 +27,8 @@ public abstract class ProcessRunnable<TContext, TConfig> : Runnable<TContext, TC
     /// <returns></returns>
     protected override Task<HealthStatus> CheckHealthAsync(TContext ctx, CancellationToken token)
     {
-        return ctx.ProcessId == 0 ? 
-            Task.FromResult(HealthStatus.Unhealthy) 
+        return ctx.ProcessId == 0 ?
+            Task.FromResult(HealthStatus.Unhealthy)
             : Task.FromResult(ProcessExtensions.IsProcessRunning(ctx.ProcessId) ? HealthStatus.Ok : HealthStatus.Unhealthy);
     }
 

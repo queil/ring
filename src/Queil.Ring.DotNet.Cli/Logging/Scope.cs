@@ -6,5 +6,5 @@ public class Scope : Dictionary<string, object>
 {
     public const string LogEventKey = "LogEvent";
     public const string UniqueIdKey = "UniqueId";
-    public static Scope Event(LogEvent logEvent) => new (){ { LogEventKey, logEvent } };
+    public static Scope Event(LogEvent logEvent) => new() { { LogEventKey, logEvent } };
 }

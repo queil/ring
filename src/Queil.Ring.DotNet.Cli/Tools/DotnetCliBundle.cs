@@ -16,8 +16,8 @@ public class DotnetCliBundle : ITool
     public ILogger<ITool> Logger { get; }
     public string Command { get; set; } = "dotnet";
     public string[] DefaultArgs { get; set; } = Array.Empty<string>();
-    public Dictionary<string, string> DefaultEnvVars = new() { ["ASPNETCORE_ENVIRONMENT"] = "Development"};
-        
+    public Dictionary<string, string> DefaultEnvVars = new() { ["ASPNETCORE_ENVIRONMENT"] = "Development" };
+
     public DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundle> logger)
     {
         _processRunner = processRunner;
@@ -25,9 +25,9 @@ public class DotnetCliBundle : ITool
     }
 
     public async Task<ExecutionInfo> RunAsync(DotnetContext ctx, CancellationToken token, string[]? urls = null)
-    {          
+    {
         HandleUrls();
-        foreach (var (k,v) in ctx.Env)
+        foreach (var (k, v) in ctx.Env)
         {
             DefaultEnvVars[k] = v;
         }

@@ -64,7 +64,7 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
     var services = builder.Services;
-    
+
     services.AddSingleton(options);
     if (options is ServeOptions) services.AddSingleton(f => (ServeOptions)f.GetRequiredService<BaseOptions>());
     services.AddSingleton<Func<Uri, HttpClient>>(_ => uri => clients.GetOrAdd(uri, new HttpClient { BaseAddress = uri, MaxResponseContentBufferSize = 1 }));
@@ -86,7 +86,7 @@ try
     {
         var configuredPath = f.GetRequiredService<IOptions<RingConfiguration>>().Value.Kubernetes.ConfigPath;
         var maybeKubeconfigEnv = Environment.GetEnvironmentVariable("KUBECONFIG");
-        var configPath = maybeKubeconfigEnv ?? configuredPath ?? throw new InvalidOperationException("Kubernetes config path is not set"); 
+        var configPath = maybeKubeconfigEnv ?? configuredPath ?? throw new InvalidOperationException("Kubernetes config path is not set");
         return new Kubernetes(KubernetesClientConfiguration.BuildConfigFromConfigFile(configPath));
     });
 
@@ -100,7 +100,7 @@ try
     services.AddTransient<GitClone>();
     services.AddTransient<DotnetCliBundle>();
     services.AddTransient<DockerCompose>();
-    
+
     builder.Host.UseSerilog();
 
     builder.Host.ConfigureContainer<IServiceContainer>((ctx, container) =>

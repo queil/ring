@@ -44,7 +44,7 @@ public class GitClone : ITool
         return Path.IsPathRooted(targetPath) ? targetPath : Path.GetFullPath(targetPath);
     }
 
-    private Func<CancellationToken,Task<ExecutionInfo>> Git(params string[] args)
+    private Func<CancellationToken, Task<ExecutionInfo>> Git(params string[] args)
     {
         return (token) => this.TryAsync(3, TimeSpan.FromSeconds(10), t => t.RunProcessWaitAsync(args, token), token);
     }
@@ -67,7 +67,7 @@ public class GitClone : ITool
         if (!Directory.Exists(repoFullPath)) return await CloneAsync();
 
         var output = await Git("-C", repoFullPath, "status", "--short", "--branch")(token);
-       
+
         if (output.IsSuccess)
         {
             Logger.LogInformation("Updating repository at {OutputPath}", repoFullPath);

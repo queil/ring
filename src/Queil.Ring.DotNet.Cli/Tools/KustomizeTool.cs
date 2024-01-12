@@ -16,7 +16,7 @@ public class KustomizeTool : ITool
     public string Command { get; set; } = "kustomize";
     public string[] DefaultArgs { get; set; } = Array.Empty<string>();
     public ILogger<ITool> Logger { get; }
-    
+
     public async Task<ExecutionInfo> BuildAsync(string kustomizeDir, string outputFilePath, CancellationToken token)
     {
         var output = await this.RunProcessWaitAsync(new object[] { "build", kustomizeDir }, token);

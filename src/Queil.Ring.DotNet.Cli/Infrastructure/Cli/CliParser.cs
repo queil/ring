@@ -36,7 +36,7 @@ public static class CliParser
                 Console.WriteLine($"Config file (scope: {scope}) already exists: {path}");
             }
         }
-        
+
         BaseOptions options = new ConsoleOptions { IsDebug = false };
         Parser.Default
             .ParseArguments<
