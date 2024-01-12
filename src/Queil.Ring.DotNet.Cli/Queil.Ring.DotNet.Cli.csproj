@@ -1,0 +1,66 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <PackAsTool>true</PackAsTool>
+    <IsPackable>true</IsPackable>
+    <ToolCommandName>ring</ToolCommandName>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <Authors>Krzysztof Kraszewski</Authors>
+    <Configurations>Debug;Release</Configurations>
+    <PackageType>DotNetCliTool</PackageType>
+    <PackageTags>dotnet, cli, dotnet-cli, global, tool, ring, nuget, package</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReleaseNotes>https://github.com/queil/ring/blob/master/RELEASENOTES.md</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>ring.128.png</PackageIcon>
+    <PackageDescription>ring! service launcher and monitor</PackageDescription>
+    <RepositoryUrl>https://github.com/queil/ring</RepositoryUrl>
+    <RootNamespace>ATech.Ring.DotNet.Cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.*" />
+    <PackageReference Include="KubernetesClient" Version="8.*" />
+    <PackageReference Include="LightInject.Microsoft.AspNetCore.Hosting" Version="2.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.*" />
+    <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.*" />
+    <PackageReference Include="Serilog.AspNetCore" Version="6.*" />
+    <PackageReference Include="Stateless" Version="5.*" />
+    <PackageReference Include="Tomlyn.Extensions.Configuration" Version="1.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Queil.Ring.Configuration\Queil.Ring.Configuration.csproj" />
+    <ProjectReference Include="..\Queil.Ring.Protocol\Queil.Ring.Protocol.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="app.linux.toml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app.osx.toml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app.windows.toml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="logging.linux.toml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="logging.osx.toml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="logging.windows.toml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Media/ring.128.png" Pack="true" PackagePath="/" />
+    <None Include="$(MSBuildThisFileDirectory)../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>
