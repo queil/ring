@@ -18,7 +18,7 @@
     <PackageIcon>ring.128.png</PackageIcon>
     <PackageDescription>ring! service launcher and monitor</PackageDescription>
     <RepositoryUrl>https://github.com/queil/ring</RepositoryUrl>
-    <RootNamespace>ATech.Ring.DotNet.Cli</RootNamespace>
+    <AssemblyName>ATech.Ring.DotNet.Cli</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
