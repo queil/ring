@@ -43,7 +43,7 @@ public static class WebSocketExtensions
                         return;
                     }
                     await ms.WriteAsync(buffer.AsMemory(0, result.Count), token);
-                    
+
                 } while (!result.EndOfMessage);
 
                 ms.Seek(0, SeekOrigin.Begin);

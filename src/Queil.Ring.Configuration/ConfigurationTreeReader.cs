@@ -27,7 +27,7 @@ public class ConfigurationTreeReader : IConfigurationTreeReader
             if (c == null) return new WorkspaceConfig();
             foreach (var import in c.imports)
             {
-                c.import.Add(new WorkspaceConfig{path = import});
+                c.import.Add(new WorkspaceConfig { path = import });
             }
             c.Parent = parent;
             c.path = fullPath;

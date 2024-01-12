@@ -1,0 +1,58 @@
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Queil.Ring.DotNet.Cli.Dtos;
+using Queil.Ring.DotNet.Cli.Infrastructure;
+using Queil.Ring.DotNet.Cli.Tools;
+using Queil.Ring.DotNet.Cli.Tools.Windows;
+using IISXCoreConfig = Queil.Ring.Configuration.Runnables.IISXCore;
+
+namespace Queil.Ring.DotNet.Cli.Runnables.Windows.IISExpress;
+
+public class IISXCoreRunnable : CsProjRunnable<IISXCoreContext, IISXCoreConfig>
+{
+    private readonly IISExpressExe _iisExpress;
+    private readonly ILogger<IISXCoreRunnable> _logger;
+    private readonly GitClone _gitClone;
+
+    public IISXCoreRunnable(
+        IISXCoreConfig config,
+        IISExpressExe iisExpress,
+        ILogger<IISXCoreRunnable> logger,
+        ISender sender, GitClone gitClone) : base(config, logger, sender)
+    {
+        _iisExpress = iisExpress;
+        _logger = logger;
+        _gitClone = gitClone;
+    }
+
+    protected override IISXCoreContext CreateContext()
+    {
+        AddDetail(DetailsKeys.CsProjPath, Config.FullPath);
+        var ctx = IISXCoreContext.Create(Config, c => _gitClone.ResolveFullClonePath(c));
+        AddDetail(DetailsKeys.WorkDir, ctx.WorkingDir);
+        AddDetail(DetailsKeys.ProcessId, ctx.ProcessId);
+        AddDetail(DetailsKeys.Uri, ctx.Uri);
+        return ctx;
+    }
+
+    protected override async Task<IISXCoreContext> InitAsync(CancellationToken token)
+    {
+        var ctx = await base.InitAsync(token);
+        var apphostConfig = new ApphostConfig { VirtualDir = ctx.WorkingDir, Uri = ctx.Uri };
+        ctx.TempAppHostConfigPath = apphostConfig.Ensure();
+        return ctx;
+    }
+
+    protected override async Task StartAsync(IISXCoreContext ctx, CancellationToken token)
+    {
+        var result = await _iisExpress.StartWebsite(ctx.TempAppHostConfigPath, token, new Dictionary<string, string>
+        {
+            ["LAUNCHER_PATH"] = ctx.ExePath
+        });
+        ctx.ProcessId = result.Pid;
+        ctx.Output = result.Output;
+        _logger.LogInformation("{Uri}", ctx.Uri);
+    }
+}

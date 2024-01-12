@@ -60,7 +60,7 @@ public readonly ref struct Message
 
     public Message(ReadOnlySpan<byte> bytes) => Bytes = bytes.SliceUntilNull();
     public Message(M type, string value) : this(type, Encoding.UTF8.GetBytes(value)) { }
-    public Message(M type, byte value) : this(type, new [] {value}) { }
+    public Message(M type, byte value) : this(type, new[] { value }) { }
     public Message(M type, ReadOnlySpan<byte> bytes)
     {
         var trimmedBytes = bytes.SliceUntilNull();
