@@ -31,34 +31,34 @@ public class RingMiddleware
             if (!context.Request.Query.ContainsKey(clientIdKey))
             {
                 var errorSocket = await context.WebSockets.AcceptWebSocketAsync();
-                await errorSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "clientId (uuid) expected in query string.", context.RequestAborted);
+                await errorSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError,
+                    "clientId (uuid) expected in query string.", context.RequestAborted);
                 return;
-
             }
+
             if (!Guid.TryParse(context.Request.Query[clientIdKey], out clientId))
             {
                 var errorSocket = await context.WebSockets.AcceptWebSocketAsync();
-                await errorSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "clientId is not a valid Uuid / Guid.", context.RequestAborted);
+                await errorSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError,
+                    "clientId is not a valid Uuid / Guid.", context.RequestAborted);
                 return;
             }
 
-            using (log.WithProtocolScope(PhaseStatus.OK))
+            await _socketManager.ListenAsync(clientId, () =>
             {
-                await _socketManager.ListenAsync(clientId, () =>
-                {
-                    var s = context.WebSockets.AcceptWebSocketAsync();
-                    log.LogInformation("Client {clientId} connected", clientId);
-                    return s;
-                }, context.Get<IHostApplicationLifetime>().ApplicationStopped);
-            }
+                var s = context.WebSockets.AcceptWebSocketAsync();
+                using (log.WithClientScope()) log.LogInformation("Client {clientId} connected", clientId);
+                return s;
+            }, context.Get<IHostApplicationLifetime>().ApplicationStopped);
         }
         catch (OperationCanceledException)
         {
-            context.Logger().LogInformation("Client {clientId} disconnected", clientId);
+            using (context.Logger().WithClientScope())
+                context.Logger().LogInformation("Client {clientId} disconnected", clientId);
         }
         catch (Exception ex)
         {
-            context.Logger().LogError("Unhandled: {ex}", ex);
+            using (context.Logger().WithClientScope()) context.Logger().LogError("Unhandled: {ex}", ex);
         }
     }
 }

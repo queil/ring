@@ -1,7 +1,7 @@
 ﻿// ReSharper disable InconsistentNaming
 namespace ATech.Ring.DotNet.Cli.Logging;
 
-public enum Phase
+public enum LogEvent
 {
     INIT = 0,
     START = 1,
@@ -11,5 +11,6 @@ public enum Phase
     DESTROY = 5,
     EXCLUDE = 6,
     CONFIG = 7,
-    GIT = 8
+    GIT = 8,
+    TRACE = 9
 }

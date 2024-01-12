@@ -1,4 +1,6 @@
-﻿namespace ATech.Ring.DotNet.Cli.Infrastructure;
+﻿using Queil.Ring.Protocol.Events;
+
+namespace ATech.Ring.DotNet.Cli.Infrastructure;
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +46,7 @@ public class WebsocketsHandler
     {
         try
         {
-            using var _ = _logger.WithProtocolScope(PhaseStatus.OK);
+            using var _ = _logger.WithClientScope();
             await _server.InitializeAsync(token);
 
             var messageLoop = Task.Run(async () =>
@@ -64,7 +66,7 @@ public class WebsocketsHandler
 
             _appLifetime.ApplicationStopping.Register(async () =>
             {
-                using var _ = _logger.WithHostScope(Phase.DESTROY);
+                using var _ = _logger.WithHostScope(LogEvent.DESTROY);
                 await _server.TerminateAsync(default);
                 _logger.LogInformation("Workspace terminated");
                 _logger.LogDebug("Draining pub-sub");
@@ -76,7 +78,7 @@ public class WebsocketsHandler
         }
         catch (OperationCanceledException)
         {
-            using var _ = _logger.WithHostScope(Phase.DESTROY);
+            using var _ = _logger.WithHostScope(LogEvent.DESTROY);
             _logger.LogInformation("Shutting down");
         }
         catch (Exception ex)
@@ -107,6 +109,7 @@ public class WebsocketsHandler
                 (M.STOP, _) => _server.StopAsync(token),
                 (M.RUNNABLE_INCLUDE, var runnableId) => _server.IncludeAsync(runnableId.AsUtf8String(), token),
                 (M.RUNNABLE_EXCLUDE, var runnableId) => _server.ExcludeAsync(runnableId.AsUtf8String(), token),
+                (M.RUNNABLE_EXECUTE_TASK, var taskInfo) => _server.ExecuteTaskAsync(RunnableTask.Deserialize(taskInfo) ?? throw new NullReferenceException("Runnable task is null"), token),
                 (M.WORKSPACE_APPLY_FLAVOUR, var flavour) => _server.ApplyFlavourAsync(flavour.AsUtf8String(), token),
                 (M.WORKSPACE_INFO_RQ, _) => Task.FromResult(_server.RequestWorkspaceInfo()),
                 (M.PING, _) => Task.FromResult(Ack.Alive),

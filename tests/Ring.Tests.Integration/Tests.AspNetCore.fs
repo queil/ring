@@ -3,6 +3,8 @@ module Ring.Tests.Integration.AspNetCore
 open Expecto
 open FSharp.Control
 open FsHttp
+open Queil.Ring.Protocol
+open Ring.Client
 open Ring.Client.Patterns
 open Ring.Tests.Integration.Async
 open Ring.Tests.Integration.RingControl
@@ -13,9 +15,7 @@ open Ring.Tests.Integration.TestContext
 let tests =
     testList
         "AspNetCore runnable tests"
-        [
-
-          testTask "should override url via Urls" {
+        [ testTask "should override url via Urls" {
               use ctx = new TestContext(localOptions >> logToFile "aspnetcore-urls.ring.log")
               let! (ring: Ring, dir: TestDir) = ctx.Init()
 
@@ -40,5 +40,44 @@ let tests =
               "Response on port 7123 should be OK" |> Expect.equal response "OK"
 
               do! ring.Client.Terminate()
+          }
+
+          testTask "should execute shell task" {
+              use ctx =
+                  new TestContext(localOptions >> logToFile "aspnetcore-exec-shell-task.ring.log")
+
+              let! (ring: Ring, dir: TestDir) = ctx.Init()
+
+              ring.Headless(debugMode = true)
+              do! ring.Client.Connect()
+              do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/aspnetcore-urls.toml")
+              do! ring.Client.StartWorkspace()
+
+              let! events =
+                  (ring.Stream
+                   |> AsyncSeq.mapAsync (function
+                       | RunnableHealthy "aspnetcore" as x ->
+                           async {
+                               do! ring.Client.ExecuteTask("aspnetcore", "build") |> Async.AwaitTask
+                               return x
+                           }
+
+                       | x -> async { return x })
+                   |> AsyncSeq.takeWhileInclusive (not << Ack.taskOk)
+                   |> AsyncSeq.map (fun m -> (m.Type, m.Scope))
+                   |> AsyncSeq.toListAsync
+                   |> Async.AsTaskTimeout)
+
+              "Unexpected events sequence"
+              |> Expect.sequenceContainsOrder
+                  events
+                  [ M.RUNNABLE_STOPPED, MsgScope.Runnable "aspnetcore"
+                    M.RUNNABLE_DESTROYED, MsgScope.Runnable "aspnetcore"
+                    M.RUNNABLE_INITIATED, MsgScope.Runnable "aspnetcore"
+                    M.RUNNABLE_STARTED, MsgScope.Runnable "aspnetcore"
+                    M.ACK, MsgScope.Ack Ack.TaskOk ]
+
+              do! ring.Client.Terminate()
           } ]
+
     |> testLabel "aspnetcore"

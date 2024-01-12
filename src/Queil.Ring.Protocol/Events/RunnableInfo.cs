@@ -6,7 +6,7 @@ namespace Queil.Ring.Protocol.Events;
 
 public class RunnableInfo : IEquatable<RunnableInfo>
 {
-    public RunnableInfo(string id, string[] declaredIn, string type, RunnableState state, string[] tags, IReadOnlyDictionary<string, object> details)
+    public RunnableInfo(string id, string[] declaredIn, string type, RunnableState state, string[] tags, IReadOnlyDictionary<string, object> details, string[] tasks)
     {
         Id = id;
         DeclaredIn = declaredIn;
@@ -14,6 +14,7 @@ public class RunnableInfo : IEquatable<RunnableInfo>
         State = state;
         Tags = tags;
         Details = details;
+        Tasks = tasks;
     }
 
     public string Id { get; }
@@ -22,6 +23,7 @@ public class RunnableInfo : IEquatable<RunnableInfo>
     public RunnableState State { get; }
     public string[] Tags { get; }
     public IReadOnlyDictionary<string, object> Details { get; }
+    public string[] Tasks { get; }
 
     public bool Equals(RunnableInfo? other)
     {

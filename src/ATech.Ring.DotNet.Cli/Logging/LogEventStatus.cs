@@ -3,7 +3,7 @@
 
 namespace ATech.Ring.DotNet.Cli.Logging;
 
-public enum PhaseStatus
+public enum LogEventStatus
 {
     PENDING = 0,
     OK = 1,

@@ -32,7 +32,7 @@ public class ConsoleClient
             _clientSocket = new ClientWebSocket();
             try
             {
-                using (_logger.WithHostScope(Phase.INIT))
+                using (_logger.WithHostScope(LogEvent.INIT))
                 {
                     if (consoleOpts.StartupDelaySeconds > 0)
                     {

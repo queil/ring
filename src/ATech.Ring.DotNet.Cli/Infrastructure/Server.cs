@@ -111,7 +111,7 @@ public class Server : IServer
 
     public async Task<Ack> TerminateAsync(CancellationToken token)
     {
-        using var _ = _logger.WithHostScope(Phase.DESTROY);
+        using var _ = _logger.WithHostScope(LogEvent.DESTROY);
         _logger.LogInformation("Shutdown requested");
         await _fsm.FireAsync(T.Stop);
         await _launcher.WaitUntilStoppedAsync(token);
@@ -132,6 +132,14 @@ public class Server : IServer
     {
         return await _launcher.ApplyFlavourAsync(flavour, token) == ApplyFlavourResult.UnknownFlavour ? Ack.NotFound : Ack.Ok;
     }
+
+    public async Task<Ack> ExecuteTaskAsync(RunnableTask task, CancellationToken token) =>
+        await _launcher.ExecuteTaskAsync(task, token) switch
+        {
+            ExecuteTaskResult.UnknownRunnable or ExecuteTaskResult.UnknownTask => Ack.NotFound,
+            ExecuteTaskResult.Failed => Ack.TaskFailed,
+            _ => Ack.TaskOk
+        };
 
     public Ack RequestWorkspaceInfo()
     {

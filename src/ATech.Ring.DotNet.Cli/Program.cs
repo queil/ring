@@ -9,10 +9,11 @@ using System.Threading;
 using Queil.Ring.Configuration;
 using Queil.Ring.Configuration.Interfaces;
 using ATech.Ring.DotNet.Cli.Abstractions;
-using ATech.Ring.DotNet.Cli.Abstractions.Tools;
 using ATech.Ring.DotNet.Cli.Infrastructure;
 using ATech.Ring.DotNet.Cli.Infrastructure.Cli;
 using ATech.Ring.DotNet.Cli.Logging;
+using ATech.Ring.DotNet.Cli.Tools;
+using ATech.Ring.DotNet.Cli.Tools.Windows;
 using ATech.Ring.DotNet.Cli.Workspace;
 using k8s;
 using LightInject;
@@ -28,6 +29,7 @@ using Nett;
 using Serilog;
 using Serilog.Events;
 using Tomlyn.Extensions.Configuration;
+using LogEvent = ATech.Ring.DotNet.Cli.Logging.LogEvent;
 
 static string Ring(string ver) => $"       _ _\n     *'   '*\n    * .*'*. 3\n   '  @   a  ;     ring! v{ver}\n    * '*.*' *\n     *. _ .*\n";
 var originalWorkingDir = Directory.GetCurrentDirectory();
@@ -61,25 +63,26 @@ try
     var clients = new ConcurrentDictionary<Uri, HttpClient>();
 
     var builder = WebApplication.CreateBuilder(args);
-
-    builder.Services.AddSingleton(options);
-    if (options is ServeOptions) builder.Services.AddSingleton(f => (ServeOptions)f.GetRequiredService<BaseOptions>());
-    builder.Services.AddSingleton<Func<Uri, HttpClient>>(_ => uri => clients.GetOrAdd(uri, new HttpClient { BaseAddress = uri, MaxResponseContentBufferSize = 1 }));
-    builder.Services.AddOptions();
-    builder.Services.Configure<RingConfiguration>(builder.Configuration);
-    builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
-    builder.Services.AddSingleton<IServer, Server>();
-    builder.Services.AddSingleton<WebsocketsHandler>();
-    builder.Services.AddSingleton<IConfigurationTreeReader, ConfigurationTreeReader>();
-    builder.Services.AddSingleton<IConfigurationLoader, ConfigurationLoader>();
-    builder.Services.AddSingleton<IConfigurator, Configurator>();
-    builder.Services.AddSingleton<IWorkspaceLauncher, WorkspaceLauncher>();
-    builder.Services.AddSingleton<IWorkspaceInitHook, WorkspaceInitHook>();
-    builder.Services.AddSingleton<ICloneMaker, CloneMaker>();
-    builder.Services.AddSingleton<Queue>();
-    builder.Services.AddSingleton<ISender>(f => f.GetRequiredService<Queue>());
-    builder.Services.AddSingleton<IReceiver>(f => f.GetRequiredService<Queue>());
-    builder.Services.AddSingleton(f =>
+    var services = builder.Services;
+    
+    services.AddSingleton(options);
+    if (options is ServeOptions) services.AddSingleton(f => (ServeOptions)f.GetRequiredService<BaseOptions>());
+    services.AddSingleton<Func<Uri, HttpClient>>(_ => uri => clients.GetOrAdd(uri, new HttpClient { BaseAddress = uri, MaxResponseContentBufferSize = 1 }));
+    services.AddOptions();
+    services.Configure<RingConfiguration>(builder.Configuration);
+    services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
+    services.AddSingleton<IServer, Server>();
+    services.AddSingleton<WebsocketsHandler>();
+    services.AddSingleton<IConfigurationTreeReader, ConfigurationTreeReader>();
+    services.AddSingleton<IConfigurationLoader, ConfigurationLoader>();
+    services.AddSingleton<IConfigurator, Configurator>();
+    services.AddSingleton<IWorkspaceLauncher, WorkspaceLauncher>();
+    services.AddSingleton<IWorkspaceInitHook, WorkspaceInitHook>();
+    services.AddSingleton<ICloneMaker, CloneMaker>();
+    services.AddSingleton<Queue>();
+    services.AddSingleton<ISender>(f => f.GetRequiredService<Queue>());
+    services.AddSingleton<IReceiver>(f => f.GetRequiredService<Queue>());
+    services.AddSingleton(f =>
     {
         var configuredPath = f.GetRequiredService<IOptions<RingConfiguration>>().Value.Kubernetes.ConfigPath;
         var maybeKubeconfigEnv = Environment.GetEnvironmentVariable("KUBECONFIG");
@@ -87,16 +90,17 @@ try
         return new Kubernetes(KubernetesClientConfiguration.BuildConfigFromConfigFile(configPath));
     });
 
-    builder.Services.AddHostedService<WebsocketsInitializer>();
-    builder.Services.AddSingleton<ConsoleClient>();
+    services.AddHostedService<WebsocketsInitializer>();
+    services.AddSingleton<ConsoleClient>();
 
-    static IEnumerable<TypeInfo> GetAllTypesOf<T, TAssembly>()
-     => from t in typeof(TAssembly).Assembly.DefinedTypes
-        where !t.IsAbstract && typeof(T).IsAssignableFrom(t)
-        select t;
-
-    foreach (var type in GetAllTypesOf<ITool, Program>()) builder.Services.AddTransient(type.AsType());
-
+    services.AddTransient<ProcessRunner>();
+    services.AddTransient<KustomizeTool>();
+    services.AddTransient<KubectlBundle>();
+    services.AddTransient<IISExpressExe>();
+    services.AddTransient<GitClone>();
+    services.AddTransient<DotnetCliBundle>();
+    services.AddTransient<DockerCompose>();
+    
     builder.Host.UseSerilog();
 
     builder.Host.ConfigureContainer<IServiceContainer>((ctx, container) =>
@@ -152,7 +156,7 @@ try
     Log.Logger = loggingConfig.CreateLogger();
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
-    using (logger.WithHostScope(Phase.INIT))
+    using (logger.WithHostScope(LogEvent.INIT))
     {
         if (options is ServeOptions { Port: var port }) logger.LogInformation("Listening on port {Port}", port);
     }

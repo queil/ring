@@ -3,6 +3,7 @@
 open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
+open System.Text.Unicode
 open System.Threading.Channels
 open Queil.Ring.Protocol
 open Queil.Ring.Protocol.Events
@@ -21,7 +22,7 @@ type ClientOptions =
 
 type Msg =
     { Timestamp: DateTime
-      Payload: string
+      Payload: byte[]
       Type: M
       Scope: MsgScope }
 
@@ -29,6 +30,7 @@ and MsgScope =
     | Server
     | Workspace
     | Runnable of id: string
+    | Ack of Ack
     | Unknown
 
 module Patterns =
@@ -41,43 +43,43 @@ module Patterns =
     let (|RunnableHealthy|_|) =
         function
         | { Type = M.RUNNABLE_HEALTHY
-            Payload = p } -> Some p
+            Scope = MsgScope.Runnable id } -> Some id
         | _ -> None
 
     let (|RunnableHealthCheck|_|) =
         function
         | { Type = M.RUNNABLE_HEALTH_CHECK
-            Payload = p } -> Some p
+            Scope = MsgScope.Runnable id } -> Some id
         | _ -> None
 
     let (|RunnableInitiated|_|) =
         function
         | { Type = M.RUNNABLE_INITIATED
-            Payload = p } -> Some p
+            Scope = MsgScope.Runnable id } -> Some id
         | _ -> None
 
     let (|RunnableStarted|_|) =
         function
         | { Type = M.RUNNABLE_STARTED
-            Payload = p } -> Some p
+            Scope = MsgScope.Runnable id } -> Some id
         | _ -> None
 
     let (|RunnableStopped|_|) =
         function
         | { Type = M.RUNNABLE_STOPPED
-            Payload = p } -> Some p
+            Scope = MsgScope.Runnable id } -> Some id
         | _ -> None
 
     let (|RunnableDestroyed|_|) =
         function
         | { Type = M.RUNNABLE_DESTROYED
-            Payload = p } -> Some p
+            Scope = MsgScope.Runnable id } -> Some id
         | _ -> None
 
     let (|RunnableRecovering|_|) =
         function
         | { Type = M.RUNNABLE_RECOVERING
-            Payload = p } -> Some p
+            Scope = MsgScope.Runnable id } -> Some id
         | _ -> None
 
     let private WsSerializerOptions =
@@ -95,6 +97,19 @@ module Patterns =
         match msg with
         | { Type = M.SERVER_SHUTDOWN } -> Some()
         | _ -> None
+
+    let (|Ack|_|) (msg: Msg) =
+        match msg with
+        | { Scope = Ack ack } -> Some ack
+        | _ -> None
+
+    type Ack =
+        static member value(expectedId: Queil.Ring.Protocol.Ack) =
+            function
+            | Ack actualId when actualId = expectedId -> true
+            | _ -> false
+
+        static member taskOk = Ack.value Ack.TaskOk
 
     type Runnable =
 
@@ -200,31 +215,44 @@ type WsClient(options: ClientOptions) =
                 listenTask <-
                     s.ListenAsync(
                         WebSocketExtensions.HandleMessage(fun m t ->
-                            let msg =
-                                { Timestamp = DateTime.Now.ToLocalTime()
-                                  Type = m.Type
-                                  Payload = m.PayloadString
-                                  Scope =
-                                    match m.Type with
-                                    | M.RUNNABLE_HEALTHY
-                                    | M.RUNNABLE_HEALTH_CHECK
-                                    | M.RUNNABLE_STARTED
-                                    | M.RUNNABLE_STOPPED
-                                    | M.RUNNABLE_DESTROYED
-                                    | M.RUNNABLE_INITIATED
-                                    | M.RUNNABLE_RECOVERING
-                                    | M.RUNNABLE_UNRECOVERABLE -> MsgScope.Runnable m.PayloadString
-                                    | M.WORKSPACE_INFO_PUBLISH -> Workspace
-                                    | M.SERVER_IDLE
-                                    | M.SERVER_LOADED
-                                    | M.SERVER_RUNNING
-                                    | M.SERVER_SHUTDOWN -> Server
-                                    | _ -> Unknown }
 
-                            if not <| buffer.Writer.TryWrite(msg) then
-                                failwithf $"Could not write: %A{msg}"
+                            try
+                                let msg =
+                                    { Timestamp = DateTime.Now.ToLocalTime()
+                                      Type = m.Type
+                                      Payload = m.Payload.ToArray()
+                                      Scope =
+                                        match m.Type with
+                                        | M.RUNNABLE_HEALTHY
+                                        | M.RUNNABLE_HEALTH_CHECK
+                                        | M.RUNNABLE_STARTED
+                                        | M.RUNNABLE_STOPPED
+                                        | M.RUNNABLE_DESTROYED
+                                        | M.RUNNABLE_INITIATED
+                                        | M.RUNNABLE_RECOVERING
+                                        | M.RUNNABLE_UNRECOVERABLE -> MsgScope.Runnable m.PayloadString
+                                        | M.WORKSPACE_INFO_PUBLISH -> Workspace
+                                        | M.SERVER_IDLE
+                                        | M.SERVER_LOADED
+                                        | M.SERVER_RUNNING
+                                        | M.SERVER_SHUTDOWN -> Server
+                                        | M.ACK ->
+                                            Ack(
+                                                if m.Payload.Length > 0 then
+                                                    LanguagePrimitives.EnumOfValue m.Payload[0]
+                                                else
+                                                    Ack.Ok
+                                            )
+                                        | _ -> Unknown }
 
-                            Task.CompletedTask),
+                                if not <| buffer.Writer.TryWrite(msg) then
+                                    failwithf $"Could not write: %A{msg}"
+                            with ex ->
+                                eprintfn $"%A{ex}"
+                            
+                            Task.CompletedTask
+
+                        ),
                         cancellationToken
                     )
 
@@ -257,6 +285,16 @@ type WsClient(options: ClientOptions) =
         task {
             let! s = socket.Value
             do! s.SendMessageAsync(M.WORKSPACE_INFO_RQ)
+        }
+
+    member _.ExecuteTask(runnableId: string, taskId: string) =
+        task {
+            let! s = socket.Value
+
+            do!
+                s.SendMessageAsync(
+                    Message(M.RUNNABLE_EXECUTE_TASK, RunnableTask(RunnableId = runnableId, TaskId = taskId).Serialize())
+                )
         }
 
     member _.Terminate() =
@@ -293,8 +331,8 @@ type WsClient(options: ClientOptions) =
                                 x.AllEvents
                                 |> AsyncSeq.map (fun m ->
                                     match m with
-                                    | x when x.Payload = "" -> m.Type |> string
-                                    | x -> $"%A{x.Type}|%s{x.Payload}"
+                                    | x when x.Payload.Length = 0 -> m.Type |> string
+                                    | x -> $"%A{x.Type}|%s{System.Text.Encoding.UTF8.GetString x.Payload}"
                                     |> fun pretty -> $"{m.Timestamp:``HH:mm:ss.fff``}|{pretty}")
                                 |> AsyncSeq.toListAsync
 

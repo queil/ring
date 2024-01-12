@@ -55,7 +55,7 @@ public static class ToolExtensions
         => tool.RunProcessCoreAsync(args, token: token);
 
     public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, string workingDirectory,
-        IDictionary<string, string>? envVars, object[]? args, CancellationToken token)
+        IDictionary<string, string>? envVars = null, object[]? args = null, CancellationToken token = default)
         => tool.RunProcessCoreAsync(args, envVars: envVars, workingDirectory: workingDirectory, captureStdOut: false,
             token: token);
 
@@ -187,7 +187,8 @@ public static class ToolExtensions
                 e.OutputDataReceived -= OnData;
                 e.ErrorDataReceived -= OnError;
                 e.Exited -= OnExit;
-                tcs.TrySetResult(new ExecutionInfo(e.Id, e.ExitCode, sb.ToString().Trim('\r', '\n', ' ', '\t')));
+                tcs.TrySetResult(new ExecutionInfo(e.Id, e.ExitCode, sb.ToString().Trim('\r', '\n', ' ', '\t'),
+                    tcs.Task));
                 e.Dispose();
             }
 
@@ -201,7 +202,7 @@ public static class ToolExtensions
             }
             else
             {
-                result = new ExecutionInfo(p.Id, null, sb.ToString().Trim('\r', '\n', ' ', '\t'));
+                result = new ExecutionInfo(p.Id, null, sb.ToString().Trim('\r', '\n', ' ', '\t'), tcs.Task);
             }
 
             return result;

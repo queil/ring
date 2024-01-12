@@ -4,7 +4,7 @@ namespace ATech.Ring.DotNet.Cli.Logging;
 
 public class Scope : Dictionary<string, object>
 {
-    public const string PhaseKey = "Phase";
+    public const string LogEventKey = "LogEvent";
     public const string UniqueIdKey = "UniqueId";
-    public static Scope Phase(Phase phase) => new Scope { { PhaseKey, phase } };
+    public static Scope Event(LogEvent logEvent) => new (){ { LogEventKey, logEvent } };
 }
