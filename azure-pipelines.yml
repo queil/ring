@@ -1,7 +1,8 @@
 trigger:
+  pull_request:
   branches:
     include:
-    - '*'
+    - 'main'
   tags:
     include:
     - '*'
