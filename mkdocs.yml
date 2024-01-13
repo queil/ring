@@ -1,6 +1,6 @@
 site_name: Ring
-repo_url: https://github.com/AccountTechnologies/ring
-site_url: https://accounttechnologies.github.io/ring
+repo_url: https://github.com/queil/ring
+site_url: https://queil.github.io/ring
 nav:
   - Home: index.md
   - Authoring Workspaces: authoring-workspaces.md
@@ -30,5 +30,5 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
