@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Queil.Ring.Configuration.Interfaces;
 
 namespace Queil.Ring.Configuration.Runnables;
