@@ -1,4 +1,5 @@
-﻿using Queil.Ring.DotNet.Cli.Dtos;
+﻿using Queil.Ring.Configuration;
+using Queil.Ring.DotNet.Cli.Dtos;
 using Queil.Ring.DotNet.Cli.Tools;
 
 namespace Queil.Ring.DotNet.Cli.Workspace;
@@ -6,7 +7,6 @@ namespace Queil.Ring.DotNet.Cli.Workspace;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration.Interfaces;
 using Abstractions;
 
 internal sealed class RunnableContainer : IAsyncDisposable
@@ -59,7 +59,7 @@ internal sealed class RunnableContainer : IAsyncDisposable
                         ? dir
                         : null;
                 runner.Command = taskDefinition.Command;
-                var result = await runner.RunProcessAsync(workDir, args: taskDefinition.Args, token: token);
+                var result = await runner.RunProcessAsync(workDir, args: taskDefinition.Args.ToArray(), token: token);
                 var finalResult = result.Task is { } t ? await t : result;
                 return finalResult.IsSuccess ? ExecuteTaskResult.Ok : ExecuteTaskResult.Failed;
             }, bringDown: taskDefinition.BringDown);

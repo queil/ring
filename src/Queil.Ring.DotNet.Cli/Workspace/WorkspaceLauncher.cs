@@ -1,5 +1,4 @@
-﻿using Queil.Ring.Configuration.Runnables;
-using Queil.Ring.DotNet.Cli.Tools;
+﻿using Queil.Ring.DotNet.Cli.Tools;
 
 namespace Queil.Ring.DotNet.Cli.Workspace;
 
@@ -11,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Queil.Ring.Configuration;
-using Queil.Ring.Configuration.Interfaces;
 using Queil.Ring.Protocol;
 using Queil.Ring.Protocol.Events;
 using Abstractions;

@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration.Interfaces;
 using Queil.Ring.DotNet.Cli.CsProj;
 using Microsoft.Extensions.Logging;
+using Queil.Ring.Configuration;
 using Queil.Ring.DotNet.Cli.Infrastructure;
 using Queil.Ring.DotNet.Cli.Tools;
 

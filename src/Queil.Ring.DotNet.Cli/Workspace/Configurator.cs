@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
-using Configuration.Interfaces;
 using Logging;
 using Microsoft.Extensions.Logging;
 

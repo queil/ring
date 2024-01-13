@@ -1,5 +1,5 @@
 ﻿using System;
-using Queil.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration;
 using Queil.Ring.DotNet.Cli.CsProj;
 using Queil.Ring.DotNet.Cli.Abstractions.Context;
 using Queil.Ring.DotNet.Cli.Runnables.Dotnet;

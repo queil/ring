@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration.Interfaces;
 using Microsoft.Extensions.Logging;
+using Queil.Ring.Configuration;
 using Queil.Ring.DotNet.Cli.Abstractions;
 using Queil.Ring.DotNet.Cli.Abstractions.Context;
 using Queil.Ring.DotNet.Cli.Infrastructure;

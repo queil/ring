@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using Queil.Ring.Configuration;
-using Queil.Ring.Configuration.Interfaces;
 using Queil.Ring.DotNet.Cli.Abstractions;
 using Queil.Ring.DotNet.Cli.Infrastructure;
 using Queil.Ring.DotNet.Cli.Infrastructure.Cli;

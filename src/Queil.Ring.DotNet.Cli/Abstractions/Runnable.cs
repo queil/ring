@@ -1,3 +1,5 @@
+using Queil.Ring.Configuration;
+
 namespace Queil.Ring.DotNet.Cli.Abstractions;
 
 using System;
@@ -6,7 +8,6 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration.Interfaces;
 using Queil.Ring.Protocol;
 using Context;
 using Dtos;

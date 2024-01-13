@@ -11,4 +11,9 @@
     <PackageReference Include="Tomlyn" Version="0.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.IO" />
+  </ItemGroup>
+
 </Project>

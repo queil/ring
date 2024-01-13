@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Queil.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration;
 using Queil.Ring.Configuration.Runnables;
 using Queil.Ring.DotNet.Cli.Dtos;
 

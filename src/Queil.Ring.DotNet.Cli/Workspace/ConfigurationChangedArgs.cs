@@ -1,7 +1,8 @@
-﻿namespace Queil.Ring.DotNet.Cli.Workspace;
+﻿using Queil.Ring.Configuration;
+
+namespace Queil.Ring.DotNet.Cli.Workspace;
 
 using System.Collections.Generic;
-using Queil.Ring.Configuration.Interfaces;
 
 public class ConfigurationChangedArgs
 {

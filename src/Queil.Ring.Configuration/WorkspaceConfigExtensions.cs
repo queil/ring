@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Queil.Ring.Configuration.Interfaces;
+﻿namespace Queil.Ring.Configuration;
 
-namespace Queil.Ring.Configuration;
+using System.Linq;
 
 public static class WorkspaceConfigExtensions
 {

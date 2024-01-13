@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Queil.Ring.Configuration;
-using Queil.Ring.Configuration.Interfaces;
 
 namespace Queil.Ring.DotNet.Cli.Workspace;
 

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
-using Queil.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration;
 using Queil.Ring.DotNet.Cli.Abstractions.Context;
 using Queil.Ring.DotNet.Cli.CsProj;
 

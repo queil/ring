@@ -1,8 +1,5 @@
 ﻿namespace Queil.Ring.Configuration;
 
-using System.IO;
-using Interfaces;
-
 public class ConfigurationTreeReader(IConfigurationLoader loader) : IConfigurationTreeReader
 {
     public WorkspaceConfig GetConfigTree(ConfiguratorPaths paths)

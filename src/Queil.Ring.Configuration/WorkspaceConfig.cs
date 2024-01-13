@@ -1,10 +1,9 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable CollectionNeverUpdated.Global
+// ReSharper disable ReturnTypeCanBeEnumerable.Global
 namespace Queil.Ring.Configuration;
 
-using System.Collections.Generic;
 using System.Linq;
-using Interfaces;
 using Runnables;
 
 public class WorkspaceConfig : IWorkspaceConfig
@@ -14,15 +13,15 @@ public class WorkspaceConfig : IWorkspaceConfig
     public string UniqueId => string.IsNullOrWhiteSpace(Path) ? "" : System.IO.Path.GetFullPath(Path);
 
     public string Path { get; set; } = string.Empty;
-    public List<Proc> Proc { get; set; } = [];
-    public List<AspNetCore> Aspnetcore { get; set; } = [];
-    public List<IISExpress> Iisexpress { get; set; } = [];
-    public List<IISXCore> Iisxcore { get; set; } = [];
-    public List<NetExe> Netexe { get; set; } = [];
-    public List<DockerCompose> Dockercompose { get; set; } = [];
-    public List<Kustomize> Kustomize { get; set; } = [];
-    public List<string> Imports { get; set; } = [];
-    public List<WorkspaceConfig> Import { get; set; } = [];
+    public List<Proc> Proc { get; } = [];
+    public List<AspNetCore> Aspnetcore { get; } = [];
+    public List<IISExpress> Iisexpress { get; } = [];
+    public List<IISXCore> Iisxcore { get; } = [];
+    public List<NetExe> Netexe { get; } = [];
+    public List<DockerCompose> Dockercompose { get; } = [];
+    public List<Kustomize> Kustomize { get; } = [];
+    public List<string> Imports { get; } = [];
+    public List<WorkspaceConfig> Import { get; } = [];
 
     public IEnumerable<IRunnableConfig> All =>
         Proc.Union<IRunnableConfig>(Aspnetcore)

@@ -1,7 +1,5 @@
 ﻿namespace Queil.Ring.Configuration;
 
-using System.IO;
-using Interfaces;
 using Tomlyn;
 
 public class ConfigurationLoader : IConfigurationLoader

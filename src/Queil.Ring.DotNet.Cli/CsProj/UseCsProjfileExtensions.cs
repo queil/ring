@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.XPath;
-using Queil.Ring.Configuration.Interfaces;
+using Queil.Ring.Configuration;
 using Queil.Ring.DotNet.Cli.CsProj.LaunchSettings;
 
 namespace Queil.Ring.DotNet.Cli.CsProj;
