@@ -1,8 +1,8 @@
-﻿using System.IO;
-using Queil.Ring.Configuration.Interfaces;
-using Tomlyn;
+﻿namespace Queil.Ring.Configuration;
 
-namespace Queil.Ring.Configuration;
+using System.IO;
+using Interfaces;
+using Tomlyn;
 
 public class ConfigurationLoader : IConfigurationLoader
 {

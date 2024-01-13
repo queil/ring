@@ -1,17 +1,10 @@
-﻿using System.IO;
-using Queil.Ring.Configuration.Interfaces;
+﻿namespace Queil.Ring.Configuration;
 
-namespace Queil.Ring.Configuration;
+using System.IO;
+using Interfaces;
 
-public class ConfigurationTreeReader : IConfigurationTreeReader
+public class ConfigurationTreeReader(IConfigurationLoader loader) : IConfigurationTreeReader
 {
-    private readonly IConfigurationLoader _loader;
-
-    public ConfigurationTreeReader(IConfigurationLoader loader)
-    {
-        _loader = loader;
-    }
-
     public WorkspaceConfig GetConfigTree(ConfiguratorPaths paths)
     {
         var file = new FileInfo(Path.GetFullPath(paths.WorkspacePath));
@@ -21,19 +14,19 @@ public class ConfigurationTreeReader : IConfigurationTreeReader
         WorkspaceConfig Populate(string path, WorkspaceConfig? parent, string currentDirectory)
         {
             var fullPath = Path.IsPathRooted(path) ? path : Path.Combine(currentDirectory, path);
-            var c = _loader.Load<WorkspaceConfig>(fullPath);
-            foreach (var import in c.imports)
+            var c = loader.Load<WorkspaceConfig>(fullPath);
+            foreach (var import in c.Imports)
             {
-                c.import.Add(new WorkspaceConfig { path = import });
+                c.Import.Add(new WorkspaceConfig { Path = import });
             }
             c.Parent = parent;
-            c.path = fullPath;
+            c.Path = fullPath;
 
             foreach (var r in c.All)
             {
                 if (r is IUseWorkingDir wd)
                 {
-                    var defaultWd = new FileInfo(c.path).DirectoryName ?? string.Empty;
+                    var defaultWd = new FileInfo(c.Path).DirectoryName ?? string.Empty;
                     var newWorkingDir = wd.WorkingDir switch
                     {
                         null => defaultWd,
@@ -44,9 +37,9 @@ public class ConfigurationTreeReader : IConfigurationTreeReader
                 }
                 r.DeclaredPaths.Add(fullPath);
             }
-            for (var i = 0; i < c.import.Count; i++)
+            for (var i = 0; i < c.Import.Count; i++)
             {
-                c.import[i] = Populate(c.import[i].path, c, new FileInfo(fullPath).DirectoryName ?? string.Empty);
+                c.Import[i] = Populate(c.Import[i].Path, c, new FileInfo(fullPath).DirectoryName ?? string.Empty);
             }
             return c;
         }

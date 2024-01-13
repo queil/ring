@@ -5,25 +5,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration;
-using Queil.Ring.Configuration.Interfaces;
+using Configuration;
+using Configuration.Interfaces;
 using Logging;
 using Microsoft.Extensions.Logging;
 
-public sealed class Configurator : IConfigurator, IDisposable
+public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<Configurator> logger)
+    : IConfigurator, IDisposable
 {
-    private readonly IConfigurationTreeReader _configReader;
-    private readonly ILogger<Configurator> _logger;
     private static readonly object FswLock = new();
-    public ConfigSet Current { get; private set; } = new();
     private FileSystemWatcher? _currentWatcher;
-
-    public Configurator(IConfigurationTreeReader configReader, ILogger<Configurator> logger)
-    {
-        _configReader = configReader;
-        _logger = logger;
-    }
-
+    public ConfigSet Current { get; private set; } = ConfigSet.Empty;
     public event EventHandler<ConfigurationChangedArgs>? OnConfigurationChanged;
 
     public bool TryGet(string key, [NotNullWhen(true)] out IRunnableConfig? cfg) => Current.TryGetValue(key, out cfg);
@@ -41,7 +33,7 @@ public sealed class Configurator : IConfigurator, IDisposable
     public Task UnloadAsync(CancellationToken token)
     {
         _currentWatcher?.Dispose();
-        Current = new ConfigSet();
+        Current = ConfigSet.Empty;
         return Task.CompletedTask;
     }
 
@@ -93,12 +85,12 @@ public sealed class Configurator : IConfigurator, IDisposable
             try
             {
                 tryCount--;
-                tree = _configReader.GetConfigTree(paths);
+                tree = configReader.GetConfigTree(paths);
                 break;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Could not open workspace '{WorkspacePath}'. {RetriesLeft} retries left",
+                logger.LogError(ex, "Could not open workspace '{WorkspacePath}'. {RetriesLeft} retries left",
                     paths.WorkspacePath, tryCount);
                 await Task.Delay(1000);
             }
@@ -109,10 +101,10 @@ public sealed class Configurator : IConfigurator, IDisposable
                 $"Could not (re)load workspace after {retries} tries. Path: '{paths.WorkspacePath}'");
         var effectiveConfig = tree.ToEffectiveConfig();
 
-        using (_logger.WithHostScope(LogEvent.CONFIG))
+        using (logger.WithHostScope(LogEvent.CONFIG))
         {
-            _logger.LogInformation("Workspace: {WorkspaceFile}", paths.WorkspacePath);
-            _logger.LogInformation(LogEventStatus.OK);
+            logger.LogInformation("Workspace: {WorkspaceFile}", paths.WorkspacePath);
+            logger.LogInformation(LogEventStatus.OK);
         }
 
         Current = effectiveConfig;

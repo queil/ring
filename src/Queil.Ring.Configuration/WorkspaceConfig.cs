@@ -1,33 +1,34 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Queil.Ring.Configuration.Interfaces;
-using Queil.Ring.Configuration.Runnables;
-
+﻿// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable CollectionNeverUpdated.Global
 namespace Queil.Ring.Configuration;
+
+using System.Collections.Generic;
+using System.Linq;
+using Interfaces;
+using Runnables;
 
 public class WorkspaceConfig : IWorkspaceConfig
 {
     public WorkspaceConfig? Parent { get; set; }
+    public HashSet<string> DeclaredPaths { get; set; } = [];
+    public string UniqueId => string.IsNullOrWhiteSpace(Path) ? "" : System.IO.Path.GetFullPath(Path);
 
-    public string UniqueId => string.IsNullOrWhiteSpace(path) ? "" : System.IO.Path.GetFullPath(path);
-    public HashSet<string> DeclaredPaths { get; set; } = new();
-
-    public string path { get; set; }
-    public List<Proc> proc { get; set; } = new();
-    public List<AspNetCore> aspnetcore { get; set; } = new();
-    public List<IISExpress> iisexpress { get; set; } = new();
-    public List<IISXCore> iisxcore { get; set; } = new();
-    public List<NetExe> netexe { get; set; } = new();
-    public List<DockerCompose> dockercompose { get; set; } = new();
-    public List<Kustomize> kustomize { get; set; } = new();
-    public List<string> imports { get; set; } = new();
-    public List<WorkspaceConfig> import { get; set; } = new();
+    public string Path { get; set; } = string.Empty;
+    public List<Proc> Proc { get; set; } = [];
+    public List<AspNetCore> Aspnetcore { get; set; } = [];
+    public List<IISExpress> Iisexpress { get; set; } = [];
+    public List<IISXCore> Iisxcore { get; set; } = [];
+    public List<NetExe> Netexe { get; set; } = [];
+    public List<DockerCompose> Dockercompose { get; set; } = [];
+    public List<Kustomize> Kustomize { get; set; } = [];
+    public List<string> Imports { get; set; } = [];
+    public List<WorkspaceConfig> Import { get; set; } = [];
 
     public IEnumerable<IRunnableConfig> All =>
-        proc.Union<IRunnableConfig>(aspnetcore)
-            .Union(iisexpress)
-            .Union(iisxcore)
-            .Union(netexe)
-            .Union(dockercompose)
-            .Union(kustomize);
+        Proc.Union<IRunnableConfig>(Aspnetcore)
+            .Union(Iisexpress)
+            .Union(Iisxcore)
+            .Union(Netexe)
+            .Union(Dockercompose)
+            .Union(Kustomize);
 }

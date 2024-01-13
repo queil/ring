@@ -1,15 +1,15 @@
-﻿using System.Runtime.InteropServices;
+﻿namespace Queil.Ring.Configuration;
 
-namespace Queil.Ring.Configuration;
+using System.Runtime.InteropServices;
 
 public class ConfiguratorPaths
 {
     private const string WslMnt = "/mnt/";
-    private string _path;
+    private readonly string _path = string.Empty;
     public string WorkspacePath
     {
         get => _path;
-        set
+        init
         {
             if (value.StartsWith(WslMnt) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

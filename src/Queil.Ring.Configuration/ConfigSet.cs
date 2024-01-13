@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Queil.Ring.Configuration.Interfaces;
+﻿namespace Queil.Ring.Configuration;
 
-namespace Queil.Ring.Configuration;
+using System.Collections.Generic;
+using System.Linq;
+using Interfaces;
 
 public class ConfigSet : Dictionary<string, IRunnableConfig>
 {
     public const string AllFlavours = "__all";
-    public HashSet<string> Flavours { get; } = new();
+    public HashSet<string> Flavours { get; }
     public string Path { get; }
     public ConfigSet(string path, Dictionary<string, IRunnableConfig> bareConfigs)
     {
@@ -17,7 +17,8 @@ public class ConfigSet : Dictionary<string, IRunnableConfig>
             Add(key, value);
         }
         Path = path;
-        Flavours = new HashSet<string>(bareConfigs.Values.SelectMany(x => x.Tags));
+        Flavours = [..bareConfigs.Values.SelectMany(x => x.Tags)];
     }
-    public ConfigSet() { }
+
+    public static readonly ConfigSet Empty = new(string.Empty, []);
 }
