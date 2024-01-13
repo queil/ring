@@ -56,6 +56,8 @@ let tests =
               let expectedPath =
                   if Environment.isWindows then
                       $"""{env "USERPROFILE"}\AppData\Roaming\.ring\settings.toml"""
+                  else if Environment.isMacOS then
+                      $"""{env "HOME"}/Library/Application Support/.ring/settings.toml"""
                   else
                       $"""{env "HOME"}/.config/.ring/settings.toml"""
 
