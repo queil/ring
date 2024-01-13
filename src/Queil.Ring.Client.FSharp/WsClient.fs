@@ -249,7 +249,7 @@ type WsClient(options: ClientOptions) =
                                     failwithf $"Could not write: %A{msg}"
                             with ex ->
                                 eprintfn $"%A{ex}"
-                            
+
                             Task.CompletedTask
 
                         ),
