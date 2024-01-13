@@ -68,7 +68,7 @@ steps:
 
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: $(System.DefaultWorkingDirectory)/tests/Ring.Tests.Integration/bin/Debug/artifacts
+    targetPath: $(System.DefaultWorkingDirectory)/tests/Ring.Tests.Integration/artifacts
     artifactName: 'Logs ($(imageName))'
   condition: always()
   
