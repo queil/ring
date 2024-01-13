@@ -12,11 +12,8 @@ public static class WorkspaceConfigExtensions
 
         IEnumerable<IRunnableConfig> GetEffectiveConfig(WorkspaceConfig node)
         {
-            if (node == null) return new IRunnableConfig[] { };
-            var configs = node.Elements<IRunnableConfig>()
-                .GroupBy(x => x.UniqueId)
-                .Select(x => x.First())
-                .ToArray();
+            if (node == null) return System.Array.Empty<IRunnableConfig>();
+            var configs = node.All.DistinctBy(x => x.UniqueId).ToArray();
 
             if (node.import == null) return configs;
 

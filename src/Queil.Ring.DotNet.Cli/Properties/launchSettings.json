@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ATech.Ring.DotNet.Cli": {
+    "Queil.Ring.DotNet.Cli": {
       "commandName": "Project",
       "commandLineArgs": "headless"
     }

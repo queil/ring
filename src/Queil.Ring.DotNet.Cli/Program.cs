@@ -25,7 +25,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Nett;
 using Serilog;
 using Serilog.Events;
 using Tomlyn.Extensions.Configuration;
@@ -123,12 +122,6 @@ try
 
             return (IRunnable)ctor.Invoke(args);
         });
-
-        container.Register(_ => TomlSettings.Create(cfg =>
-        {
-            cfg.ConfigurePropertyMapping(p => p.UseTargetPropertySelector(x => x.IgnoreCase));
-        }), new PerContainerLifetime());
-
         container.Register<Func<LightInject.Scope>>(x => x.BeginScope);
     });
 

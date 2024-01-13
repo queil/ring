@@ -2,10 +2,6 @@
 
 public class IISExpress : CsProjRunnable
 {
-    public override bool Equals(object obj) => obj is IISExpress express && CsProj == express.CsProj;
-
-    public override int GetHashCode()
-    {
-        return -576574704 + CsProj.GetHashCode();
-    }
+    public override bool Equals(object? obj) => obj is IISExpress express && Csproj == express.Csproj;
+    public override int GetHashCode() => -576574704 + Csproj.GetHashCode();
 }

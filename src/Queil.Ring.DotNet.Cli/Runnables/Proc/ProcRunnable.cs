@@ -31,7 +31,7 @@ public class ProcRunnable : ProcessRunnable<ProcContext, Queil.Ring.Configuratio
 
     protected override async Task StartAsync(ProcContext ctx, CancellationToken token)
     {
-        var info = await _runner.RunProcessAsync(Config.WorkingDir, Config.Env, Config.Args, token);
+        var info = await _runner.RunProcessAsync(Config.WorkingDir, Config.Env, Config.Args.ToArray(), token);
         ctx.ProcessId = info.Pid;
     }
 }
