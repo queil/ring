@@ -55,7 +55,8 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: 'Test'
   inputs:
-    command: 'run -- --sequenced'
+    command: 'run'
+    arguments: '-- --sequenced'
     workingDirectory: tests/Ring.Tests.Integration
   condition: succeeded()
 
