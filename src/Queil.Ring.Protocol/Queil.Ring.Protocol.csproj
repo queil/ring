@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
@@ -12,8 +12,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="System.Text.Json" Version="6.*" />
-    <PackageReference Include="System.Threading.Channels" Version="6.*" />
+    <PackageReference Include="System.Text.Json" Version="8.*" />
+    <PackageReference Include="System.Threading.Channels" Version="8.*" />
   </ItemGroup>
 
 </Project>
