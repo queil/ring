@@ -2,11 +2,6 @@
 
 public class NetExe : CsProjRunnable
 {
-    public string[] Args { get; set; } = { };
-    public override bool Equals(object obj) => obj is NetExe exe && CsProj == exe.CsProj;
-
-    public override int GetHashCode()
-    {
-        return -576574704 + CsProj.GetHashCode();
-    }
+    public override bool Equals(object? obj) => obj is NetExe exe && Csproj == exe.Csproj;
+    public override int GetHashCode() => -576574704 + Csproj.GetHashCode();
 }

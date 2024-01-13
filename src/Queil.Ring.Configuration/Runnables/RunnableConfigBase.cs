@@ -34,7 +34,7 @@ public abstract class RunnableConfigBase : IRunnableConfig
 
     public Dictionary<string, TaskDefinition> Tasks { get; set; } = new();
 
-    public static string GetFullPath(string? workDir, string path)
+    protected static string GetFullPath(string? workDir, string path)
     {
         path = path.Replace("file://", "");
         return Path.IsPathRooted(path) ? path : Path.GetFullPath(Path.Combine(workDir ?? string.Empty, path));

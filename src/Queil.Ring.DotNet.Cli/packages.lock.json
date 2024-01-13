@@ -514,11 +514,6 @@
         "resolved": "1.1.0",
         "contentHash": "aOZA3BWfz9RXjpzt0sRJJMjAscAUm3Hoa4UWAfceV9UTYxgwZ1lZt5nO2myFf+/jetYQo4uTP7zS8sJY67BBxg=="
       },
-      "Nett": {
-        "type": "Transitive",
-        "resolved": "0.13.0",
-        "contentHash": "s3GMchEhJHuDEddBV4g5UbK7x6r7inTRZ0mOmqPXQPAQ0mr8pODN++5mfnAbAs/s6RI4+qYNuoUymnGBxgbfgQ=="
-      },
       "prometheus-net": {
         "type": "Transitive",
         "resolved": "6.0.0",
@@ -797,8 +792,8 @@
       },
       "Tomlyn": {
         "type": "Transitive",
-        "resolved": "0.14.3",
-        "contentHash": "4jxd2e/4uAyHN4ySVZDYOK4Ro2MC2kq9s+btjI1GT+Ic7bVJqblgLrz172SXeDaPJinRrwPHzIW9oTFjhbgD8g=="
+        "resolved": "0.17.0",
+        "contentHash": "3BRbxOjZwgdXBGemOvJWuydaG/KsKrnG1Z15Chruvih8Tc8bgtLcmDgo6LPRqiF5LNh6X4Vmos7YuGteBHfePA=="
       },
       "YamlDotNet": {
         "type": "Transitive",
@@ -808,7 +803,7 @@
       "queil.ring.configuration": {
         "type": "Project",
         "dependencies": {
-          "Nett": "[0.13.0, )"
+          "Tomlyn": "[0.*, )"
         }
       },
       "queil.ring.protocol": {

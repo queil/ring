@@ -27,7 +27,7 @@ public class NetExeRunnable : CsProjRunnable<NetExeContext, NetExeConfig>
         AddDetail(DetailsKeys.CsProjPath, Config.FullPath);
         var ctx = new NetExeContext
         {
-            CsProjPath = Config.CsProj,
+            CsProjPath = Config.Csproj,
             WorkingDir = Config.GetWorkingDir(),
             EntryAssemblyPath = $"{Config.GetWorkingDir()}\\bin\\Debug\\{Config.GetProjName()}.exe"
         };
@@ -41,7 +41,7 @@ public class NetExeRunnable : CsProjRunnable<NetExeContext, NetExeConfig>
     protected override async Task StartAsync(NetExeContext ctx, CancellationToken token)
     {
         _processRunner.Command = ctx.EntryAssemblyPath;
-        var result = await _processRunner.RunProcessAsync(Config.Args, token);
+        var result = await _processRunner.RunProcessAsync(Config.Args.ToArray(), token);
         ctx.ProcessId = result.Pid;
         ctx.Output = result.Output;
     }

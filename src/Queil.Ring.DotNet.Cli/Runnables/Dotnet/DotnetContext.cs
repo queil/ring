@@ -23,19 +23,19 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
     public int TotalFailures { get; set; }
     public static T Create<T, C>(C config, Func<IFromGit, string> resolveFullClonePath) where C : IUseCsProjFile where T : DotnetContext
     {
-        var originalCsProjPath = config.CsProj;
+        var originalCsProjPath = config.Csproj;
         try
         {
             var ctx = (T)FormatterServices.GetUninitializedObject(typeof(T));
 
             if (config is IFromGit { SshRepoUrl: not null } fromGit)
             {
-                if (Path.IsPathRooted(config.CsProj))
+                if (Path.IsPathRooted(config.Csproj))
                 {
-                    throw new InvalidOperationException($"If sshRepoUrl is used csProj must be a relative path but it is {config.CsProj}");
+                    throw new InvalidOperationException($"If sshRepoUrl is used csProj must be a relative path but it is {config.Csproj}");
                 }
 
-                config.CsProj = Path.Combine(resolveFullClonePath(fromGit), config.CsProj);
+                config.Csproj = Path.Combine(resolveFullClonePath(fromGit), config.Csproj);
             }
 
             ctx.CsProjPath = config.FullPath;
@@ -48,7 +48,7 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
         }
         finally
         {
-            config.CsProj = originalCsProjPath;
+            config.Csproj = originalCsProjPath;
         }
     }
 }

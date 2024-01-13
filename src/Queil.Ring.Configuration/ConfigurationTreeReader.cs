@@ -15,16 +15,13 @@ public class ConfigurationTreeReader : IConfigurationTreeReader
     public WorkspaceConfig GetConfigTree(ConfiguratorPaths paths)
     {
         var file = new FileInfo(Path.GetFullPath(paths.WorkspacePath));
-
         var rootDir = file.DirectoryName;
+        return Populate(file.Name, null, rootDir ?? string.Empty);
 
-        return Populate(file.Name, null, rootDir);
-
-        WorkspaceConfig Populate(string path, WorkspaceConfig parent, string currentDirectory)
+        WorkspaceConfig Populate(string path, WorkspaceConfig? parent, string currentDirectory)
         {
             var fullPath = Path.IsPathRooted(path) ? path : Path.Combine(currentDirectory, path);
             var c = _loader.Load<WorkspaceConfig>(fullPath);
-            if (c == null) return new WorkspaceConfig();
             foreach (var import in c.imports)
             {
                 c.import.Add(new WorkspaceConfig { path = import });
@@ -32,7 +29,7 @@ public class ConfigurationTreeReader : IConfigurationTreeReader
             c.Parent = parent;
             c.path = fullPath;
 
-            foreach (var r in c.Elements<IRunnableConfig>())
+            foreach (var r in c.All)
             {
                 if (r is IUseWorkingDir wd)
                 {
@@ -49,7 +46,7 @@ public class ConfigurationTreeReader : IConfigurationTreeReader
             }
             for (var i = 0; i < c.import.Count; i++)
             {
-                c.import[i] = Populate(c.import[i].path, c, new FileInfo(fullPath).DirectoryName);
+                c.import[i] = Populate(c.import[i].path, c, new FileInfo(fullPath).DirectoryName ?? string.Empty);
             }
             return c;
         }

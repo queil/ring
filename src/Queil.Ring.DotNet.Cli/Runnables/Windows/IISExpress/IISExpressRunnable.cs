@@ -40,7 +40,7 @@ public class IISExpressRunnable : CsProjRunnable<IISExpressContext, IISExpressCo
 
         var ctx = new IISExpressContext
         {
-            CsProjPath = Config.CsProj,
+            CsProjPath = Config.Csproj,
             WorkingDir = Config.GetWorkingDir(),
             EntryAssemblyPath = $"{Config.GetWorkingDir()}\\bin\\{Config.GetProjName()}.dll",
             Uri = uri

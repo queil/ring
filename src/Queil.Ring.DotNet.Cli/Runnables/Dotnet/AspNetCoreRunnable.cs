@@ -20,7 +20,7 @@ public class AspNetCoreRunnable : DotnetRunnableBase<AspNetCoreContext, AspNetCo
     {
         AddDetail(CsProjPath, Config.FullPath);
         var ctx = await base.InitAsync(token);
-        ctx.Urls = Config.Urls;
+        ctx.Urls = Config.Urls.ToArray();
         AddDetail(WorkDir, ctx.WorkingDir);
         AddDetail(ProcessId, ctx.ProcessId);
         if (ctx.Urls.Any()) AddDetail(Uri, ctx.Urls);

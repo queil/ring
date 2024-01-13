@@ -48,7 +48,7 @@ csproj = "/path/to/your/project.csproj"
 command = "sleep"
 args = ["30"]
 
-[proc.vars]
+[proc.env]
     MY_TEST_ENV_VAR = "NONSENSE"
     YET_ANOTHER = "QUIT"
 ```
@@ -62,7 +62,7 @@ id = "my.project"
 command = "dotnet"
 args = ["watch", "--project", "path/to/proj"]
 
-[proc.vars]
+[proc.env]
   URLS = "https://localhost:8080"
 ```
 

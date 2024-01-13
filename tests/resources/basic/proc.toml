@@ -3,7 +3,7 @@ command = "sleep"
 args = ["30"]
 id = "proc-2"
 
-[proc.vars]
+[proc.env]
     MY_TEST_ENV_VAR = "NONSENSE"
     YET_ANOTHER = "QUIT"
 
@@ -13,5 +13,5 @@ command = "sleep"
 args = ["40"]
 id = "proc-1"
 
-[proc.vars]
+[proc.env]
     WEIRD_VAR = "42"
