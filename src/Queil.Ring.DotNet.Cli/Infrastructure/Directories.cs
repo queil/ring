@@ -1,16 +1,12 @@
-﻿using System.IO;
+﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
+
 using System.Runtime.InteropServices;
-
-namespace Queil.Ring.DotNet.Cli.Infrastructure;
-
 using System;
 using System.Reflection;
-using static Path;
+using static System.IO.Path;
 
 internal static class Directories
 {
-    internal static readonly InstallationDir Installation = new();
-    internal static readonly UserSettingsDir User = new();
     internal static WorkingDir Working(string path) => new(path);
 
     internal static string GetOsPath()
@@ -28,14 +24,14 @@ internal class InstallationDir
         GetDirectoryName(Assembly.GetExecutingAssembly().Location)
         ?? throw new InvalidOperationException("Can't determine the executing assembly location");
 
-    internal string SettingsPath => Combine(Path, $"app.{Directories.GetOsPath()}.toml");
-    internal string LoggingPath => Combine(Path, $"logging.{Directories.GetOsPath()}.toml");
+    internal static string SettingsPath => Combine(Path, $"app.{Directories.GetOsPath()}.toml");
+    internal static string LoggingPath => Combine(Path, $"logging.{Directories.GetOsPath()}.toml");
 }
 
 internal class UserSettingsDir
 {
-    private string Path => Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".ring");
-    internal string SettingsPath => Combine(Path, "settings.toml");
+    private static string Path => Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".ring");
+    internal static string SettingsPath => Combine(Path, "settings.toml");
 }
 
 internal class WorkingDir

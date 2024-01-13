@@ -9,20 +9,14 @@ using Queil.Ring.DotNet.Cli.Runnables.Dotnet;
 
 namespace Queil.Ring.DotNet.Cli.Tools;
 
-public class DotnetCliBundle : ITool
+public class DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundle> logger)
+    : ITool
 {
     private const string UrlsEnvVar = "ASPNETCORE_URLS";
-    private readonly ProcessRunner _processRunner;
-    public ILogger<ITool> Logger { get; }
+    public ILogger<ITool> Logger { get; } = logger;
     public string Command { get; set; } = "dotnet";
     public string[] DefaultArgs { get; set; } = Array.Empty<string>();
     public Dictionary<string, string> DefaultEnvVars = new() { ["ASPNETCORE_ENVIRONMENT"] = "Development" };
-
-    public DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundle> logger)
-    {
-        _processRunner = processRunner;
-        Logger = logger;
-    }
 
     public async Task<ExecutionInfo> RunAsync(DotnetContext ctx, CancellationToken token, string[]? urls = null)
     {
@@ -33,13 +27,13 @@ public class DotnetCliBundle : ITool
         }
         if (File.Exists(ctx.ExePath))
         {
-            _processRunner.Command = ctx.ExePath;
-            return await _processRunner.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, null, token);
+            processRunner.Command = ctx.ExePath;
+            return await processRunner.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, null, token);
         }
         if (File.Exists(ctx.EntryAssemblyPath))
         {
             // Using dotnet exec here because dotnet run spawns subprocesses and killing it doesn't actually kill them
-            return await this.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, new object[] { "exec", $"\"{ctx.EntryAssemblyPath}\"" }, token);
+            return await this.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, ["exec", $"\"{ctx.EntryAssemblyPath}\""], token);
         }
         throw new InvalidOperationException($"Neither Exe path nor Dll path specified. {ctx.CsProjPath}");
 
@@ -58,5 +52,5 @@ public class DotnetCliBundle : ITool
     }
 
     public async Task<ExecutionInfo> BuildAsync(string csProjFile, CancellationToken token)
-        => await this.RunProcessWaitAsync(new object[] { "build", csProjFile, "-v:q", "/nologo", "/nodereuse:false" }, token);
+        => await this.RunProcessWaitAsync(["build", csProjFile, "-v:q", "/nologo", "/nodereuse:false"], token);
 }

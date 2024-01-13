@@ -9,14 +9,14 @@ using Queil.Ring.DotNet.Cli.Tools;
 
 namespace Queil.Ring.DotNet.Cli.Runnables;
 
-public abstract class ProcessRunnable<TContext, TConfig> : Runnable<TContext, TConfig>
+public abstract class ProcessRunnable<TContext, TConfig>(
+    TConfig config,
+    ILogger<ProcessRunnable<TContext, TConfig>> logger,
+    ISender sender)
+    : Runnable<TContext, TConfig>(config, logger, sender)
     where TContext : ITrackProcessId
     where TConfig : IRunnableConfig
 {
-    protected ProcessRunnable(TConfig config, ILogger<ProcessRunnable<TContext, TConfig>> logger, ISender sender) : base(config, logger, sender)
-    {
-    }
-
     protected override Task DestroyAsync(TContext ctx, CancellationToken token) => Task.CompletedTask;
 
     /// <summary>

@@ -9,19 +9,13 @@ using NetExeConfig = Queil.Ring.Configuration.Runnables.NetExe;
 
 namespace Queil.Ring.DotNet.Cli.Runnables.Windows.NetExe;
 
-public class NetExeRunnable : CsProjRunnable<NetExeContext, NetExeConfig>
+public class NetExeRunnable(
+    NetExeConfig config,
+    ProcessRunner processRunner,
+    ILogger<NetExeRunnable> logger,
+    ISender sender)
+    : CsProjRunnable<NetExeContext, NetExeConfig>(config, logger, sender)
 {
-    private readonly ProcessRunner _processRunner;
-
-    public NetExeRunnable(
-        NetExeConfig config,
-        ProcessRunner processRunner,
-        ILogger<NetExeRunnable> logger,
-        ISender sender) : base(config, logger, sender)
-    {
-        _processRunner = processRunner;
-    }
-
     protected override NetExeContext CreateContext()
     {
         AddDetail(DetailsKeys.CsProjPath, Config.FullPath);
@@ -29,7 +23,7 @@ public class NetExeRunnable : CsProjRunnable<NetExeContext, NetExeConfig>
         {
             CsProjPath = Config.Csproj,
             WorkingDir = Config.GetWorkingDir(),
-            EntryAssemblyPath = $"{Config.GetWorkingDir()}\\bin\\Debug\\{Config.GetProjName()}.exe"
+            EntryAssemblyPath = $@"{Config.GetWorkingDir()}\bin\Debug\{Config.GetProjName()}.exe"
         };
 
         AddDetail(DetailsKeys.WorkDir, ctx.WorkingDir);
@@ -40,8 +34,8 @@ public class NetExeRunnable : CsProjRunnable<NetExeContext, NetExeConfig>
 
     protected override async Task StartAsync(NetExeContext ctx, CancellationToken token)
     {
-        _processRunner.Command = ctx.EntryAssemblyPath;
-        var result = await _processRunner.RunProcessAsync(Config.Args.ToArray(), token);
+        processRunner.Command = ctx.EntryAssemblyPath;
+        var result = await processRunner.RunProcessAsync(Config.Args.ToArray(), token);
         ctx.ProcessId = result.Pid;
         ctx.Output = result.Output;
     }

@@ -1,13 +1,12 @@
-﻿using Queil.Ring.Configuration;
-using Queil.Ring.DotNet.Cli.Dtos;
-using Queil.Ring.DotNet.Cli.Tools;
+﻿namespace Queil.Ring.DotNet.Cli.Workspace;
 
-namespace Queil.Ring.DotNet.Cli.Workspace;
-
+using Abstractions;
+using Configuration;
+using Dtos;
+using Tools;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Abstractions;
 
 internal sealed class RunnableContainer : IAsyncDisposable
 {
@@ -43,7 +42,7 @@ internal sealed class RunnableContainer : IAsyncDisposable
 
     private async Task CancelAsync()
     {
-        _cts.Cancel();
+        await _cts.CancelAsync();
         if (Task is { } t) await t;
         await Runnable.TerminateAsync();
     }

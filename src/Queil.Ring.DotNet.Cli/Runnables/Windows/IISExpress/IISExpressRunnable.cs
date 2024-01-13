@@ -16,22 +16,15 @@ using IISExpressConfig = Queil.Ring.Configuration.Runnables.IISExpress;
 
 namespace Queil.Ring.DotNet.Cli.Runnables.Windows.IISExpress;
 
-public class IISExpressRunnable : CsProjRunnable<IISExpressContext, IISExpressConfig>
+public class IISExpressRunnable(
+    IISExpressConfig config,
+    IISExpressExe iisExpress,
+    ILogger<IISExpressRunnable> logger,
+    ISender sender,
+    Func<Uri, HttpClient> clientFactory)
+    : CsProjRunnable<IISExpressContext, IISExpressConfig>(config, logger, sender)
 {
-    private readonly IISExpressExe _iisExpress;
-    private readonly ILogger<IISExpressRunnable> _logger;
-    private readonly Func<Uri, HttpClient> _clientFactory;
-    private readonly List<string> _wcfServices = new();
-    public IISExpressRunnable(IISExpressConfig config,
-        IISExpressExe iisExpress,
-        ILogger<IISExpressRunnable> logger,
-        ISender sender,
-        Func<Uri, HttpClient> clientFactory) : base(config, logger, sender)
-    {
-        _iisExpress = iisExpress;
-        _logger = logger;
-        _clientFactory = clientFactory;
-    }
+    private readonly List<string> _wcfServices = [];
 
     protected override IISExpressContext CreateContext()
     {
@@ -42,7 +35,7 @@ public class IISExpressRunnable : CsProjRunnable<IISExpressContext, IISExpressCo
         {
             CsProjPath = Config.Csproj,
             WorkingDir = Config.GetWorkingDir(),
-            EntryAssemblyPath = $"{Config.GetWorkingDir()}\\bin\\{Config.GetProjName()}.dll",
+            EntryAssemblyPath = $@"{Config.GetWorkingDir()}\bin\{Config.GetProjName()}.dll",
             Uri = uri
         };
 
@@ -64,10 +57,10 @@ public class IISExpressRunnable : CsProjRunnable<IISExpressContext, IISExpressCo
 
     protected override async Task StartAsync(IISExpressContext ctx, CancellationToken token)
     {
-        var result = await _iisExpress.StartWebsite(ctx.TempAppHostConfigPath, token);
+        var result = await iisExpress.StartWebsite(ctx.TempAppHostConfigPath, token);
         ctx.ProcessId = result.Pid;
         ctx.Output = result.Output;
-        _logger.LogInformation("{Uri}", ctx.Uri);
+        logger.LogInformation("{Uri}", ctx.Uri);
     }
 
     protected override async Task<HealthStatus> CheckHealthAsync(IISExpressContext ctx, CancellationToken token)
@@ -80,13 +73,13 @@ public class IISExpressRunnable : CsProjRunnable<IISExpressContext, IISExpressCo
             foreach (var s in _wcfServices)
             {
                 if (token.IsCancellationRequested) continue;
-                var client = _clientFactory(ctx.Uri);
+                var client = clientFactory(ctx.Uri);
                 using var rq = new HttpRequestMessage(HttpMethod.Get, s);
                 var response = await client.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, token);
-                var isHealthy = response != null && response.StatusCode == HttpStatusCode.OK;
+                var isHealthy = response is { StatusCode: HttpStatusCode.OK };
                 if (isHealthy) continue;
 
-                _logger.LogError("Endpoint {ServiceName} failed.", s);
+                logger.LogError("Endpoint {ServiceName} failed.", s);
                 return HealthStatus.Unhealthy;
             }
 
@@ -94,7 +87,7 @@ public class IISExpressRunnable : CsProjRunnable<IISExpressContext, IISExpressCo
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "HealthCheck Failed {UniqueId}", UniqueId);
+            logger.LogDebug(ex, "HealthCheck Failed {UniqueId}", UniqueId);
             return HealthStatus.Unhealthy;
         }
     }

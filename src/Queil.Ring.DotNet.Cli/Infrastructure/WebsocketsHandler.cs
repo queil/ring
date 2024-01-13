@@ -1,7 +1,7 @@
-﻿using Queil.Ring.Protocol.Events;
+﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
 
-namespace Queil.Ring.DotNet.Cli.Infrastructure;
-
+using Protocol.Events;
+using Protocol;
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -11,24 +11,15 @@ using System.Threading.Tasks;
 using Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Queil.Ring.Protocol;
 using System.Linq;
 
-public class WebsocketsHandler
+public class WebsocketsHandler(
+    IHostApplicationLifetime appLifetime,
+    IReceiver queue,
+    IServer server,
+    ILogger<WebsocketsHandler> logger)
 {
     private readonly ConcurrentDictionary<Guid, WsClient> _clients = new();
-    private readonly IHostApplicationLifetime _appLifetime;
-    private readonly IReceiver _queue;
-    private readonly IServer _server;
-    private readonly ILogger<WebsocketsHandler> _logger;
-
-    public WebsocketsHandler(IHostApplicationLifetime appLifetime, IReceiver queue, IServer server, ILogger<WebsocketsHandler> logger)
-    {
-        _appLifetime = appLifetime;
-        _queue = queue;
-        _server = server;
-        _logger = logger;
-    }
 
     private Task BroadcastAsync(Message m)
     {
@@ -46,44 +37,44 @@ public class WebsocketsHandler
     {
         try
         {
-            using var _ = _logger.WithClientScope();
-            await _server.InitializeAsync(token);
+            using var _ = logger.WithClientScope();
+            await server.InitializeAsync(token);
 
             var messageLoop = Task.Run(async () =>
             {
-                while (await _queue.WaitToReadAsync(_appLifetime.ApplicationStopped))
+                while (await queue.WaitToReadAsync(appLifetime.ApplicationStopped))
                 {
                     try
                     {
-                        await _queue.DequeueAsync(BroadcastAsync);
+                        await queue.DequeueAsync(BroadcastAsync);
                     }
                     catch (OperationCanceledException)
                     {
                         break;
                     }
                 }
-            }, _appLifetime.ApplicationStopping);
+            }, appLifetime.ApplicationStopping);
 
-            _appLifetime.ApplicationStopping.Register(async () =>
+            appLifetime.ApplicationStopping.Register(async () =>
             {
-                using var _ = _logger.WithHostScope(LogEvent.DESTROY);
-                await _server.TerminateAsync(default);
-                _logger.LogInformation("Workspace terminated");
-                _logger.LogDebug("Draining pub-sub");
-                await _queue.CompleteAsync(TimeSpan.FromSeconds(5));
+                using var _ = logger.WithHostScope(LogEvent.DESTROY);
+                await server.TerminateAsync(default);
+                logger.LogInformation("Workspace terminated");
+                logger.LogDebug("Draining pub-sub");
+                await queue.CompleteAsync(TimeSpan.FromSeconds(5));
                 await messageLoop;
-                _logger.LogDebug("Shutdown");
+                logger.LogDebug("Shutdown");
             }, true);
             await messageLoop;
         }
         catch (OperationCanceledException)
         {
-            using var _ = _logger.WithHostScope(LogEvent.DESTROY);
-            _logger.LogInformation("Shutting down");
+            using var _ = logger.WithHostScope(LogEvent.DESTROY);
+            logger.LogInformation("Shutting down");
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex, "Critical error");
+            logger.LogCritical(ex, "Critical error");
         }
     }
 
@@ -91,7 +82,7 @@ public class WebsocketsHandler
     {
         WsClient? client = null;
         client = CreateClient(clientId, await createSocket());
-        await _server.ConnectAsync(t);
+        await server.ConnectAsync(t);
         await client.ListenAsync(Dispatch, t);
         _clients.TryRemove(clientId, out _);
     }
@@ -102,16 +93,16 @@ public class WebsocketsHandler
         {
             return m switch
             {
-                (M.LOAD, var path) => _server.LoadAsync(path.AsUtf8String(), token),
-                (M.UNLOAD, _) => _server.UnloadAsync(token),
-                (M.TERMINATE, _) => _server.TerminateAsync(token),
-                (M.START, _) => _server.StartAsync(token),
-                (M.STOP, _) => _server.StopAsync(token),
-                (M.RUNNABLE_INCLUDE, var runnableId) => _server.IncludeAsync(runnableId.AsUtf8String(), token),
-                (M.RUNNABLE_EXCLUDE, var runnableId) => _server.ExcludeAsync(runnableId.AsUtf8String(), token),
-                (M.RUNNABLE_EXECUTE_TASK, var taskInfo) => _server.ExecuteTaskAsync(RunnableTask.Deserialize(taskInfo) ?? throw new NullReferenceException("Runnable task is null"), token),
-                (M.WORKSPACE_APPLY_FLAVOUR, var flavour) => _server.ApplyFlavourAsync(flavour.AsUtf8String(), token),
-                (M.WORKSPACE_INFO_RQ, _) => Task.FromResult(_server.RequestWorkspaceInfo()),
+                (M.LOAD, var path) => server.LoadAsync(path.AsUtf8String(), token),
+                (M.UNLOAD, _) => server.UnloadAsync(token),
+                (M.TERMINATE, _) => server.TerminateAsync(token),
+                (M.START, _) => server.StartAsync(token),
+                (M.STOP, _) => server.StopAsync(token),
+                (M.RUNNABLE_INCLUDE, var runnableId) => server.IncludeAsync(runnableId.AsUtf8String(), token),
+                (M.RUNNABLE_EXCLUDE, var runnableId) => server.ExcludeAsync(runnableId.AsUtf8String(), token),
+                (M.RUNNABLE_EXECUTE_TASK, var taskInfo) => server.ExecuteTaskAsync(RunnableTask.Deserialize(taskInfo) ?? throw new NullReferenceException("Runnable task is null"), token),
+                (M.WORKSPACE_APPLY_FLAVOUR, var flavour) => server.ApplyFlavourAsync(flavour.AsUtf8String(), token),
+                (M.WORKSPACE_INFO_RQ, _) => Task.FromResult(server.RequestWorkspaceInfo()),
                 (M.PING, _) => Task.FromResult(Ack.Alive),
                 _ => Task.FromResult(Ack.NotSupported)
             };
@@ -122,10 +113,10 @@ public class WebsocketsHandler
 
     public WsClient CreateClient(Guid key, WebSocket socket)
     {
-        var wsClient = new WsClient(_logger, key, socket);
+        var wsClient = new WsClient(logger, key, socket);
         if (!_clients.TryAdd(key, wsClient)) throw new InvalidOperationException($"Client already exists: {key}");
 
-        _appLifetime.ApplicationStopped.Register(async () => await wsClient.DisposeAsync());
+        appLifetime.ApplicationStopped.Register(async () => await wsClient.DisposeAsync());
 
         return wsClient;
     }

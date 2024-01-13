@@ -1,9 +1,9 @@
+namespace Queil.Ring.DotNet.Cli.Abstractions;
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
-namespace Queil.Ring.DotNet.Cli.Abstractions;
 
 public interface IRunnable
 {

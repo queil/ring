@@ -13,17 +13,13 @@ using Queil.Ring.DotNet.Cli.Logging;
 
 namespace Queil.Ring.DotNet.Cli.Tools;
 
-public class GitClone : ITool
+public class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ringCfg)
+    : ITool
 {
-    private readonly RingConfiguration _ringCfg;
+    private readonly RingConfiguration _ringCfg = ringCfg?.Value ?? throw new NullReferenceException(nameof(ringCfg.Value));
     public string Command { get; set; } = "git";
     public string[] DefaultArgs { get; set; } = Array.Empty<string>();
-    public ILogger<ITool> Logger { get; }
-    public GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ringCfg)
-    {
-        _ringCfg = ringCfg?.Value ?? throw new NullReferenceException(nameof(ringCfg.Value));
-        Logger = logger;
-    }
+    public ILogger<ITool> Logger { get; } = logger;
 
     public string ResolveFullClonePath(IFromGit gitCfg, string? rootPathOverride = null)
     {

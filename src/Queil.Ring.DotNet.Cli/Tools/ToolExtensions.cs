@@ -64,7 +64,7 @@ public static class ToolExtensions
         => tool.RunProcessCoreAsync(args: args, onErrorData: onErrorData, envVars: envVars, token: token);
 
     //TODO: this should be configurable
-    private static readonly string[] FailureWords = { "err", "error", "fail" };
+    private static readonly string[] FailureWords = ["err", "error", "fail"];
 
     private static async Task<ExecutionInfo> RunProcessCoreAsync(this ITool tool,
         IEnumerable<object>? args,

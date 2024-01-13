@@ -1,8 +1,8 @@
+namespace Queil.Ring.DotNet.Cli.Logging;
+
 using System.IO;
 using System.Text;
 using Serilog.Sinks.File;
-
-namespace Queil.Ring.DotNet.Cli.Logging;
 
 // ReSharper disable once UnusedType.Global
 // This is used in logging.*.toml

@@ -1,12 +1,12 @@
+namespace Queil.Ring.DotNet.Cli.Runnables.Dotnet;
+
+using Configuration;
+using Abstractions.Context;
+using CsProj;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
-using Queil.Ring.Configuration;
-using Queil.Ring.DotNet.Cli.Abstractions.Context;
-using Queil.Ring.DotNet.Cli.CsProj;
-
-namespace Queil.Ring.DotNet.Cli.Runnables.Dotnet;
+using System.Runtime.CompilerServices;
 
 public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITrackProcessOutput
 {
@@ -26,7 +26,7 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
         var originalCsProjPath = config.Csproj;
         try
         {
-            var ctx = (T)FormatterServices.GetUninitializedObject(typeof(T));
+            var ctx = (T)RuntimeHelpers.GetUninitializedObject(typeof(T));
 
             if (config is IFromGit { SshRepoUrl: not null } fromGit)
             {

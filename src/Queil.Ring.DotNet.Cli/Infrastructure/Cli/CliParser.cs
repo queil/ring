@@ -28,7 +28,7 @@ public static class CliParser
 
             if (!File.Exists(path))
             {
-                File.WriteAllBytes(path, File.ReadAllBytes(Directories.Installation.SettingsPath));
+                File.WriteAllBytes(path, File.ReadAllBytes(InstallationDir.SettingsPath));
                 Console.WriteLine($"Config file (scope: {scope}) created: {path}");
             }
             else
@@ -65,8 +65,8 @@ public static class CliParser
             {
                 var path =
                     opts.Local ? Directories.Working(originalWorkingDir).SettingsPath :
-                    opts.User ? Directories.User.SettingsPath :
-                    opts.Default ? Directories.Installation.SettingsPath : throw new InvalidOperationException("Unknown scope");
+                    opts.User ? UserSettingsDir.SettingsPath :
+                    opts.Default ? InstallationDir.SettingsPath : throw new InvalidOperationException("Unknown scope");
 
                 Console.WriteLine(path);
                 Environment.Exit(0);
@@ -80,7 +80,7 @@ public static class CliParser
 
                 if (opts.User)
                 {
-                    EnsureConfigOverrideFile(Directories.User.SettingsPath, "user");
+                    EnsureConfigOverrideFile(UserSettingsDir.SettingsPath, "user");
                 }
 
                 Environment.Exit(0);

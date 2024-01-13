@@ -1,6 +1,6 @@
-﻿using Queil.Ring.DotNet.Cli.Abstractions.Context;
+﻿namespace Queil.Ring.DotNet.Cli.Runnables.DockerCompose;
 
-namespace Queil.Ring.DotNet.Cli.Runnables.DockerCompose;
+using Abstractions.Context;
 
 public class DockerComposeContext : ITrackProcessId, ITrackRetries
 {

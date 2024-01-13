@@ -1,8 +1,7 @@
-﻿using System;
+﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
+
+using System;
 using Microsoft.Extensions.Configuration;
-
-namespace Queil.Ring.DotNet.Cli.Infrastructure;
-
 using System.Threading.Tasks;
 using Cli;
 using Workspace;

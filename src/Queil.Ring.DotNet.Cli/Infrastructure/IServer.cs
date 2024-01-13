@@ -2,8 +2,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Protocol;
-using Queil.Ring.Protocol.Events;
+using Protocol;
+using Protocol.Events;
 
 public interface IServer
 {

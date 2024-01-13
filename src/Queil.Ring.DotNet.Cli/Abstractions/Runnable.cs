@@ -1,14 +1,12 @@
-using Queil.Ring.Configuration;
-
 namespace Queil.Ring.DotNet.Cli.Abstractions;
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Protocol;
+using Configuration;
+using Protocol;
 using Context;
 using Dtos;
 using Infrastructure;
@@ -200,7 +198,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Initialization failed");
-            _context = (TContext)FormatterServices.GetUninitializedObject(typeof(TContext));
+            _context = (TContext)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(TContext));
             await _fsm.FireAsync(Trigger.InitFailure);
         }
         finally
@@ -338,10 +336,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         }
     }
 
-    private class Fsm : Stateless.StateMachine<State, Trigger>
-    {
-        public Fsm() : base(State.Zero) { }
-    }
+    private class Fsm() : Stateless.StateMachine<State, Trigger>(State.Zero);
 }
 
 public enum State { Zero, Idle, Pending, ProbingHealth, Healthy, Recovering, Dead }

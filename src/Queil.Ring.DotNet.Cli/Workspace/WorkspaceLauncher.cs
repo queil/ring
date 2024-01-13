@@ -1,7 +1,6 @@
-﻿using Queil.Ring.DotNet.Cli.Tools;
+﻿namespace Queil.Ring.DotNet.Cli.Workspace;
 
-namespace Queil.Ring.DotNet.Cli.Workspace;
-
+using Tools;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,9 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration;
-using Queil.Ring.Protocol;
-using Queil.Ring.Protocol.Events;
+using Configuration;
+using Protocol;
+using Protocol.Events;
 using Abstractions;
 using Dtos;
 using Infrastructure;

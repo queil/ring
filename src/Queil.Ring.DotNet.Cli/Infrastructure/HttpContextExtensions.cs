@@ -11,7 +11,7 @@ internal static class HttpContextExtensions
 
     internal static ILogger<RingMiddleware> Logger(this HttpContext ctx) => ctx.Get<ILogger<RingMiddleware>>();
 
-    internal static Task BadRequest(this HttpResponse rs, string errorMessage)
+    private static Task BadRequest(this HttpResponse rs, string errorMessage)
     {
         rs.StatusCode = 400;
         return rs.WriteAsync(errorMessage);

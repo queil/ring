@@ -1,11 +1,11 @@
-﻿using System.Threading;
+﻿namespace Queil.Ring.DotNet.Cli.Workspace;
+
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Tools;
-
-namespace Queil.Ring.DotNet.Cli.Workspace;
+using Infrastructure;
+using Tools;
 
 public class WorkspaceInitHook : IWorkspaceInitHook
 {
