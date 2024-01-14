@@ -46,7 +46,7 @@ try
 
     if (!options.NoLogo)
     {
-        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        var version = Assembly.GetExecutingAssembly().GetName().Version!;
         Console.WriteLine(Ring(version.ToString()));
     }
 
@@ -134,17 +134,16 @@ try
         container.Register<Func<Scope>>(x => x.BeginScope);
     });
 
-    builder.Host.ConfigureAppConfiguration((_, b) =>
-    {
-        b.Sources.Clear();
-        b.AddTomlFile(InstallationDir.SettingsPath, false);
-        b.AddTomlFile(InstallationDir.LoggingPath, false);
-        b.AddTomlFile(UserSettingsDir.SettingsPath, true);
-        b.AddTomlFile(Directories.Working(originalWorkingDir).SettingsPath, true);
-        b.AddEnvironmentVariables("RING_");
-        if (options is ServeOptions { Port: var port })
-            b.AddInMemoryCollection(new Dictionary<string, string> { ["ring:port"] = port.ToString() });
-    });
+    var b = builder.Configuration;
+    b.Sources.Clear();
+    b.AddTomlFile(InstallationDir.SettingsPath, false);
+    b.AddTomlFile(InstallationDir.LoggingPath, false);
+    b.AddTomlFile(UserSettingsDir.SettingsPath, true);
+    b.AddTomlFile(Directories.Working(originalWorkingDir).SettingsPath, true);
+    b.AddEnvironmentVariables("RING_");
+    if (options is ServeOptions { Port: var p })
+        b.AddInMemoryCollection([new KeyValuePair<string, string?>("ring:port", p.ToString())]);
+
     builder.Host.UseServiceProviderFactory(new LightInjectServiceProviderFactory());
     builder.WebHost.UseLightInject(container);
     builder.WebHost.SuppressStatusMessages(true);
