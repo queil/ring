@@ -1,6 +1,6 @@
-﻿using System;
+﻿namespace Queil.Ring.DotNet.Cli.CsProj.LaunchSettings;
 
-namespace Queil.Ring.DotNet.Cli.CsProj.LaunchSettings;
+using System;
 
 public class iisExpress
 {

@@ -8,23 +8,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-public class RingMiddleware
+public class RingMiddleware(RequestDelegate next, WebsocketsHandler broadcast)
 {
-    private readonly RequestDelegate _next;
-    private readonly WebsocketsHandler _socketManager;
-
-    public RingMiddleware(RequestDelegate next, WebsocketsHandler broadcast)
-    {
-        _next = next;
-        _socketManager = broadcast;
-    }
-
     public async Task Invoke(HttpContext context)
     {
         var clientId = Guid.Empty;
         try
         {
-            if (!await context.ShouldHandle(_next)) return;
+            if (!await context.ShouldHandle(next)) return;
             var log = context.Logger();
 
             const string clientIdKey = "clientId";
@@ -44,21 +35,30 @@ public class RingMiddleware
                 return;
             }
 
-            await _socketManager.ListenAsync(clientId, () =>
+            await broadcast.ListenAsync(clientId, () =>
             {
                 var s = context.WebSockets.AcceptWebSocketAsync();
-                using (log.WithClientScope()) log.LogInformation("Client {clientId} connected", clientId);
+                using (log.WithClientScope())
+                {
+                    log.LogInformation("Client {clientId} connected", clientId);
+                }
+
                 return s;
             }, context.Get<IHostApplicationLifetime>().ApplicationStopped);
         }
         catch (OperationCanceledException)
         {
             using (context.Logger().WithClientScope())
+            {
                 context.Logger().LogInformation("Client {clientId} disconnected", clientId);
+            }
         }
         catch (Exception ex)
         {
-            using (context.Logger().WithClientScope()) context.Logger().LogError("Unhandled: {ex}", ex);
+            using (context.Logger().WithClientScope())
+            {
+                context.Logger().LogError("Unhandled: {ex}", ex);
+            }
         }
     }
 }

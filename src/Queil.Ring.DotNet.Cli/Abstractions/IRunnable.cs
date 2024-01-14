@@ -1,17 +1,17 @@
+namespace Queil.Ring.DotNet.Cli.Abstractions;
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Queil.Ring.DotNet.Cli.Abstractions;
-
 public interface IRunnable
 {
-    Task RunAsync(CancellationToken token);
-    Task TerminateAsync();
     string UniqueId { get; }
     State State { get; }
+    IReadOnlyDictionary<string, object> Details { get; }
+    Task RunAsync(CancellationToken token);
+    Task TerminateAsync();
     event EventHandler OnHealthCheckCompleted;
     event EventHandler OnInitExecuted;
-    IReadOnlyDictionary<string, object> Details { get; }
 }

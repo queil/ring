@@ -1,55 +1,45 @@
 ﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
 
-using Logging;
 using System;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Cli;
+using Logging;
 using Microsoft.Extensions.Logging;
-using Queil.Ring.Protocol;
+using Protocol;
 
-public class ConsoleClient
+public class ConsoleClient(ILogger<ConsoleClient> logger, ServeOptions options)
 {
-    private readonly ILogger<ConsoleClient> _logger;
-    private readonly ServeOptions _options;
-    private Task _clientTask = Task.CompletedTask;
-    private ClientWebSocket? _clientSocket;
     private static readonly Guid ClientId = Guid.Parse("842fcc9e-c1bb-420d-b1e7-b3465aafa4e2");
-
-    public ConsoleClient(ILogger<ConsoleClient> logger, ServeOptions options)
-    {
-        _logger = logger;
-        _options = options;
-    }
+    private ClientWebSocket? _clientSocket;
+    private Task _clientTask = Task.CompletedTask;
 
     public Task StartAsync(CancellationToken token)
     {
-        if (_options is not ConsoleOptions consoleOpts) return Task.CompletedTask;
+        if (options is not ConsoleOptions consoleOpts) return Task.CompletedTask;
 
         _clientTask = Task.Run(async () =>
         {
             _clientSocket = new ClientWebSocket();
             try
             {
-                using (_logger.WithHostScope(LogEvent.INIT))
+                using (logger.WithHostScope(LogEvent.INIT))
                 {
                     if (consoleOpts.StartupDelaySeconds > 0)
-                    {
-                        _logger.LogDebug("Delaying startup by: {StartupDelaySeconds} seconds",
+                        logger.LogDebug("Delaying startup by: {StartupDelaySeconds} seconds",
                             consoleOpts.StartupDelaySeconds);
-                    }
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(consoleOpts.StartupDelaySeconds), token);
-                await _clientSocket.ConnectAsync(new Uri($"ws://localhost:{_options.Port}/ws?clientId={ClientId}"),
+                await _clientSocket.ConnectAsync(new Uri($"ws://localhost:{options.Port}/ws?clientId={ClientId}"),
                     token);
                 await _clientSocket.SendMessageAsync(new Message(M.LOAD, consoleOpts.WorkspacePath), token);
                 await _clientSocket.SendMessageAsync(M.START, token);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Exception: {exception}", ex);
+                logger.LogError("Exception: {exception}", ex);
             }
         }, token);
         return Task.CompletedTask;
@@ -59,14 +49,14 @@ public class ConsoleClient
     {
         try
         {
-            if (_options is not ConsoleOptions) return;
+            if (options is not ConsoleOptions) return;
             await _clientTask;
             if (_clientSocket is { } s)
                 await s.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "terminating", token);
         }
         catch (OperationCanceledException)
         {
-            _logger.LogDebug("Console client terminating");
+            logger.LogDebug("Console client terminating");
         }
     }
 }

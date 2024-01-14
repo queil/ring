@@ -2,39 +2,45 @@
 
 using System;
 using System.Net.WebSockets;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions;
 using Logging;
-using Queil.Ring.Protocol;
 using Microsoft.Extensions.Logging;
+using Protocol;
 
 public delegate Task<Ack> Dispatch(Message m, CancellationToken t);
 
-public sealed class WsClient : IAsyncDisposable
+public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSocket ws) : IAsyncDisposable
 {
-    public Guid Id { get; }
-    private readonly ILogger<WebsocketsHandler> _logger;
-    private WebSocket Ws { get; }
-    private Task _backgroundAwaiter = Task.CompletedTask;
-    private readonly CancellationTokenSource _localCts = new();
     private readonly Channel<Task<Ack>> _channel = Channel.CreateUnbounded<Task<Ack>>();
-
-    public WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSocket ws)
-    {
-        _logger = logger;
-        Id = id;
-        Ws = ws;
-    }
+    private readonly CancellationTokenSource _localCts = new();
+    private Task _backgroundAwaiter = Task.CompletedTask;
+    public Guid Id { get; } = id;
+    private WebSocket Ws { get; } = ws;
 
     public bool IsOpen => Ws.State == WebSocketState.Open;
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await _localCts.CancelAsync();
+            await _backgroundAwaiter;
+            Ws.Dispose();
+        }
+        catch (WebSocketException wx)
+        {
+            logger.LogDebug(wx, "Error on disposing WsClient");
+        }
+    }
 
     public Task SendAsync(Message m)
     {
         try
         {
-            if (!_logger.IsEnabled(LogLevel.Debug)) return Ws.SendMessageAsync(m);
+            if (!logger.IsEnabled(LogLevel.Debug)) return Ws.SendMessageAsync(m);
             var type = m.Type;
             string? payloadForLogging = null;
 
@@ -48,23 +54,23 @@ public sealed class WsClient : IAsyncDisposable
             }
 
             var task = Ws.SendMessageAsync(m);
-            using (_logger.WithSentScope(isDelivered: false, type))
+            using (logger.WithSentScope(false, type))
             {
-                _logger.LogDebug("{Payload:l} {Id} ({TaskId})", payloadForLogging, Id, task.Id);
+                logger.LogDebug("{Payload:l} {Id} ({TaskId})", payloadForLogging, Id, task.Id);
             }
 
             task.ContinueWith(_ =>
             {
-                using (_logger.WithSentScope(isDelivered: true, type))
+                using (logger.WithSentScope(true, type))
                 {
-                    _logger.LogDebug("{Payload:l} {Id} ({TaskId})", payloadForLogging, Id, task.Id);
+                    logger.LogDebug("{Payload:l} {Id} ({TaskId})", payloadForLogging, Id, task.Id);
                 }
             }, TaskContinuationOptions.OnlyOnRanToCompletion);
             return task;
         }
         catch (WebSocketException wse)
         {
-            _logger.LogDebug("Exception {exception}", wse);
+            logger.LogDebug("Exception {exception}", wse);
             return Task.CompletedTask;
         }
     }
@@ -74,39 +80,38 @@ public sealed class WsClient : IAsyncDisposable
         try
         {
             while (await _channel.Reader.WaitToReadAsync(token))
-            {
-                while (_channel.Reader.TryPeek(out var peek))
+            while (_channel.Reader.TryPeek(out var peek))
+                if (peek.IsCompleted)
                 {
-                    if (peek.IsCompleted)
+                    if (!_channel.Reader.TryRead(out var task)) continue;
+
+                    var ack = await task;
+                    if (!logger.IsEnabled(LogLevel.Debug))
                     {
-                        if (!_channel.Reader.TryRead(out var task)) continue;
-
-                        var ack = await task;
-                        if (!_logger.IsEnabled(LogLevel.Debug)) await Ws.SendAckAsync(ack, token);
-                        else
-                        {
-                            var sendTask = Ws.SendAckAsync(ack, token);
-                            using (_logger.WithSentScope(isDelivered: false, M.ACK))
-                            {
-                                _logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id, task.Id);
-                            }
-
-                            await sendTask.ContinueWith(_ =>
-                            {
-                                using (_logger.WithSentScope(isDelivered: true, M.ACK))
-                                {
-                                    _logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id,
-                                        task.Id);
-                                }
-                            }, TaskContinuationOptions.OnlyOnRanToCompletion);
-                        }
+                        await Ws.SendAckAsync(ack, token);
                     }
                     else
                     {
-                        await Task.Delay(TimeSpan.FromMilliseconds(100), token);
+                        var sendTask = Ws.SendAckAsync(ack, token);
+                        using (logger.WithSentScope(false, M.ACK))
+                        {
+                            logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id, task.Id);
+                        }
+
+                        await sendTask.ContinueWith(_ =>
+                        {
+                            using (logger.WithSentScope(true, M.ACK))
+                            {
+                                logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id,
+                                    task.Id);
+                            }
+                        }, TaskContinuationOptions.OnlyOnRanToCompletion);
                     }
                 }
-            }
+                else
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(100), token);
+                }
         }
         catch (OperationCanceledException)
         {
@@ -120,24 +125,30 @@ public sealed class WsClient : IAsyncDisposable
             var cts = CancellationTokenSource.CreateLinkedTokenSource(t, _localCts.Token);
             _backgroundAwaiter = Task.Run(() => AckLongRunning(cts.Token), cts.Token);
             await Ws.ListenAsync(YieldOrQueueLongRunning, cts.Token);
-            using (_logger.WithClientScope()) _logger.LogInformation("Client disconnected ({Id}) ({WebSocketState})", Id, Ws.State);
+            using (logger.WithClientScope())
+            {
+                logger.LogInformation("Client disconnected ({Id}) ({WebSocketState})", Id, Ws.State);
+            }
         }
         catch (OperationCanceledException)
         {
-            using (_logger.WithClientScope()) _logger.LogInformation("Client disconnected ({Id}) ({WebSocketState})", Id, Ws.State);
+            using (logger.WithClientScope())
+            {
+                logger.LogInformation("Client disconnected ({Id}) ({WebSocketState})", Id, Ws.State);
+            }
         }
         catch (WebSocketException wx)
         {
-            using var _ = _logger.WithClientScope();
-            _logger.LogInformation("Client {Id} aborted the connection.", Id);
-            _logger.LogDebug(wx, "Exception details");
+            using var _ = logger.WithClientScope();
+            logger.LogInformation("Client {Id} aborted the connection.", Id);
+            logger.LogDebug(wx, "Exception details");
         }
         finally
         {
-            using var _ = _logger.WithClientScope();
-            _logger.LogDebug("Closing websocket ({Id}) ({WebSocketState})", Id, Ws.State);
+            using var _ = logger.WithClientScope();
+            logger.LogDebug("Closing websocket ({Id}) ({WebSocketState})", Id, Ws.State);
             await Ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, default);
-            _logger.LogDebug("Closed websocket ({Id}) ({WebSocketState})", Id, Ws.State);
+            logger.LogDebug("Closed websocket ({Id}) ({WebSocketState})", Id, Ws.State);
         }
 
         return;
@@ -147,13 +158,11 @@ public sealed class WsClient : IAsyncDisposable
             try
             {
                 var (type, payload) = message;
-                if (_logger.IsEnabled(LogLevel.Debug))
-                {
-                    using (_logger.WithReceivedScope(type))
+                if (logger.IsEnabled(LogLevel.Debug))
+                    using (logger.WithReceivedScope(type))
                     {
-                        _logger.LogDebug("{Payload}", payload.AsUtf8String());
+                        logger.LogDebug("{Payload}", payload.AsUtf8String());
                     }
-                }
 
                 var backgroundTask = dispatch(message, token);
                 if (backgroundTask.IsCompleted) return backgroundTask;
@@ -161,30 +170,16 @@ public sealed class WsClient : IAsyncDisposable
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Listener terminating");
+                logger.LogInformation("Listener terminating");
                 _channel.Writer.TryWrite(Task.FromResult(Ack.Terminating));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Server error");
+                logger.LogError(ex, "Server error");
                 _channel.Writer.TryWrite(Task.FromResult(Ack.ServerError));
             }
 
             return null;
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        try
-        {
-            _localCts.Cancel();
-            await _backgroundAwaiter;
-            Ws.Dispose();
-        }
-        catch (WebSocketException wx)
-        {
-            _logger.LogDebug(wx, "Error on disposing WsClient");
         }
     }
 }

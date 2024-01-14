@@ -1,29 +1,27 @@
+namespace Queil.Ring.DotNet.Cli.Tools;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration.Interfaces;
+using Abstractions.Tools;
+using Configuration;
+using Infrastructure;
+using Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Queil.Ring.DotNet.Cli.Abstractions.Tools;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Logging;
 
-namespace Queil.Ring.DotNet.Cli.Tools;
-
-public class GitClone : ITool
+public class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ringCfg)
+    : ITool
 {
-    private readonly RingConfiguration _ringCfg;
+    private readonly RingConfiguration _ringCfg =
+        ringCfg?.Value ?? throw new NullReferenceException(nameof(ringCfg.Value));
+
     public string Command { get; set; } = "git";
     public string[] DefaultArgs { get; set; } = Array.Empty<string>();
-    public ILogger<ITool> Logger { get; }
-    public GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ringCfg)
-    {
-        _ringCfg = ringCfg?.Value ?? throw new NullReferenceException(nameof(ringCfg.Value));
-        Logger = logger;
-    }
+    public ILogger<ITool> Logger { get; } = logger;
 
     public string ResolveFullClonePath(IFromGit gitCfg, string? rootPathOverride = null)
     {
@@ -46,10 +44,11 @@ public class GitClone : ITool
 
     private Func<CancellationToken, Task<ExecutionInfo>> Git(params string[] args)
     {
-        return (token) => this.TryAsync(3, TimeSpan.FromSeconds(10), t => t.RunProcessWaitAsync(args, token), token);
+        return token => this.TryAsync(3, TimeSpan.FromSeconds(10), t => t.RunProcessWaitAsync(args, token), token);
     }
 
-    public async Task<ExecutionInfo> CloneOrPullAsync(IFromGit gitCfg, CancellationToken token, bool shallow = false, bool defaultBranchOnly = false, string? rootPathOverride = null)
+    public async Task<ExecutionInfo> CloneOrPullAsync(IFromGit gitCfg, CancellationToken token, bool shallow = false,
+        bool defaultBranchOnly = false, string? rootPathOverride = null)
     {
         using var _ = Logger.WithScope(gitCfg.SshRepoUrl, LogEvent.GIT);
         var depthArg = shallow ? "--depth=1" : "";
@@ -81,7 +80,9 @@ public class GitClone : ITool
                     await Git("-C", repoFullPath, "reset", "--hard", remoteBranchName.Groups[1].Value)(token);
                     return await Git("-C", repoFullPath, "clean", "-fdx")(token);
                 }
-                throw new InvalidOperationException($"Could not get branch name from git status output: {output.Output}");
+
+                throw new InvalidOperationException(
+                    $"Could not get branch name from git status output: {output.Output}");
             }
 
             var result = await Git("-C", repoFullPath, "pull", depthArg)(token);
@@ -91,7 +92,6 @@ public class GitClone : ITool
 
         var tryLeft = 3;
         while (Directory.Exists(repoFullPath) && tryLeft > 0)
-        {
             try
             {
                 Logger.LogInformation("Deleting an invalid clone at {OutputPath}", repoFullPath);
@@ -104,17 +104,14 @@ public class GitClone : ITool
                 await Task.Delay(TimeSpan.FromSeconds(10), token);
                 tryLeft--;
             }
-        }
+
         return await CloneAsync();
     }
 
     // Git process does the same thing as libgit2sharp https://github.com/libgit2/libgit2sharp/issues/1354
     private static void SafeDelete(string dir)
     {
-        foreach (var subdirectory in Directory.EnumerateDirectories(dir))
-        {
-            SafeDelete(subdirectory);
-        }
+        foreach (var subdirectory in Directory.EnumerateDirectories(dir)) SafeDelete(subdirectory);
 
         foreach (var fileName in Directory.EnumerateFiles(dir))
         {
@@ -124,6 +121,7 @@ public class GitClone : ITool
             };
             fileInfo.Delete();
         }
+
         Directory.Delete(dir);
     }
 }

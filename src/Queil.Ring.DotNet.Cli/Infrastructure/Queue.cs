@@ -1,11 +1,11 @@
-﻿using System;
+﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
+
+using System;
 using System.Buffers;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Queil.Ring.Protocol;
-
-namespace Queil.Ring.DotNet.Cli.Infrastructure;
+using Protocol;
 
 public sealed class Queue : ISender, IReceiver
 {
@@ -15,23 +15,6 @@ public sealed class Queue : ISender, IReceiver
     {
         await Task.Delay(timeout);
         _channel.Writer.Complete();
-    }
-
-    private static byte[] CopyBytes(Message message)
-    {
-        var bytes = ArrayPool<byte>.Shared.Rent(message.Bytes.Length);
-        Array.Clear(bytes);
-        message.Bytes.CopyTo(bytes);
-        return bytes;
-    }
-    public ValueTask EnqueueAsync(Message message, CancellationToken token)
-    {
-        return _channel.Writer.WriteAsync(CopyBytes(message), token);
-    }
-
-    public void Enqueue(Message message)
-    {
-        _channel.Writer.TryWrite(CopyBytes(message));
     }
 
     public async Task<bool> WaitToReadAsync(CancellationToken token)
@@ -57,5 +40,21 @@ public sealed class Queue : ISender, IReceiver
         {
             ArrayPool<byte>.Shared.Return(bytes, true);
         }
+    }
+
+    public ValueTask EnqueueAsync(Message message, CancellationToken token) =>
+        _channel.Writer.WriteAsync(CopyBytes(message), token);
+
+    public void Enqueue(Message message)
+    {
+        _channel.Writer.TryWrite(CopyBytes(message));
+    }
+
+    private static byte[] CopyBytes(Message message)
+    {
+        var bytes = ArrayPool<byte>.Shared.Rent(message.Bytes.Length);
+        Array.Clear(bytes);
+        message.Bytes.CopyTo(bytes);
+        return bytes;
     }
 }

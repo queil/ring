@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-    - '*'
+      - 'main'
   tags:
     include:
     - '*'
@@ -31,7 +31,7 @@ steps:
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '6.0.x'
+    version: '8.0.x'
     includePreviewVersions: true
 
 - task: DotNetCoreCLI@2
@@ -55,7 +55,8 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: 'Test'
   inputs:
-    command: 'test'
+    command: 'run'
+    arguments: '-- --sequenced'
     workingDirectory: tests/Ring.Tests.Integration
   condition: succeeded()
 
@@ -67,7 +68,7 @@ steps:
 
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: $(System.DefaultWorkingDirectory)/tests/Ring.Tests.Integration/bin/Debug/net6.0/artifacts
+    targetPath: $(System.DefaultWorkingDirectory)/tests/Ring.Tests.Integration/artifacts
     artifactName: 'Logs ($(imageName))'
   condition: always()
   

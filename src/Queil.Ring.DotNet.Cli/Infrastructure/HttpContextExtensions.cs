@@ -11,7 +11,7 @@ internal static class HttpContextExtensions
 
     internal static ILogger<RingMiddleware> Logger(this HttpContext ctx) => ctx.Get<ILogger<RingMiddleware>>();
 
-    internal static Task BadRequest(this HttpResponse rs, string errorMessage)
+    private static Task BadRequest(this HttpResponse rs, string errorMessage)
     {
         rs.StatusCode = 400;
         return rs.WriteAsync(errorMessage);
@@ -26,6 +26,7 @@ internal static class HttpContextExtensions
             await ctx.Response.BadRequest("This is not a web socket request");
             return false;
         }
+
         await next(ctx);
         return false;
     }

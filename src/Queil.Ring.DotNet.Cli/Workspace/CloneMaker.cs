@@ -1,41 +1,32 @@
-﻿using System.Linq;
+﻿namespace Queil.Ring.DotNet.Cli.Workspace;
+
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration;
-using Queil.Ring.Configuration.Interfaces;
+using Configuration;
+using Logging;
 using Microsoft.Extensions.Logging;
-using Queil.Ring.DotNet.Cli.Logging;
-using Queil.Ring.DotNet.Cli.Tools;
+using Tools;
 
-namespace Queil.Ring.DotNet.Cli.Workspace;
-
-public class CloneMaker : ICloneMaker
+public class CloneMaker(ILogger<CloneMaker> logger, IConfigurator configurator, GitClone gitClone)
+    : ICloneMaker
 {
-    private readonly ILogger<CloneMaker> _logger;
-    private readonly IConfigurator _configurator;
-    private readonly GitClone _gitClone;
-
-    public CloneMaker(ILogger<CloneMaker> logger, IConfigurator configurator, GitClone gitClone)
+    public async Task CloneWorkspaceRepos(string workspacePath, string? outputDir = null,
+        CancellationToken token = default)
     {
-        _logger = logger;
-        _configurator = configurator;
-        _gitClone = gitClone;
-    }
-
-    public async Task CloneWorkspaceRepos(string workspacePath, string? outputDir = null, CancellationToken token = default)
-    {
-        using var _ = _logger.WithScope(nameof(CloneMaker), LogEvent.GIT);
-        await _configurator.LoadAsync(new ConfiguratorPaths { WorkspacePath = workspacePath }, token);
-        var haveValidGitUrl = _configurator.Current.Values.OfType<IFromGit>().ToLookup(x => !string.IsNullOrWhiteSpace(x.SshRepoUrl));
+        using var _ = logger.WithScope(nameof(CloneMaker), LogEvent.GIT);
+        await configurator.LoadAsync(new ConfiguratorPaths { WorkspacePath = workspacePath }, token);
+        var haveValidGitUrl = configurator.Current.Values.OfType<IFromGit>()
+            .ToLookup(x => !string.IsNullOrWhiteSpace(x.SshRepoUrl));
 
         foreach (var invalidCfg in haveValidGitUrl[false].Cast<IRunnableConfig>())
-        {
-            _logger.LogInformation("{parameter} is not specified for {runnableId}. Skipping.", nameof(IFromGit.SshRepoUrl), invalidCfg.UniqueId);
-        }
+            logger.LogInformation("{parameter} is not specified for {runnableId}. Skipping.",
+                nameof(IFromGit.SshRepoUrl), invalidCfg.UniqueId);
 
-        foreach (var gitCfg in haveValidGitUrl[true].GroupBy(x => _gitClone.ResolveFullClonePath(x, outputDir)).Select(x => x.First()))
+        foreach (var gitCfg in haveValidGitUrl[true].GroupBy(x => gitClone.ResolveFullClonePath(x, outputDir))
+                     .Select(x => x.First()))
         {
-            var output = await _gitClone.CloneOrPullAsync(gitCfg, token, rootPathOverride: outputDir);
+            var output = await gitClone.CloneOrPullAsync(gitCfg, token, rootPathOverride: outputDir);
             if (output.IsSuccess) continue;
             break;
         }

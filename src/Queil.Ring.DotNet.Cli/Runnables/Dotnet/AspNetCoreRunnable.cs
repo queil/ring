@@ -1,21 +1,22 @@
+namespace Queil.Ring.DotNet.Cli.Runnables.Dotnet;
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration.Runnables;
+using Configuration.Runnables;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Tools;
-using static Queil.Ring.DotNet.Cli.Dtos.DetailsKeys;
+using Tools;
+using static Dtos.DetailsKeys;
 
-namespace Queil.Ring.DotNet.Cli.Runnables.Dotnet;
-
-public class AspNetCoreRunnable : DotnetRunnableBase<AspNetCoreContext, AspNetCore>
+public class AspNetCoreRunnable(
+    AspNetCore config,
+    DotnetCliBundle dotnet,
+    ILogger<AspNetCoreRunnable> logger,
+    ISender sender,
+    GitClone gitClone)
+    : DotnetRunnableBase<AspNetCoreContext, AspNetCore>(config, dotnet, logger, sender, gitClone)
 {
-
-    public AspNetCoreRunnable(AspNetCore config, DotnetCliBundle dotnet, ILogger<AspNetCoreRunnable> logger, ISender sender, GitClone gitClone) : base(config, dotnet, logger, sender, gitClone)
-    {
-    }
-
     protected override async Task<AspNetCoreContext> InitAsync(CancellationToken token)
     {
         AddDetail(CsProjPath, Config.FullPath);

@@ -1,7 +1,4 @@
-﻿using Queil.Ring.Configuration.Runnables;
-using Queil.Ring.DotNet.Cli.Tools;
-
-namespace Queil.Ring.DotNet.Cli.Workspace;
+﻿namespace Queil.Ring.DotNet.Cli.Workspace;
 
 using System;
 using System.Collections.Concurrent;
@@ -10,38 +7,33 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration;
-using Queil.Ring.Configuration.Interfaces;
-using Queil.Ring.Protocol;
-using Queil.Ring.Protocol.Events;
 using Abstractions;
+using Configuration;
 using Dtos;
 using Infrastructure;
 using Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Protocol;
+using Protocol.Events;
+using Tools;
 
 public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 {
     private readonly IConfigurator _configurator;
-    private readonly ILogger<WorkspaceLauncher> _logger;
     private readonly Func<IRunnableConfig, IRunnable> _createRunnable;
     private readonly IWorkspaceInitHook _initHook;
-    private readonly ISender _sender;
+    private readonly ILogger<WorkspaceLauncher> _logger;
     private readonly Func<ProcessRunner> _newProcRunner;
-    private readonly int _spreadFactor;
+    private readonly Random _rnd = new();
     private readonly ConcurrentDictionary<string, RunnableContainer> _runnables = new();
+    private readonly ISender _sender;
+    private readonly int _spreadFactor;
+    private CancellationTokenSource _cts = new();
+    private int _initCounter;
+    private Task? _initHookTask;
     private Task? _startTask;
     private Task? _stopTask;
-    private Task? _initHookTask;
-    private CancellationTokenSource _cts = new();
-    private WorkspaceInfo CurrentInfo { get; set; } = WorkspaceInfo.Empty;
-    private WorkspaceState CurrentStatus { get; set; }
-    private string CurrentFlavour { get; set; } = ConfigSet.AllFlavours;
-    private int _initCounter;
-    private readonly Random _rnd = new();
-
-    public string WorkspacePath => _configurator.Current.Path;
 
     public WorkspaceLauncher(IConfigurator configurator,
         ILogger<WorkspaceLauncher> logger,
@@ -61,6 +53,17 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         OnInitiated += WorkspaceLauncher_OnInitiated;
     }
 
+    private WorkspaceInfo CurrentInfo { get; set; } = WorkspaceInfo.Empty;
+    private WorkspaceState CurrentStatus { get; set; }
+    private string CurrentFlavour { get; set; } = ConfigSet.AllFlavours;
+
+    public void Dispose()
+    {
+        _cts.Dispose();
+    }
+
+    public string WorkspacePath => _configurator.Current.Path;
+
     public async Task<ExecuteTaskResult> ExecuteTaskAsync(RunnableTask task, CancellationToken token)
     {
         if (!_runnables.TryGetValue(task.RunnableId, out var r)) return ExecuteTaskResult.UnknownRunnable;
@@ -71,6 +74,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         {
             result = await func(_newProcRunner(), token);
         }
+
         if (bringDown) await IncludeAsync(task.RunnableId, token);
         return result;
     }
@@ -83,26 +87,14 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         if (!CurrentInfo.Flavours.Contains(flavour)) return ApplyFlavourResult.UnknownFlavour;
         var candidates = _configurator.Current.Select(x => (x.Key, x.Value.Tags.Contains(flavour)));
         foreach (var (key, inFlavour) in candidates)
-        {
             if (inFlavour)
-            {
                 await IncludeAsync(key, token);
-            }
             else
-            {
                 await ExcludeAsync(key, token);
-            }
-        }
 
         CurrentFlavour = flavour;
-        PublishStatusCore(ServerState.RUNNING, force: true);
+        PublishStatusCore(ServerState.RUNNING, true);
         return ApplyFlavourResult.Ok;
-    }
-
-
-    private void WorkspaceLauncher_OnInitiated(object? sender, EventArgs e)
-    {
-        _initHookTask = _initHook.RunAsync(_cts.Token);
     }
 
     public async Task LoadAsync(ConfiguratorPaths paths, CancellationToken token)
@@ -114,9 +106,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
         var configDirectory = new FileInfo(paths.WorkspacePath).DirectoryName;
         if (configDirectory == null)
-        {
             throw new InvalidOperationException($"Path '{configDirectory}' does not have directory name");
-        }
 
         Directory.SetCurrentDirectory(configDirectory);
 
@@ -142,17 +132,15 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
     public async Task StopAsync(CancellationToken token)
     {
-        _cts.Cancel();
+        await _cts.CancelAsync();
         if (_initHookTask != null) await _initHookTask;
         _initCounter = 0;
         _stopTask = Task.WhenAll(_runnables.Keys.Select(RemoveAsync));
         await (_startTask ?? throw new InvalidOperationException($"{nameof(_startTask)} must not be null"));
     }
 
-    public async Task<ExcludeResult> ExcludeAsync(string id, CancellationToken token)
-    {
-        return await RemoveAsync(id) ? ExcludeResult.Ok : ExcludeResult.UnknownRunnable;
-    }
+    public async Task<ExcludeResult> ExcludeAsync(string id, CancellationToken token) =>
+        await RemoveAsync(id) ? ExcludeResult.Ok : ExcludeResult.UnknownRunnable;
 
     public async Task<IncludeResult> IncludeAsync(string id, CancellationToken token)
     {
@@ -161,7 +149,21 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         return IncludeResult.Ok;
     }
 
-    public void PublishStatus(ServerState serverState) => PublishStatusCore(serverState, force: true);
+    public void PublishStatus(ServerState serverState)
+    {
+        PublishStatusCore(serverState, true);
+    }
+
+    public async Task WaitUntilStoppedAsync(CancellationToken token)
+    {
+        if (_stopTask != null) await _stopTask;
+    }
+
+
+    private void WorkspaceLauncher_OnInitiated(object? sender, EventArgs e)
+    {
+        _initHookTask = _initHook.RunAsync(_cts.Token);
+    }
 
     private async Task ApplyConfigChanges(IDictionary<string, IRunnableConfig> configs, CancellationToken token)
     {
@@ -173,7 +175,11 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
             var additionsTask = additions.Select(key =>
             {
                 var delay = CalculateDelay(additions.Length);
-                using (_logger.WithScope(key, LogEvent.TRACE)) _logger.LogDebug("Starting in {delay}", delay);
+                using (_logger.WithScope(key, LogEvent.TRACE))
+                {
+                    _logger.LogDebug("Starting in {delay}", delay);
+                }
+
                 return AddAsync(key, configs[key], delay, token);
             });
 
@@ -268,8 +274,10 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         OnInitiated?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnPublishStatus(object? sender, EventArgs args) =>
-        PublishStatusCore(ServerState.RUNNING, force: false);
+    private void OnPublishStatus(object? sender, EventArgs args)
+    {
+        PublishStatusCore(ServerState.RUNNING, false);
+    }
 
     private void PublishStatusCore(ServerState serverState, bool force)
     {
@@ -285,12 +293,5 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         if (!force && info.Equals(CurrentInfo)) return;
         CurrentInfo = info;
         _sender.Enqueue(Message.WorkspaceInfo(CurrentInfo));
-    }
-
-    public void Dispose() => _cts.Dispose();
-
-    public async Task WaitUntilStoppedAsync(CancellationToken token)
-    {
-        if (_stopTask != null) await _stopTask;
     }
 }

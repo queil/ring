@@ -4,15 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-public class WebsocketsInitializer : IHostedService
+public class WebsocketsInitializer(WebsocketsHandler handler) : IHostedService
 {
-    private readonly WebsocketsHandler _handler;
     private Task? _messageLoop;
-    public WebsocketsInitializer(WebsocketsHandler handler) => _handler = handler;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _messageLoop = _handler.InitializeAsync(cancellationToken);
+        _messageLoop = handler.InitializeAsync(cancellationToken);
         return Task.CompletedTask;
     }
 

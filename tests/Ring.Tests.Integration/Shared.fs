@@ -12,12 +12,12 @@ open Ring.Tests.Integration.TestContext
 let env name = Environment.environVar name
 
 let localOptions (dir: TestDir) =
-    { SrcPath = Environment.environVarOrDefault "SRC_PATH" (dir.InSourceDir "../../src/ATech.Ring.DotNet.Cli")
+    { SrcPath = Environment.environVarOrDefault "SRC_PATH" (dir.InSourceDir "../../src/Queil.Ring.DotNet.Cli")
       PackageVersion = Environment.environVarOrDefault "PKGVER" "0.0.0-dev"
       NuGetSourcePath =
         Environment.environVarOrDefault
             "BUILD_ARTIFACTSTAGINGDIRECTORY"
-            (dir.InSourceDir "../../src/ATech.Ring.DotNet.Cli/bin/Release")
+            (dir.InSourceDir "../../src/Queil.Ring.DotNet.Cli/bin/Release")
       NuGetName = "atech.ring.dotnet.cli"
       NuGetConfigPath = dir.InSourceDir "../resources/NuGet.config"
       LocalTool =

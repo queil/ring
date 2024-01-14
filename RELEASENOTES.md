@@ -1,5 +1,10 @@
 # Release notes
 
+## 5.0.0
+
+* BREAKING: dotnet 8
+* potentially BREAKING: replace Nett by Tomlyn
+
 ## 4.3.0
 
 * add: allow defining auxiliary tasks that can be run from the client

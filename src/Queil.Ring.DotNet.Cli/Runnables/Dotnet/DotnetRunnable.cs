@@ -1,52 +1,42 @@
+namespace Queil.Ring.DotNet.Cli.Runnables.Dotnet;
+
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration.Interfaces;
-using Queil.Ring.DotNet.Cli.CsProj;
+using Configuration;
+using CsProj;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Tools;
+using Tools;
 
-namespace Queil.Ring.DotNet.Cli.Runnables.Dotnet;
-
-public abstract class DotnetRunnableBase<TContext, TConfig> : ProcessRunnable<TContext, TConfig>
+public abstract class DotnetRunnableBase<TContext, TConfig>(
+    TConfig config,
+    DotnetCliBundle dotnet,
+    ILogger<DotnetRunnableBase<TContext, TConfig>> logger,
+    ISender sender,
+    GitClone gitClone)
+    : ProcessRunnable<TContext, TConfig>(config, logger, sender)
     where TContext : DotnetContext
     where TConfig : IUseCsProjFile, IRunnableConfig
 {
-    protected readonly DotnetCliBundle Dotnet;
-    private readonly ILogger<DotnetRunnableBase<TContext, TConfig>> _logger;
-    private readonly GitClone _gitClone;
-
-    protected DotnetRunnableBase(TConfig config,
-        DotnetCliBundle dotnet,
-        ILogger<DotnetRunnableBase<TContext, TConfig>> logger,
-        ISender sender,
-        GitClone gitClone
-    ) : base(config, logger, sender)
-    {
-        Dotnet = dotnet;
-        _logger = logger;
-        _gitClone = gitClone;
-    }
+    protected readonly DotnetCliBundle Dotnet = dotnet;
 
     public override string UniqueId => Config.GetProjName();
 
     protected override async Task<TContext> InitAsync(CancellationToken token)
     {
-        if (Config is IFromGit { SshRepoUrl: not null } gitCfg) await _gitClone.CloneOrPullAsync(gitCfg, token, shallow: true, defaultBranchOnly: true);
+        if (Config is IFromGit { SshRepoUrl: not null } gitCfg)
+            await gitClone.CloneOrPullAsync(gitCfg, token, true, true);
 
-        var ctx = DotnetContext.Create<TContext, TConfig>(Config, c => _gitClone.ResolveFullClonePath(c));
+        var ctx = DotnetContext.Create<TContext, TConfig>(Config, c => gitClone.ResolveFullClonePath(c));
         if (File.Exists(ctx.EntryAssemblyPath)) return ctx;
 
-        _logger.LogDebug("Building {Project}", ctx.CsProjPath);
+        logger.LogDebug("Building {Project}", ctx.CsProjPath);
         var result =
             await Dotnet.TryAsync(3, TimeSpan.FromSeconds(10), f => f.BuildAsync(ctx.CsProjPath, token), token);
 
-        if (!result.IsSuccess)
-        {
-            _logger.LogInformation("Build failed | {output}", result.Output);
-        }
+        if (!result.IsSuccess) logger.LogInformation("Build failed | {output}", result.Output);
         return ctx;
     }
 

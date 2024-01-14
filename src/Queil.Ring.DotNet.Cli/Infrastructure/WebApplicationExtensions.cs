@@ -1,13 +1,12 @@
-﻿using System;
-using Microsoft.Extensions.Configuration;
+﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
 
-namespace Queil.Ring.DotNet.Cli.Infrastructure;
-
+using System;
 using System.Threading.Tasks;
 using Cli;
-using Workspace;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Workspace;
 
 public static class WebApplicationExtensions
 {
@@ -20,11 +19,11 @@ public static class WebApplicationExtensions
                 await app.Services.GetRequiredService<ICloneMaker>().CloneWorkspaceRepos(c.WorkspacePath, c.OutputDir);
                 break;
             case ConfigDump:
-                {
-                    var debugView = ((IConfigurationRoot)app.Services.GetRequiredService<IConfiguration>()).GetDebugView();
-                    Console.WriteLine(debugView);
-                    break;
-                }
+            {
+                var debugView = ((IConfigurationRoot)app.Services.GetRequiredService<IConfiguration>()).GetDebugView();
+                Console.WriteLine(debugView);
+                break;
+            }
             case HeadlessOptions:
             case ConsoleOptions:
                 await app.RunAsync();

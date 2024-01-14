@@ -13,9 +13,7 @@ open Ring.Tests.Integration.TestContext
 let tests =
     testList
         "Process runnable tests"
-        [
-
-          testTask "should run process" {
+        [ testTask "should run process" {
               use ctx = new TestContext(localOptions >> logToFile "proc-simple.ring.log")
               let! (ring: Ring, dir: TestDir) = ctx.Init()
 

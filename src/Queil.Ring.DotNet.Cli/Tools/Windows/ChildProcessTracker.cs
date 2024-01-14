@@ -1,32 +1,29 @@
-﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿
 
 // ReSharper disable InconsistentNaming
 
 namespace Queil.Ring.DotNet.Cli.Tools.Windows;
 
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
 /// <summary>
-/// Allows processes to be automatically killed if this parent process unexpectedly quits.
-/// This feature requires Windows 8 or greater. On Windows 7, nothing is done.</summary>
-/// <remarks>References:
-///  https://stackoverflow.com/a/4657392/386091
-///  https://stackoverflow.com/a/9164742/386091 </remarks>
+///     Allows processes to be automatically killed if this parent process unexpectedly quits.
+///     This feature requires Windows 8 or greater. On Windows 7, nothing is done.
+/// </summary>
+/// <remarks>
+///     References:
+///     https://stackoverflow.com/a/4657392/386091
+///     https://stackoverflow.com/a/9164742/386091
+/// </remarks>
 internal static class ChildProcessTracker
 {
-    /// <summary>
-    /// Add the process to be tracked. If our current process is killed, the child processes
-    /// that we are tracking will be automatically killed, too. If the child process terminates
-    /// first, that's fine, too.</summary>
-    /// <param name="process"></param>
-    internal static void TrackAsChild(this Process process)
-    {
-        if (s_jobHandle == IntPtr.Zero) return;
-        var success = AssignProcessToJobObject(s_jobHandle, process.Handle);
-        if (!success && !process.HasExited)
-            throw new Win32Exception();
-    }
+    // Windows will automatically close any open job handles when our process terminates.
+    //  This can be verified by using SysInternals' Handle utility. When the job handle
+    //  is closed, the child processes will be killed.
+    private static readonly IntPtr s_jobHandle;
 
     static ChildProcessTracker()
     {
@@ -51,7 +48,8 @@ internal static class ChildProcessTracker
         // This is the key flag. When our process is killed, Windows will automatically
         //  close the job handle, and when that happens, we want the child processes to
         //  be killed, too.
-        var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION { LimitFlags = JOBOBJECTLIMIT.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE };
+        var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION
+            { LimitFlags = JOBOBJECTLIMIT.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE };
 
         var extendedInfo = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION { BasicLimitInformation = info };
 
@@ -63,9 +61,7 @@ internal static class ChildProcessTracker
 
             if (!SetInformationJobObject(s_jobHandle, JobObjectInfoType.ExtendedLimitInformation,
                     extendedInfoPtr, (uint)length))
-            {
                 throw new Win32Exception();
-            }
         }
         finally
         {
@@ -73,20 +69,29 @@ internal static class ChildProcessTracker
         }
     }
 
+    /// <summary>
+    ///     Add the process to be tracked. If our current process is killed, the child processes
+    ///     that we are tracking will be automatically killed, too. If the child process terminates
+    ///     first, that's fine, too.
+    /// </summary>
+    /// <param name="process"></param>
+    internal static void TrackAsChild(this Process process)
+    {
+        if (s_jobHandle == IntPtr.Zero) return;
+        var success = AssignProcessToJobObject(s_jobHandle, process.Handle);
+        if (!success && !process.HasExited)
+            throw new Win32Exception();
+    }
+
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-    static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string name);
+    private static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string name);
 
     [DllImport("kernel32.dll")]
-    static extern bool SetInformationJobObject(IntPtr job, JobObjectInfoType infoType,
+    private static extern bool SetInformationJobObject(IntPtr job, JobObjectInfoType infoType,
         IntPtr lpJobObjectInfo, uint cbJobObjectInfoLength);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
-
-    // Windows will automatically close any open job handles when our process terminates.
-    //  This can be verified by using SysInternals' Handle utility. When the job handle
-    //  is closed, the child processes will be killed.
-    private static readonly IntPtr s_jobHandle;
+    private static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
 }
 
 public enum JobObjectInfoType

@@ -3,7 +3,6 @@
 open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
-open System.Text.Unicode
 open System.Threading.Channels
 open Queil.Ring.Protocol
 open Queil.Ring.Protocol.Events
@@ -249,7 +248,7 @@ type WsClient(options: ClientOptions) =
                                     failwithf $"Could not write: %A{msg}"
                             with ex ->
                                 eprintfn $"%A{ex}"
-                            
+
                             Task.CompletedTask
 
                         ),

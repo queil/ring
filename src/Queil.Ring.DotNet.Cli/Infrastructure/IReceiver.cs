@@ -1,9 +1,9 @@
-﻿using System;
+﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Protocol;
-
-namespace Queil.Ring.DotNet.Cli.Infrastructure;
+using Protocol;
 
 public delegate Task OnDequeue(Message message);
 

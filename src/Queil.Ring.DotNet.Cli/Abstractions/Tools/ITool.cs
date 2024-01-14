@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Logging;
-
 namespace Queil.Ring.DotNet.Cli.Abstractions.Tools;
+
+using Microsoft.Extensions.Logging;
 
 public interface ITool
 {

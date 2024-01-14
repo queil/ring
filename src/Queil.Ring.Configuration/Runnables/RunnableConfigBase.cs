@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using Queil.Ring.Configuration.Interfaces;
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable CollectionNeverUpdated.Global
 
 namespace Queil.Ring.Configuration.Runnables;
 
@@ -12,27 +10,27 @@ public enum TaskType
 
 public class TaskDefinition
 {
-    public TaskType Type { get; set; }
-    public bool BringDown { get; set; } = false;
-    public string Command { get; set; } = null!;
-    public string[] Args { get; set; } = Array.Empty<string>();
+    public TaskType Type { get; init; }
+    public bool BringDown { get; init; }
+    public required string Command { get; init; }
+    public List<string> Args { get; } = [];
 }
 
 public abstract class RunnableConfigBase : IRunnableConfig
 {
-    public abstract string UniqueId { get; }
-    public string? FriendlyName { get; set; }
-
     /// <summary>
-    /// If implemented in derived class enables overriding the default <see cref="UniqueId"/>
+    ///     If implemented in derived class enables overriding the default <see cref="UniqueId" />
     /// </summary>
-    public string? Id { get; set; }
+    public string? Id { get; init; }
 
-    public HashSet<string> DeclaredPaths { get; set; } = new();
+    public abstract string UniqueId { get; }
+    public string? FriendlyName { get; init; }
 
-    public List<string> Tags { get; set; } = new();
+    public HashSet<string> DeclaredPaths { get; } = [];
 
-    public Dictionary<string, TaskDefinition> Tasks { get; set; } = new();
+    public List<string> Tags { get; } = [];
+
+    public Dictionary<string, TaskDefinition> Tasks { get; } = [];
 
     protected static string GetFullPath(string? workDir, string path)
     {

@@ -1,33 +1,34 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Queil.Ring.Configuration.Interfaces;
-using Queil.Ring.Configuration.Runnables;
+﻿// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable CollectionNeverUpdated.Global
+// ReSharper disable ReturnTypeCanBeEnumerable.Global
 
 namespace Queil.Ring.Configuration;
+
+using System.Linq;
+using Runnables;
 
 public class WorkspaceConfig : IWorkspaceConfig
 {
     public WorkspaceConfig? Parent { get; set; }
-
-    public string UniqueId => string.IsNullOrWhiteSpace(path) ? "" : System.IO.Path.GetFullPath(path);
-    public HashSet<string> DeclaredPaths { get; set; } = new();
-
-    public string path { get; set; }
-    public List<Proc> proc { get; set; } = new();
-    public List<AspNetCore> aspnetcore { get; set; } = new();
-    public List<IISExpress> iisexpress { get; set; } = new();
-    public List<IISXCore> iisxcore { get; set; } = new();
-    public List<NetExe> netexe { get; set; } = new();
-    public List<DockerCompose> dockercompose { get; set; } = new();
-    public List<Kustomize> kustomize { get; set; } = new();
-    public List<string> imports { get; set; } = new();
-    public List<WorkspaceConfig> import { get; set; } = new();
+    public string Path { get; set; } = string.Empty;
+    public List<Proc> Proc { get; } = [];
+    public List<AspNetCore> Aspnetcore { get; } = [];
+    public List<IISExpress> Iisexpress { get; } = [];
+    public List<IISXCore> Iisxcore { get; } = [];
+    public List<NetExe> Netexe { get; } = [];
+    public List<DockerCompose> Dockercompose { get; } = [];
+    public List<Kustomize> Kustomize { get; } = [];
+    public List<string> Imports { get; } = [];
+    public List<WorkspaceConfig> Import { get; } = [];
 
     public IEnumerable<IRunnableConfig> All =>
-        proc.Union<IRunnableConfig>(aspnetcore)
-            .Union(iisexpress)
-            .Union(iisxcore)
-            .Union(netexe)
-            .Union(dockercompose)
-            .Union(kustomize);
+        Proc.Union<IRunnableConfig>(Aspnetcore)
+            .Union(Iisexpress)
+            .Union(Iisxcore)
+            .Union(Netexe)
+            .Union(Dockercompose)
+            .Union(Kustomize);
+
+    public HashSet<string> DeclaredPaths { get; set; } = [];
+    public string UniqueId => string.IsNullOrWhiteSpace(Path) ? "" : System.IO.Path.GetFullPath(Path);
 }

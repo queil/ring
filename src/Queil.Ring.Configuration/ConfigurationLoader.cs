@@ -1,12 +1,11 @@
-﻿using System.IO;
-using Queil.Ring.Configuration.Interfaces;
-using Tomlyn;
+﻿namespace Queil.Ring.Configuration;
 
-namespace Queil.Ring.Configuration;
+using Tomlyn;
 
 public class ConfigurationLoader : IConfigurationLoader
 {
     private readonly TomlModelOptions _options = new();
+
     public ConfigurationLoader()
     {
         _options.ConvertPropertyName = name => char.ToLower(name[0]) + name[1..];

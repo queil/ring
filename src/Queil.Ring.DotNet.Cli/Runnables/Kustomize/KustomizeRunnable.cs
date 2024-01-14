@@ -1,43 +1,35 @@
-﻿using System;
+﻿using static Queil.Ring.DotNet.Cli.Tools.ToolExtensions;
+using KustomizeConfig = Queil.Ring.Configuration.Runnables.Kustomize;
+
+namespace Queil.Ring.DotNet.Cli.Runnables.Kustomize;
+
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Abstractions;
+using Dtos;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Queil.Ring.DotNet.Cli.Abstractions;
-using Queil.Ring.DotNet.Cli.Dtos;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Tools;
-using static Queil.Ring.DotNet.Cli.Tools.ToolExtensions;
-using KustomizeConfig = Queil.Ring.Configuration.Runnables.Kustomize;
+using Tools;
 
-namespace Queil.Ring.DotNet.Cli.Runnables.Kustomize;
-
-public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
+public class KustomizeRunnable(
+    KustomizeConfig config,
+    IOptions<RingConfiguration> ringCfg,
+    ILogger<Runnable<KustomizeContext, KustomizeConfig>> logger,
+    ISender sender,
+    KubectlBundle bundle)
+    : Runnable<KustomizeContext, KustomizeConfig>(config, logger, sender)
 {
-    private static class PodStatus
-    {
-        public const string Running = "Running";
-        public const string Error = "Error";
-    }
     private const string NamespacesPath = "{range .items[?(@.kind=='Namespace')]}{.metadata.name}{'\\n'}{end}";
-    private readonly string _cacheDir;
-    private readonly ILogger<Runnable<KustomizeContext, KustomizeConfig>> _logger;
-    private readonly KubectlBundle _bundle;
 
-    public KustomizeRunnable(
-        KustomizeConfig config,
-        IOptions<RingConfiguration> ringCfg,
-        ILogger<Runnable<KustomizeContext, KustomizeConfig>> logger,
-        ISender sender,
-        KubectlBundle bundle) : base(config, logger, sender)
-    {
-        _logger = logger;
-        _bundle = bundle;
-        _cacheDir = ringCfg?.Value?.Kustomize.CachePath ?? throw new ArgumentNullException(nameof(RingConfiguration.Kustomize.CachePath));
-    }
+    private readonly string _cacheDir = ringCfg?.Value?.Kustomize.CachePath ??
+                                        throw new ArgumentNullException(nameof(RingConfiguration.Kustomize.CachePath));
+
+    private readonly ILogger<Runnable<KustomizeContext, KustomizeConfig>> _logger = logger;
 
     public override string UniqueId => Config.Path;
     protected override TimeSpan HealthCheckPeriod => TimeSpan.FromSeconds(10);
@@ -46,20 +38,22 @@ public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
 
     private string GetCachePath(string inputDir)
     {
-        var fileName = Regex.Replace(inputDir, "[@\\.:/\\\\]", "-");
+        var fileName = Regex.Replace(inputDir, @"[@\.:/\\]", "-");
         return Path.Combine(_cacheDir, $"{fileName}.yaml");
     }
 
-    private async Task<bool> WaitAllPodsAsync(KustomizeContext ctx, CancellationToken token, params string[] statuses) =>
-        (await Task.WhenAll(
+    private async Task<bool> WaitAllPodsAsync(KustomizeContext ctx, CancellationToken token, params string[] statuses)
+    {
+        return (await Task.WhenAll(
             ctx.Namespaces.Select(async n =>
             {
                 async Task<string[]> GetPodsAsync()
                 {
-                    var pods = await _bundle.GetPods(n.Name);
-                    _logger.LogDebug("Pods: {pods}", new object[] { pods });
+                    var pods = await bundle.GetPods(n.Name);
+                    _logger.LogDebug("Pods: {pods}", [pods]);
                     return pods;
                 }
+
                 var podsNow = await GetPodsAsync();
                 if (n.Pods.Any() && !podsNow.Any()) return false;
                 n.Pods = podsNow;
@@ -68,7 +62,7 @@ public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
                 {
                     try
                     {
-                        var result = await _bundle.GetPodStatus(p, n.Name, token);
+                        var result = await bundle.GetPodStatus(p, n.Name, token);
                         return statuses.Contains(result);
                     }
                     catch (OperationCanceledException)
@@ -82,6 +76,7 @@ public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
                     }
                 }))).All(x => x);
             }))).All(x => x);
+    }
 
     protected override async Task<KustomizeContext> InitAsync(CancellationToken token)
     {
@@ -94,9 +89,9 @@ public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
         };
         Directory.CreateDirectory(_cacheDir);
 
-        if (!File.Exists(ctx.CachePath) || !await _bundle.IsValidManifestAsync(ctx.CachePath, token))
+        if (!File.Exists(ctx.CachePath) || !await bundle.IsValidManifestAsync(ctx.CachePath, token))
         {
-            var kustomizeResult = await _bundle.KustomizeBuildAsync(kustomizationDir, ctx.CachePath, token);
+            var kustomizeResult = await bundle.KustomizeBuildAsync(kustomizationDir, ctx.CachePath, token);
             _logger.LogDebug(kustomizeResult.Output);
         }
         else
@@ -104,15 +99,12 @@ public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
             _logger.LogInformation("Found cached manifest: {CachedManifestPath}", ctx.CachePath);
         }
 
-        var applyResult = await _bundle.TryAsync(10, TimeSpan.FromSeconds(2),
-            async t => await _bundle.ApplyJsonPathAsync(ctx.CachePath, NamespacesPath, token), token);
+        var applyResult = await bundle.TryAsync(10, TimeSpan.FromSeconds(2),
+            async t => await bundle.ApplyJsonPathAsync(ctx.CachePath, NamespacesPath, token), token);
 
         _logger.LogDebug(applyResult.Output);
 
-        if (!applyResult.IsSuccess)
-        {
-            throw new InvalidOperationException("Could not apply manifest");
-        }
+        if (!applyResult.IsSuccess) throw new InvalidOperationException("Could not apply manifest");
         var namespaces = applyResult.Output.Split(Environment.NewLine);
 
         ctx.Namespaces = namespaces.Select(n => new Namespace { Name = n }).ToArray();
@@ -124,7 +116,8 @@ public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
     {
         await TryAsync(100, TimeSpan.FromSeconds(6),
             async () => await WaitAllPodsAsync(ctx, token, PodStatus.Running, PodStatus.Error), r => r, token);
-        AddDetail(DetailsKeys.Pods, string.Join("|", ctx.Namespaces.SelectMany(n => n.Pods.Select(p => n.Name + "/" + p))));
+        AddDetail(DetailsKeys.Pods,
+            string.Join("|", ctx.Namespaces.SelectMany(n => n.Pods.Select(p => n.Name + "/" + p))));
     }
 
     protected override async Task<HealthStatus> CheckHealthAsync(KustomizeContext ctx, CancellationToken token)
@@ -135,5 +128,15 @@ public class KustomizeRunnable : Runnable<KustomizeContext, KustomizeConfig>
     }
 
     protected override Task StopAsync(KustomizeContext ctx, CancellationToken token) => Task.CompletedTask;
-    protected override async Task DestroyAsync(KustomizeContext ctx, CancellationToken token) => await _bundle.DeleteAsync(ctx.CachePath, token);
+
+    protected override async Task DestroyAsync(KustomizeContext ctx, CancellationToken token)
+    {
+        await bundle.DeleteAsync(ctx.CachePath, token);
+    }
+
+    private static class PodStatus
+    {
+        public const string Running = "Running";
+        public const string Error = "Error";
+    }
 }

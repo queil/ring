@@ -1,3 +1,5 @@
+namespace Queil.Ring.DotNet.Cli.Tools;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,15 +9,16 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.DotNet.Cli.Tools.Windows;
+using Windows;
+using Abstractions.Tools;
+using Logging;
 using Microsoft.Extensions.Logging;
-using Queil.Ring.DotNet.Cli.Abstractions.Tools;
-using Queil.Ring.DotNet.Cli.Logging;
-
-namespace Queil.Ring.DotNet.Cli.Tools;
 
 public static class ToolExtensions
 {
+    //TODO: this should be configurable
+    private static readonly string[] FailureWords = ["err", "error", "fail"];
+
     public static async Task<T> TryAsync<T>(int times, TimeSpan backOffInterval, Func<Task<T>> func, Predicate<T> until,
         CancellationToken token)
         where T : new()
@@ -43,28 +46,28 @@ public static class ToolExtensions
 
     public static async Task<ExecutionInfo> TryAsync<T>(this T t, int times, TimeSpan backOffInterval,
         Func<T, Task<ExecutionInfo>> func, CancellationToken token) where T : ITool
-        => await TryAsync(times, backOffInterval, () => func(t), r => r.IsSuccess, token);
+    {
+        return await TryAsync(times, backOffInterval, () => func(t), r => r.IsSuccess, token);
+    }
 
-    public static Task<ExecutionInfo> RunProcessWaitAsync(this ITool tool, CancellationToken token)
-        => tool.RunProcessCoreAsync(args: null, wait: true, token: token);
+    public static Task<ExecutionInfo> RunProcessWaitAsync(this ITool tool, CancellationToken token) =>
+        tool.RunProcessCoreAsync(null, true, token: token);
 
-    public static Task<ExecutionInfo> RunProcessWaitAsync(this ITool tool, object[] args, CancellationToken token)
-        => tool.RunProcessCoreAsync(args: args, wait: true, token: token);
+    public static Task<ExecutionInfo> RunProcessWaitAsync(this ITool tool, object[] args, CancellationToken token) =>
+        tool.RunProcessCoreAsync(args, true, token: token);
 
-    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, object[] args, CancellationToken token)
-        => tool.RunProcessCoreAsync(args, token: token);
+    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, object[] args, CancellationToken token) =>
+        tool.RunProcessCoreAsync(args, token: token);
 
     public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, string workingDirectory,
-        IDictionary<string, string>? envVars = null, object[]? args = null, CancellationToken token = default)
-        => tool.RunProcessCoreAsync(args, envVars: envVars, workingDirectory: workingDirectory, captureStdOut: false,
+        IDictionary<string, string>? envVars = null, object[]? args = null, CancellationToken token = default) =>
+        tool.RunProcessCoreAsync(args, envVars: envVars, workingDirectory: workingDirectory,
+            captureStdOut: false,
             token: token);
 
     public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, Action<string> onErrorData,
-        IDictionary<string, string>? envVars, object[]? args, CancellationToken token)
-        => tool.RunProcessCoreAsync(args: args, onErrorData: onErrorData, envVars: envVars, token: token);
-
-    //TODO: this should be configurable
-    private static readonly string[] FailureWords = { "err", "error", "fail" };
+        IDictionary<string, string>? envVars, object[]? args, CancellationToken token) =>
+        tool.RunProcessCoreAsync(args, onErrorData: onErrorData, envVars: envVars, token: token);
 
     private static async Task<ExecutionInfo> RunProcessCoreAsync(this ITool tool,
         IEnumerable<object>? args,
@@ -89,19 +92,15 @@ public static class ToolExtensions
                 if (captureStdOut) sb.AppendLine(line.Data);
 
                 if (FailureWords.Any(x => line.Data.Contains(x, StringComparison.OrdinalIgnoreCase)))
-                {
                     using (tool.Logger.WithLogErrorScope())
                     {
                         tool.Logger.LogWarning($"{ScopeLoggingExtensions.Red}{line.Data}");
                     }
-                }
                 else
-                {
                     using (tool.Logger.WithLogInfoScope())
                     {
                         tool.Logger.LogInformation($"{ScopeLoggingExtensions.Gray}{line.Data}");
                     }
-                }
             }
 
             void OnError(object _, DataReceivedEventArgs x)
@@ -119,16 +118,12 @@ public static class ToolExtensions
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                RedirectStandardInput = false,
+                RedirectStandardInput = false
             };
             if (envVars != null)
-            {
                 foreach (var (key, value) in envVars)
-                {
                     if (s.EnvironmentVariables.ContainsKey(key)) s.EnvironmentVariables[key] = value;
                     else s.EnvironmentVariables.Add(key, value);
-                }
-            }
 
             if (workingDirectory != null) s.WorkingDirectory = workingDirectory;
             var ringWorkingDir = Directory.GetCurrentDirectory();
@@ -149,11 +144,8 @@ public static class ToolExtensions
             {
                 p.TrackAsChild();
             }
-            else
-            {
-                // not sure yet what can be done for Linux/Darwin to support it
-            }
 
+            // not sure yet what can be done for Linux/Darwin to support it
             p.EnableRaisingEvents = true;
             p.OutputDataReceived += OnData;
             p.ErrorDataReceived += OnError;
@@ -169,7 +161,6 @@ public static class ToolExtensions
             token.Register(() =>
             {
                 if (tcs.TrySetCanceled())
-                {
                     try
                     {
                         p.Kill();
@@ -178,7 +169,6 @@ public static class ToolExtensions
                     {
                         Debug.WriteLine(ex.ToString());
                     }
-                }
             });
 
             void OnExit(object? sender, EventArgs _)
@@ -197,13 +187,9 @@ public static class ToolExtensions
             ExecutionInfo result;
 
             if (wait)
-            {
                 result = await tcs.Task;
-            }
             else
-            {
                 result = new ExecutionInfo(p.Id, null, sb.ToString().Trim('\r', '\n', ' ', '\t'), tcs.Task);
-            }
 
             return result;
         }

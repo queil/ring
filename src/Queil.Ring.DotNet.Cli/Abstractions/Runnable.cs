@@ -3,50 +3,73 @@ namespace Queil.Ring.DotNet.Cli.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.Serialization;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.Configuration.Interfaces;
-using Queil.Ring.Protocol;
+using Configuration;
 using Context;
 using Dtos;
 using Infrastructure;
 using Logging;
 using Microsoft.Extensions.Logging;
+using Protocol;
+using Stateless;
 
 [DebuggerDisplay("{UniqueId}")]
 public abstract class Runnable<TContext, TConfig> : IRunnable
     where TConfig : IRunnableConfig
 {
-    private readonly ILogger<Runnable<TContext, TConfig>> _logger;
+    private readonly Dictionary<string, object> _details = new();
     private readonly Fsm _fsm = new();
-    private TContext? _context;
+    private readonly ILogger<Runnable<TContext, TConfig>> _logger;
     protected readonly ISender Sender;
+    private TContext? _context;
+    private Task _destroyTask = Task.CompletedTask;
+    private Task _stopTask = Task.CompletedTask;
+
+    protected Runnable(TConfig config, ILogger<Runnable<TContext, TConfig>> logger, ISender sender)
+    {
+        Config = config;
+        if (Config.FriendlyName != null) _details.Add(DetailsKeys.FriendlyName, Config.FriendlyName);
+        _logger = logger;
+        Sender = sender;
+    }
+
     protected virtual TimeSpan HealthCheckPeriod { get; } = TimeSpan.FromSeconds(5);
     protected virtual int MaxConsecutiveFailuresUntilDead { get; } = 2;
     protected virtual int MaxTotalFailuresUntilDead { get; } = 3;
-    public TConfig Config { get; private set; }
+    public TConfig Config { get; }
     public abstract string UniqueId { get; }
     public State State => _fsm.State;
     public event EventHandler? OnHealthCheckCompleted;
     public event EventHandler? OnInitExecuted;
     public IReadOnlyDictionary<string, object> Details => _details;
-    private readonly Dictionary<string, object> _details = new();
-    private Task _stopTask = Task.CompletedTask;
-    private Task _destroyTask = Task.CompletedTask;
+
+    public async Task RunAsync(CancellationToken token)
+    {
+        using var _ = _logger.BeginScope(this.ToScope());
+        var fsm = await InitFsm(token);
+
+        await fsm.FireAsync(Trigger.Init);
+    }
+
+    public async Task TerminateAsync()
+    {
+        using var _ = _logger.BeginScope(this.ToScope());
+        await _fsm.FireAsync(Trigger.Stop);
+        await _stopTask;
+        await _fsm.FireAsync(Trigger.Destroy);
+        await _destroyTask;
+    }
+
     /// <summary>
-    /// Details added via this method are pushed to clients where can be used for different purposes
+    ///     Details added via this method are pushed to clients where can be used for different purposes
     /// </summary>
     /// <param name="key"></param>
     /// <param name="value"></param>
-    protected void AddDetail(string key, object value) => _details.TryAdd(key, value);
-
-    protected Runnable(TConfig config, ILogger<Runnable<TContext, TConfig>> logger, ISender sender)
+    protected void AddDetail(string key, object value)
     {
-        Config = config;
-        if (Config.FriendlyName != null) { _details.Add(DetailsKeys.FriendlyName, Config.FriendlyName); }
-        _logger = logger;
-        Sender = sender;
+        _details.TryAdd(key, value);
     }
 
     protected abstract Task<TContext> InitAsync(CancellationToken token);
@@ -124,10 +147,8 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
             .Permit(Trigger.Stop, State.Idle);
 
         _fsm.Configure(State.Dead)
-            .OnEntryFromAsync(Trigger.HcDead, async () =>
-            {
-                await Sender.EnqueueAsync(Message.RunnableDead(UniqueId), token);
-            })
+            .OnEntryFromAsync(Trigger.HcDead,
+                async () => { await Sender.EnqueueAsync(Message.RunnableDead(UniqueId), token); })
             .Permit(Trigger.Stop, State.Idle);
 
         _fsm.Configure(State.Recovering)
@@ -167,23 +188,6 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         }
     }
 
-    public async Task RunAsync(CancellationToken token)
-    {
-        using var _ = _logger.BeginScope(this.ToScope());
-        var fsm = await InitFsm(token);
-
-        await fsm.FireAsync(Trigger.Init);
-    }
-
-    public async Task TerminateAsync()
-    {
-        using var _ = _logger.BeginScope(this.ToScope());
-        await _fsm.FireAsync(Trigger.Stop);
-        await _stopTask;
-        await _fsm.FireAsync(Trigger.Destroy);
-        await _destroyTask;
-    }
-
     private async Task InitCoreAsync(CancellationToken token)
     {
         try
@@ -199,7 +203,8 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Initialization failed");
-            _context = (TContext)FormatterServices.GetUninitializedObject(typeof(TContext));
+            _context = (TContext)RuntimeHelpers
+                .GetUninitializedObject(typeof(TContext));
             await _fsm.FireAsync(Trigger.InitFailure);
         }
         finally
@@ -207,6 +212,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
             OnInitExecuted?.Invoke(this, EventArgs.Empty);
         }
     }
+
     protected async Task StartCoreAsync(TContext ctx, CancellationToken token)
     {
         using var _ = _logger.BeginScope(Scope.Event(LogEvent.START));
@@ -216,6 +222,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         _logger.LogInformation(LogEventStatus.OK);
         await Sender.EnqueueAsync(Message.RunnableStarted(UniqueId), token);
     }
+
     private async Task<HealthStatus> CheckHealthCoreAsync(TContext ctx, CancellationToken token)
     {
         try
@@ -323,7 +330,6 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         }
         catch (OperationCanceledException)
         {
-
         }
         catch (Exception ex)
         {
@@ -337,11 +343,31 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         }
     }
 
-    private class Fsm : Stateless.StateMachine<State, Trigger>
-    {
-        public Fsm() : base(State.Zero) { }
-    }
+    private class Fsm() : StateMachine<State, Trigger>(State.Zero);
 }
 
-public enum State { Zero, Idle, Pending, ProbingHealth, Healthy, Recovering, Dead }
-public enum Trigger { NoOp, Invalid, Init, InitFailure, Start, Stop, Destroy, HealthLoop, HcUnhealthy, HcOk, HcDead }
+public enum State
+{
+    Zero,
+    Idle,
+    Pending,
+    ProbingHealth,
+    Healthy,
+    Recovering,
+    Dead
+}
+
+public enum Trigger
+{
+    NoOp,
+    Invalid,
+    Init,
+    InitFailure,
+    Start,
+    Stop,
+    Destroy,
+    HealthLoop,
+    HcUnhealthy,
+    HcOk,
+    HcDead
+}

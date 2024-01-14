@@ -1,16 +1,14 @@
-﻿using System;
+﻿namespace Queil.Ring.DotNet.Cli.Runnables.Windows.IISExpress;
+
+using System;
 using System.IO;
 using System.Xml;
 
-namespace Queil.Ring.DotNet.Cli.Runnables.Windows.IISExpress;
-
 public class ApphostConfig
 {
-    public string VirtualDir { get; set; }
-    public Uri Uri { get; set; }
     private const string ApphostConfigTemplatePath = "C:/Program Files/IIS Express/AppServer/applicationhost.config";
-    private static string IISExpressTempDir => Path.Combine(Path.GetTempPath(), "iisexpress");
-    private static readonly Lazy<XmlDocument> ApphostConfigTemplate = new Lazy<XmlDocument>(() =>
+
+    private static readonly Lazy<XmlDocument> ApphostConfigTemplate = new(() =>
     {
         var xml = new XmlDocument();
         xml.Load(ApphostConfigTemplatePath);
@@ -18,9 +16,13 @@ public class ApphostConfig
         return xml;
     });
 
+    public required string VirtualDir { get; init; }
+    public required Uri Uri { get; init; }
+    private static string IisExpressTempDir => Path.Combine(Path.GetTempPath(), "iisexpress");
+
     public string Ensure()
     {
-        Directory.CreateDirectory(IISExpressTempDir);
+        Directory.CreateDirectory(IisExpressTempDir);
 
         var apphostConfig = (XmlDocument)ApphostConfigTemplate.Value.Clone();
 
@@ -30,7 +32,7 @@ public class ApphostConfig
         var binding = siteNode.SelectSingleNode("bindings/binding");
         binding.Attributes["bindingInformation"].Value = $":{Uri.Port}:{Uri.Host}";
         binding.Attributes["protocol"].Value = Uri.Scheme;
-        var cfgPath = Path.Combine(IISExpressTempDir, $"applicationhost{Guid.NewGuid():n}.config");
+        var cfgPath = Path.Combine(IisExpressTempDir, $"applicationhost{Guid.NewGuid():n}.config");
 
         apphostConfig.Save(cfgPath);
         return cfgPath;
@@ -44,7 +46,8 @@ public class ApphostConfig
         CommentOut("/configuration/location/system.webServer/modules/add[@name='HttpLoggingModule']");
         CommentOut("/configuration/location/system.webServer/modules/add[@name='FailedRequestsTracingModule']");
         CommentOut("/configuration/location/system.webServer/modules/add[@name='StaticCompressionModule']");
-        SetValue("/configuration/system.applicationHost/sites/siteDefaults/traceFailedRequestsLogging/@enabled", "false");
+        SetValue("/configuration/system.applicationHost/sites/siteDefaults/traceFailedRequestsLogging/@enabled",
+            "false");
 
         void SetValue(string xpath, string value)
         {
@@ -60,6 +63,5 @@ public class ApphostConfig
             var parent = nodeToRemove.ParentNode;
             parent.ReplaceChild(config.CreateComment(nodeToRemove.OuterXml), nodeToRemove);
         }
-
     }
 }
