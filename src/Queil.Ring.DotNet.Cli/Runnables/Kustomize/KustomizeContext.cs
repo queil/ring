@@ -1,7 +1,7 @@
-﻿using System;
-using Queil.Ring.DotNet.Cli.Abstractions.Context;
+﻿namespace Queil.Ring.DotNet.Cli.Runnables.Kustomize;
 
-namespace Queil.Ring.DotNet.Cli.Runnables.Kustomize;
+using System;
+using Abstractions.Context;
 
 public class KustomizeContext : ITrackRetries
 {

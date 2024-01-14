@@ -1,19 +1,19 @@
 ﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
 
-using Logging;
 using System;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Cli;
+using Logging;
 using Microsoft.Extensions.Logging;
 using Protocol;
 
 public class ConsoleClient(ILogger<ConsoleClient> logger, ServeOptions options)
 {
-    private Task _clientTask = Task.CompletedTask;
-    private ClientWebSocket? _clientSocket;
     private static readonly Guid ClientId = Guid.Parse("842fcc9e-c1bb-420d-b1e7-b3465aafa4e2");
+    private ClientWebSocket? _clientSocket;
+    private Task _clientTask = Task.CompletedTask;
 
     public Task StartAsync(CancellationToken token)
     {
@@ -27,10 +27,8 @@ public class ConsoleClient(ILogger<ConsoleClient> logger, ServeOptions options)
                 using (logger.WithHostScope(LogEvent.INIT))
                 {
                     if (consoleOpts.StartupDelaySeconds > 0)
-                    {
                         logger.LogDebug("Delaying startup by: {StartupDelaySeconds} seconds",
                             consoleOpts.StartupDelaySeconds);
-                    }
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(consoleOpts.StartupDelaySeconds), token);

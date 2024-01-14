@@ -1,4 +1,6 @@
-﻿using System;
+﻿namespace Queil.Ring.DotNet.Cli.Runnables.Windows.IISExpress;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,15 +8,13 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Queil.Ring.DotNet.Cli.CsProj;
+using Abstractions;
+using CsProj;
+using Dtos;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
-using Queil.Ring.DotNet.Cli.Abstractions;
-using Queil.Ring.DotNet.Cli.Dtos;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Tools.Windows;
-using IISExpressConfig = Queil.Ring.Configuration.Runnables.IISExpress;
-
-namespace Queil.Ring.DotNet.Cli.Runnables.Windows.IISExpress;
+using Tools.Windows;
+using IISExpressConfig = Configuration.Runnables.IISExpress;
 
 public class IISExpressRunnable(
     IISExpressConfig config,
@@ -49,7 +49,8 @@ public class IISExpressRunnable(
     protected override async Task<IISExpressContext> InitAsync(CancellationToken token)
     {
         var ctx = await base.InitAsync(token);
-        _wcfServices.AddRange(new DirectoryInfo(ctx.WorkingDir).EnumerateFiles("*.svc", SearchOption.TopDirectoryOnly).Select(f => f.Name));
+        _wcfServices.AddRange(new DirectoryInfo(ctx.WorkingDir).EnumerateFiles("*.svc", SearchOption.TopDirectoryOnly)
+            .Select(f => f.Name));
         var apphostConfig = new ApphostConfig { VirtualDir = ctx.WorkingDir, Uri = ctx.Uri };
         ctx.TempAppHostConfigPath = apphostConfig.Ensure();
         return ctx;

@@ -1,4 +1,5 @@
 ﻿// ReSharper disable InconsistentNaming
+
 namespace Queil.Ring.DotNet.Cli.Logging;
 
 public enum LogEvent

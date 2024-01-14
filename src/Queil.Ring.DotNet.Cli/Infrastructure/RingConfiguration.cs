@@ -1,10 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
+
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System;
-
-namespace Queil.Ring.DotNet.Cli.Infrastructure;
 
 internal static class Env
 {
@@ -12,11 +12,9 @@ internal static class Env
     {
         // a naive non-Windows OS hack for https://github.com/dotnet/runtime/issues/25792
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
             path = string.Join(Path.DirectorySeparatorChar,
                 from c in path.Split(Path.DirectorySeparatorChar)
                 select c.Contains('$') ? string.Concat(c.Replace('$', '%'), "%") : c);
-        }
 
         return Environment.ExpandEnvironmentVariables(path);
     }

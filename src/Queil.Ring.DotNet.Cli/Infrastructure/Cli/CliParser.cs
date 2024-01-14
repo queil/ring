@@ -7,6 +7,7 @@ using CommandLine;
 public static class CliParser
 {
     public const string DefaultFileName = "ring.toml";
+
     public static BaseOptions GetOptions(string[] args, string originalWorkingDir)
     {
         string WorkspacePathOrDefault(string? path)
@@ -15,9 +16,9 @@ public static class CliParser
 
             var defaultFilePath = Path.GetFullPath(DefaultFileName, originalWorkingDir);
             if (!File.Exists(defaultFilePath))
-            {
-                throw new FileNotFoundException($"{DefaultFileName} was not found in the current directory. Did you mean to pass workspace file path via the --workspace CLI option?", DefaultFileName);
-            }
+                throw new FileNotFoundException(
+                    $"{DefaultFileName} was not found in the current directory. Did you mean to pass workspace file path via the --workspace CLI option?",
+                    DefaultFileName);
             return defaultFilePath;
         }
 
@@ -57,10 +58,7 @@ public static class CliParser
                 opts.WorkspacePath = WorkspacePathOrDefault(opts.WorkspacePath);
                 options = opts;
             })
-            .WithParsed<ConfigDump>(opts =>
-            {
-                options = opts;
-            })
+            .WithParsed<ConfigDump>(opts => { options = opts; })
             .WithParsed<ConfigPath>(opts =>
             {
                 var path =
@@ -73,15 +71,9 @@ public static class CliParser
             })
             .WithParsed<ConfigCreate>(opts =>
             {
-                if (opts.Local)
-                {
-                    EnsureConfigOverrideFile(Directories.Working(originalWorkingDir).SettingsPath, "local");
-                }
+                if (opts.Local) EnsureConfigOverrideFile(Directories.Working(originalWorkingDir).SettingsPath, "local");
 
-                if (opts.User)
-                {
-                    EnsureConfigOverrideFile(UserSettingsDir.SettingsPath, "user");
-                }
+                if (opts.User) EnsureConfigOverrideFile(UserSettingsDir.SettingsPath, "user");
 
                 Environment.Exit(0);
             })

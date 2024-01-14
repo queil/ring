@@ -26,6 +26,7 @@ internal static class HttpContextExtensions
             await ctx.Response.BadRequest("This is not a web socket request");
             return false;
         }
+
         await next(ctx);
         return false;
     }

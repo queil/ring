@@ -1,14 +1,14 @@
 namespace Queil.Ring.DotNet.Cli.Runnables.Dotnet;
 
-using CsProj;
-using Configuration;
-using Infrastructure;
-using Tools;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Configuration;
+using CsProj;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
+using Tools;
 
 public abstract class DotnetRunnableBase<TContext, TConfig>(
     TConfig config,
@@ -26,7 +26,8 @@ public abstract class DotnetRunnableBase<TContext, TConfig>(
 
     protected override async Task<TContext> InitAsync(CancellationToken token)
     {
-        if (Config is IFromGit { SshRepoUrl: not null } gitCfg) await gitClone.CloneOrPullAsync(gitCfg, token, shallow: true, defaultBranchOnly: true);
+        if (Config is IFromGit { SshRepoUrl: not null } gitCfg)
+            await gitClone.CloneOrPullAsync(gitCfg, token, true, true);
 
         var ctx = DotnetContext.Create<TContext, TConfig>(Config, c => gitClone.ResolveFullClonePath(c));
         if (File.Exists(ctx.EntryAssemblyPath)) return ctx;
@@ -35,10 +36,7 @@ public abstract class DotnetRunnableBase<TContext, TConfig>(
         var result =
             await Dotnet.TryAsync(3, TimeSpan.FromSeconds(10), f => f.BuildAsync(ctx.CsProjPath, token), token);
 
-        if (!result.IsSuccess)
-        {
-            logger.LogInformation("Build failed | {output}", result.Output);
-        }
+        if (!result.IsSuccess) logger.LogInformation("Build failed | {output}", result.Output);
         return ctx;
     }
 

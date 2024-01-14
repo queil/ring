@@ -38,18 +38,27 @@ public class RingMiddleware(RequestDelegate next, WebsocketsHandler broadcast)
             await broadcast.ListenAsync(clientId, () =>
             {
                 var s = context.WebSockets.AcceptWebSocketAsync();
-                using (log.WithClientScope()) log.LogInformation("Client {clientId} connected", clientId);
+                using (log.WithClientScope())
+                {
+                    log.LogInformation("Client {clientId} connected", clientId);
+                }
+
                 return s;
             }, context.Get<IHostApplicationLifetime>().ApplicationStopped);
         }
         catch (OperationCanceledException)
         {
             using (context.Logger().WithClientScope())
+            {
                 context.Logger().LogInformation("Client {clientId} disconnected", clientId);
+            }
         }
         catch (Exception ex)
         {
-            using (context.Logger().WithClientScope()) context.Logger().LogError("Unhandled: {ex}", ex);
+            using (context.Logger().WithClientScope())
+            {
+                context.Logger().LogError("Unhandled: {ex}", ex);
+            }
         }
     }
 }

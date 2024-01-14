@@ -1,13 +1,11 @@
-using System.Collections.ObjectModel;
-
 namespace Queil.Ring.DotNet.Cli.Abstractions;
 
-using Dtos;
-using Configuration;
-using Queil.Ring.Configuration.Runnables;
 using System.Collections.Generic;
 using System.Linq;
-using RunnableDetails = ReadOnlyDictionary<string, object>; 
+using Configuration;
+using Configuration.Runnables;
+using Dtos;
+using RunnableDetails = System.Collections.ObjectModel.ReadOnlyDictionary<string, object>;
 
 public static class DetailsExtractors
 {
@@ -21,7 +19,10 @@ public static class DetailsExtractors
 
         if (cfg.FriendlyName != null) details.Add(DetailsKeys.FriendlyName, cfg.FriendlyName);
         return new RunnableDetails(details);
-        
-        static Dictionary<string, object> New(params (string key, object value)[] details) => details.ToDictionary(x => x.key, x => x.value);
+
+        static Dictionary<string, object> New(params (string key, object value)[] details)
+        {
+            return details.ToDictionary(x => x.key, x => x.value);
+        }
     }
 }

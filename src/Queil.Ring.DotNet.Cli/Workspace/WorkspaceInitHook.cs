@@ -2,16 +2,17 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Infrastructure;
 using Tools;
 
 public class WorkspaceInitHook : IWorkspaceInitHook
 {
+    private readonly bool _configured;
     private readonly ILogger<WorkspaceInitHook> _logger;
     private readonly ProcessRunner _runner;
-    private readonly bool _configured;
+
     public WorkspaceInitHook(ILogger<WorkspaceInitHook> logger, ProcessRunner runner, IOptions<RingConfiguration> opts)
     {
         _logger = logger;

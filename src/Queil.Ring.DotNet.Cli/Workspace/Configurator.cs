@@ -36,6 +36,11 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
         return Task.CompletedTask;
     }
 
+    public void Dispose()
+    {
+        _currentWatcher?.Dispose();
+    }
+
     private static FileSystemWatcher Watch(string path, Func<Task> react)
     {
         var directoryName = Path.GetDirectoryName(path);
@@ -80,7 +85,6 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
         const int retries = 5;
         var tryCount = retries;
         while (tryCount > 0)
-        {
             try
             {
                 tryCount--;
@@ -93,7 +97,6 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
                     paths.WorkspacePath, tryCount);
                 await Task.Delay(1000);
             }
-        }
 
         if (tree == null)
             throw new FileLoadException(
@@ -109,6 +112,4 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
         Current = effectiveConfig;
         return effectiveConfig;
     }
-
-    public void Dispose() => _currentWatcher?.Dispose();
 }

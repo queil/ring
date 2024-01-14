@@ -1,6 +1,6 @@
-using System.Threading.Tasks;
-
 namespace Queil.Ring.DotNet.Cli.Tools;
+
+using System.Threading.Tasks;
 
 public readonly struct ExecutionInfo(int pid, int? exitCode, string output, Task<ExecutionInfo>? task)
 {

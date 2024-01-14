@@ -1,7 +1,7 @@
+namespace Queil.Ring.DotNet.Cli.Tools;
+
 using System;
 using System.Diagnostics;
-
-namespace Queil.Ring.DotNet.Cli.Tools;
 
 public static class ProcessExtensions
 {

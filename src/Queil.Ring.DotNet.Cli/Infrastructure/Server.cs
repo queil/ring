@@ -4,14 +4,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
-using Protocol;
-using Protocol.Events;
 using Dtos;
 using Logging;
-using Workspace;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Protocol;
+using Protocol.Events;
 using Stateless;
+using Workspace;
 using Scope = LightInject.Scope;
 using S = Server.State;
 using T = Server.Trigger;
@@ -35,9 +35,9 @@ public class Server(
                 await launcher.UnloadAsync(token);
                 RequestWorkspaceInfo();
             })
-          .Ignore(T.Unload)
-          .Ignore(T.Stop)
-          .Permit(T.Load, S.Loaded);
+            .Ignore(T.Unload)
+            .Ignore(T.Stop)
+            .Permit(T.Load, S.Loaded);
 
         _fsm.Configure(S.Loaded)
             .OnEntryFromAsync(T.Load.Of<string>(), async path =>
@@ -66,7 +66,8 @@ public class Server(
             .InternalTransition(T.Exclude, () => { })
             .Permit(T.Stop, S.Loaded);
 
-        _fsm.OnUnhandledTrigger((s, t) => logger.LogInformation("Trigger: {trigger} is not supported in state: {state}", t, s));
+        _fsm.OnUnhandledTrigger((s, t) =>
+            logger.LogInformation("Trigger: {trigger} is not supported in state: {state}", t, s));
         return Task.CompletedTask;
     }
 
@@ -81,7 +82,9 @@ public class Server(
                 S.Running => Message.ServerRunning(launcher.WorkspacePath.AsSpan()),
                 _ => Message.Empty()
             };
-            return maybeMessage is not { Type: M.EMPTY } ? sender.EnqueueAsync(maybeMessage, token) : ValueTask.CompletedTask;
+            return maybeMessage is not { Type: M.EMPTY }
+                ? sender.EnqueueAsync(maybeMessage, token)
+                : ValueTask.CompletedTask;
         }
 
         await EnqueueServerStatusAsync();
@@ -120,18 +123,20 @@ public class Server(
         return await launcher.IncludeAsync(id, token) == IncludeResult.UnknownRunnable ? Ack.NotFound : Ack.Ok;
     }
 
-    public async Task<Ack> ApplyFlavourAsync(string flavour, CancellationToken token)
-    {
-        return await launcher.ApplyFlavourAsync(flavour, token) == ApplyFlavourResult.UnknownFlavour ? Ack.NotFound : Ack.Ok;
-    }
+    public async Task<Ack> ApplyFlavourAsync(string flavour, CancellationToken token) =>
+        await launcher.ApplyFlavourAsync(flavour, token) == ApplyFlavourResult.UnknownFlavour
+            ? Ack.NotFound
+            : Ack.Ok;
 
-    public async Task<Ack> ExecuteTaskAsync(RunnableTask task, CancellationToken token) =>
-        await launcher.ExecuteTaskAsync(task, token) switch
+    public async Task<Ack> ExecuteTaskAsync(RunnableTask task, CancellationToken token)
+    {
+        return await launcher.ExecuteTaskAsync(task, token) switch
         {
             ExecuteTaskResult.UnknownRunnable or ExecuteTaskResult.UnknownTask => Ack.NotFound,
             ExecuteTaskResult.Failed => Ack.TaskFailed,
             _ => Ack.TaskOk
         };
+    }
 
     public Ack RequestWorkspaceInfo()
     {
@@ -187,5 +192,5 @@ public class Server(
 
 internal static class StateMachineExtensions
 {
-    internal static Server.ServerFsm.TriggerWithParameters<T> Of<T>(this Server.Trigger t) => new(t);
+    internal static StateMachine<S, Server.Trigger>.TriggerWithParameters<T> Of<T>(this Server.Trigger t) => new(t);
 }

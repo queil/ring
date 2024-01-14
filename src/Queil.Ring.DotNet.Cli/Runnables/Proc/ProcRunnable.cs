@@ -1,23 +1,24 @@
-﻿using System.Threading.Tasks;
-using System.Threading;
-using Microsoft.Extensions.Logging;
-using Queil.Ring.DotNet.Cli.Abstractions.Context;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Tools;
+﻿namespace Queil.Ring.DotNet.Cli.Runnables.Proc;
 
-namespace Queil.Ring.DotNet.Cli.Runnables.Proc;
+using System.Threading;
+using System.Threading.Tasks;
+using Abstractions.Context;
+using Configuration.Runnables;
+using Infrastructure;
+using Microsoft.Extensions.Logging;
+using Tools;
 
 public class ProcContext : ITrackProcessId
 {
     public int ProcessId { get; set; }
 }
 
-public class ProcRunnable : ProcessRunnable<ProcContext, Queil.Ring.Configuration.Runnables.Proc>
+public class ProcRunnable : ProcessRunnable<ProcContext, Proc>
 {
     private readonly ProcessRunner _runner;
 
-    public ProcRunnable(Queil.Ring.Configuration.Runnables.Proc config,
-        ILogger<ProcessRunnable<ProcContext, Queil.Ring.Configuration.Runnables.Proc>> logger,
+    public ProcRunnable(Proc config,
+        ILogger<ProcessRunnable<ProcContext, Proc>> logger,
         ISender sender,
         ProcessRunner runner) : base(config, logger, sender)
     {

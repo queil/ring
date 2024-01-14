@@ -1,0 +1,3 @@
+[*.cs]
+csharp_using_directive_placement = inside_namespace
+insert_final_newline = true

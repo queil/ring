@@ -1,12 +1,12 @@
-﻿using System;
+﻿namespace Queil.Ring.DotNet.Cli.CsProj;
+
+using System;
 using System.IO;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.XPath;
-using Queil.Ring.Configuration;
-using Queil.Ring.DotNet.Cli.CsProj.LaunchSettings;
-
-namespace Queil.Ring.DotNet.Cli.CsProj;
+using Configuration;
+using LaunchSettings;
 
 public static class UseCsProjFileExtensions
 {
@@ -15,7 +15,9 @@ public static class UseCsProjFileExtensions
     public static string GetWorkingDir(this IUseCsProjFile proj) =>
         new FileInfo(proj.FullPath).DirectoryName
         ?? throw new InvalidOperationException($"Path '{proj.FullPath}' doesn't have directory name");
+
     public static string GetProjName(this IUseCsProjFile proj) => Path.GetFileNameWithoutExtension(proj.FullPath);
+
     public static (string framework, string runtime) GetTargetFrameworkAndRuntime(this IUseCsProjFile proj)
     {
         if (proj == null) throw new ArgumentNullException(nameof(proj));
@@ -28,7 +30,8 @@ public static class UseCsProjFileExtensions
         return (framework: tf.Value, runtime: ri?.Value);
     }
 
-    private static (XPathNavigator navigator, XmlNamespaceManager nsManager, string nsPrefix) CreateNavigator(this IUseCsProjFile proj)
+    private static (XPathNavigator navigator, XmlNamespaceManager nsManager, string nsPrefix) CreateNavigator(
+        this IUseCsProjFile proj)
     {
         if (proj == null) throw new ArgumentNullException(nameof(proj));
         var xp = new XPathDocument(proj.FullPath);
@@ -45,9 +48,12 @@ public static class UseCsProjFileExtensions
         {
             var launchSettings = JsonSerializer.Deserialize<Root>(File.ReadAllText(proj.LaunchSettingsJsonPath));
             var iisExpress = launchSettings?.iisSettings?.iisExpress;
-            if (iisExpress is not iisExpress settings) throw new InvalidOperationException("Expected path launchSettings.iisSettings.iisExpress not found or empty.");
+            if (iisExpress is not iisExpress settings)
+                throw new InvalidOperationException(
+                    "Expected path launchSettings.iisSettings.iisExpress not found or empty.");
             var originalUri = settings.applicationUrl;
-            if (originalUri is not Uri u) throw new InvalidOperationException("iisExpress.applicationUrl must not be empty");
+            if (originalUri is not Uri u)
+                throw new InvalidOperationException("iisExpress.applicationUrl must not be empty");
             var builder = new UriBuilder(u)
             {
                 Port = settings.sslPort != 0 ? settings.sslPort : originalUri.Port,
@@ -58,15 +64,19 @@ public static class UseCsProjFileExtensions
 
         var (nav, nsMan, nsPrefix) = proj.CreateNavigator();
 
-        static string IISUrlXPath(string ns) => $"/{ns}Project/{ns}ProjectExtensions/{ns}VisualStudio/{ns}FlavorProperties/{ns}WebProjectProperties/{ns}IISUrl";
+        static string IISUrlXPath(string ns) =>
+            $"/{ns}Project/{ns}ProjectExtensions/{ns}VisualStudio/{ns}FlavorProperties/{ns}WebProjectProperties/{ns}IISUrl";
 
-        var iisUrl = nav.SelectSingleNode(IISUrlXPath(nsPrefix), nsMan) ?? nav.SelectSingleNode(IISUrlXPath(string.Empty));
+        var iisUrl = nav.SelectSingleNode(IISUrlXPath(nsPrefix), nsMan) ??
+                     nav.SelectSingleNode(IISUrlXPath(string.Empty));
         if (iisUrl != null && !string.IsNullOrWhiteSpace(iisUrl.Value)) return new Uri(iisUrl.Value);
 
-        static string PortXPath(string ns) => $"/{ns}Project/{ns}ProjectExtensions/{ns}VisualStudio/{ns}FlavorProperties/{ns}WebProjectProperties/{ns}DevelopmentServerPort";
+        static string PortXPath(string ns) =>
+            $"/{ns}Project/{ns}ProjectExtensions/{ns}VisualStudio/{ns}FlavorProperties/{ns}WebProjectProperties/{ns}DevelopmentServerPort";
 
         var port = nav.SelectSingleNode(PortXPath(nsPrefix), nsMan) ?? nav.SelectSingleNode(PortXPath(string.Empty));
-        if (port == null) throw new InvalidOperationException($"DevelopmentServerPort is not defined in {proj.FullPath}");
+        if (port == null)
+            throw new InvalidOperationException($"DevelopmentServerPort is not defined in {proj.FullPath}");
 
         return new Uri($"http://localhost:{port}");
     }

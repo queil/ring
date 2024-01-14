@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 public interface IRunnable
 {
-    Task RunAsync(CancellationToken token);
-    Task TerminateAsync();
     string UniqueId { get; }
     State State { get; }
+    IReadOnlyDictionary<string, object> Details { get; }
+    Task RunAsync(CancellationToken token);
+    Task TerminateAsync();
     event EventHandler OnHealthCheckCompleted;
     event EventHandler OnInitExecuted;
-    IReadOnlyDictionary<string, object> Details { get; }
 }

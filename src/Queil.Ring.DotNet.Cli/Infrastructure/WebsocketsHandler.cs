@@ -1,17 +1,17 @@
 ﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
 
-using Protocol.Events;
-using Protocol;
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Linq;
+using Protocol;
+using Protocol.Events;
 
 public class WebsocketsHandler(
     IHostApplicationLifetime appLifetime,
@@ -25,10 +25,7 @@ public class WebsocketsHandler(
     {
         var tasks = new List<Task>();
 
-        foreach (var client in _clients.Values.Where(x => x.IsOpen))
-        {
-            tasks.Add(client.SendAsync(m));
-        }
+        foreach (var client in _clients.Values.Where(x => x.IsOpen)) tasks.Add(client.SendAsync(m));
 
         return Task.WhenAll(tasks.ToArray());
     }
@@ -43,7 +40,6 @@ public class WebsocketsHandler(
             var messageLoop = Task.Run(async () =>
             {
                 while (await queue.WaitToReadAsync(appLifetime.ApplicationStopped))
-                {
                     try
                     {
                         await queue.DequeueAsync(BroadcastAsync);
@@ -52,7 +48,6 @@ public class WebsocketsHandler(
                     {
                         break;
                     }
-                }
             }, appLifetime.ApplicationStopping);
 
             appLifetime.ApplicationStopping.Register(async () =>
@@ -100,7 +95,9 @@ public class WebsocketsHandler(
                 (M.STOP, _) => server.StopAsync(token),
                 (M.RUNNABLE_INCLUDE, var runnableId) => server.IncludeAsync(runnableId.AsUtf8String(), token),
                 (M.RUNNABLE_EXCLUDE, var runnableId) => server.ExcludeAsync(runnableId.AsUtf8String(), token),
-                (M.RUNNABLE_EXECUTE_TASK, var taskInfo) => server.ExecuteTaskAsync(RunnableTask.Deserialize(taskInfo) ?? throw new NullReferenceException("Runnable task is null"), token),
+                (M.RUNNABLE_EXECUTE_TASK, var taskInfo) => server.ExecuteTaskAsync(
+                    RunnableTask.Deserialize(taskInfo) ?? throw new NullReferenceException("Runnable task is null"),
+                    token),
                 (M.WORKSPACE_APPLY_FLAVOUR, var flavour) => server.ApplyFlavourAsync(flavour.AsUtf8String(), token),
                 (M.WORKSPACE_INFO_RQ, _) => Task.FromResult(server.RequestWorkspaceInfo()),
                 (M.PING, _) => Task.FromResult(Ack.Alive),

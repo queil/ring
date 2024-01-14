@@ -1,6 +1,6 @@
-﻿using System;
+﻿namespace Queil.Ring.DotNet.Cli.Abstractions.Context;
 
-namespace Queil.Ring.DotNet.Cli.Abstractions.Context;
+using System;
 
 public interface ITrackUri
 {

@@ -1,7 +1,7 @@
 ﻿namespace Queil.Ring.DotNet.Cli.Workspace;
 
-using Configuration;
 using System.Collections.Generic;
+using Configuration;
 
 public class ConfigurationChangedArgs(IDictionary<string, IRunnableConfig> configuration)
 {

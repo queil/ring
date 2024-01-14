@@ -1,11 +1,11 @@
+namespace Queil.Ring.DotNet.Cli.Tools;
+
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Abstractions.Tools;
 using Microsoft.Extensions.Logging;
-using Queil.Ring.DotNet.Cli.Abstractions.Tools;
-
-namespace Queil.Ring.DotNet.Cli.Tools;
 
 public class KustomizeTool(ILogger<ITool> logger) : ITool
 {

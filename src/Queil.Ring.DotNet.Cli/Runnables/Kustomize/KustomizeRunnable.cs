@@ -1,19 +1,20 @@
-﻿using System;
+﻿using static Queil.Ring.DotNet.Cli.Tools.ToolExtensions;
+using KustomizeConfig = Queil.Ring.Configuration.Runnables.Kustomize;
+
+namespace Queil.Ring.DotNet.Cli.Runnables.Kustomize;
+
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Abstractions;
+using Dtos;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Queil.Ring.DotNet.Cli.Abstractions;
-using Queil.Ring.DotNet.Cli.Dtos;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Tools;
-using static Queil.Ring.DotNet.Cli.Tools.ToolExtensions;
-using KustomizeConfig = Queil.Ring.Configuration.Runnables.Kustomize;
-
-namespace Queil.Ring.DotNet.Cli.Runnables.Kustomize;
+using Tools;
 
 public class KustomizeRunnable(
     KustomizeConfig config,
@@ -23,13 +24,11 @@ public class KustomizeRunnable(
     KubectlBundle bundle)
     : Runnable<KustomizeContext, KustomizeConfig>(config, logger, sender)
 {
-    private static class PodStatus
-    {
-        public const string Running = "Running";
-        public const string Error = "Error";
-    }
     private const string NamespacesPath = "{range .items[?(@.kind=='Namespace')]}{.metadata.name}{'\\n'}{end}";
-    private readonly string _cacheDir = ringCfg?.Value?.Kustomize.CachePath ?? throw new ArgumentNullException(nameof(RingConfiguration.Kustomize.CachePath));
+
+    private readonly string _cacheDir = ringCfg?.Value?.Kustomize.CachePath ??
+                                        throw new ArgumentNullException(nameof(RingConfiguration.Kustomize.CachePath));
+
     private readonly ILogger<Runnable<KustomizeContext, KustomizeConfig>> _logger = logger;
 
     public override string UniqueId => Config.Path;
@@ -43,8 +42,9 @@ public class KustomizeRunnable(
         return Path.Combine(_cacheDir, $"{fileName}.yaml");
     }
 
-    private async Task<bool> WaitAllPodsAsync(KustomizeContext ctx, CancellationToken token, params string[] statuses) =>
-        (await Task.WhenAll(
+    private async Task<bool> WaitAllPodsAsync(KustomizeContext ctx, CancellationToken token, params string[] statuses)
+    {
+        return (await Task.WhenAll(
             ctx.Namespaces.Select(async n =>
             {
                 async Task<string[]> GetPodsAsync()
@@ -53,6 +53,7 @@ public class KustomizeRunnable(
                     _logger.LogDebug("Pods: {pods}", [pods]);
                     return pods;
                 }
+
                 var podsNow = await GetPodsAsync();
                 if (n.Pods.Any() && !podsNow.Any()) return false;
                 n.Pods = podsNow;
@@ -75,6 +76,7 @@ public class KustomizeRunnable(
                     }
                 }))).All(x => x);
             }))).All(x => x);
+    }
 
     protected override async Task<KustomizeContext> InitAsync(CancellationToken token)
     {
@@ -102,10 +104,7 @@ public class KustomizeRunnable(
 
         _logger.LogDebug(applyResult.Output);
 
-        if (!applyResult.IsSuccess)
-        {
-            throw new InvalidOperationException("Could not apply manifest");
-        }
+        if (!applyResult.IsSuccess) throw new InvalidOperationException("Could not apply manifest");
         var namespaces = applyResult.Output.Split(Environment.NewLine);
 
         ctx.Namespaces = namespaces.Select(n => new Namespace { Name = n }).ToArray();
@@ -117,7 +116,8 @@ public class KustomizeRunnable(
     {
         await TryAsync(100, TimeSpan.FromSeconds(6),
             async () => await WaitAllPodsAsync(ctx, token, PodStatus.Running, PodStatus.Error), r => r, token);
-        AddDetail(DetailsKeys.Pods, string.Join("|", ctx.Namespaces.SelectMany(n => n.Pods.Select(p => n.Name + "/" + p))));
+        AddDetail(DetailsKeys.Pods,
+            string.Join("|", ctx.Namespaces.SelectMany(n => n.Pods.Select(p => n.Name + "/" + p))));
     }
 
     protected override async Task<HealthStatus> CheckHealthAsync(KustomizeContext ctx, CancellationToken token)
@@ -128,5 +128,15 @@ public class KustomizeRunnable(
     }
 
     protected override Task StopAsync(KustomizeContext ctx, CancellationToken token) => Task.CompletedTask;
-    protected override async Task DestroyAsync(KustomizeContext ctx, CancellationToken token) => await bundle.DeleteAsync(ctx.CachePath, token);
+
+    protected override async Task DestroyAsync(KustomizeContext ctx, CancellationToken token)
+    {
+        await bundle.DeleteAsync(ctx.CachePath, token);
+    }
+
+    private static class PodStatus
+    {
+        public const string Running = "Running";
+        public const string Error = "Error";
+    }
 }

@@ -1,8 +1,8 @@
-using System;
-using Microsoft.Extensions.Logging;
-using Queil.Ring.DotNet.Cli.Abstractions.Tools;
-
 namespace Queil.Ring.DotNet.Cli.Tools;
+
+using System;
+using Abstractions.Tools;
+using Microsoft.Extensions.Logging;
 
 public class ProcessRunner(ILogger<ITool> logger) : ITool
 {

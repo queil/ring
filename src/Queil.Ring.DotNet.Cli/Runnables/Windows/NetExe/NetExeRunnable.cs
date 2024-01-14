@@ -1,13 +1,14 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Queil.Ring.DotNet.Cli.CsProj;
-using Microsoft.Extensions.Logging;
-using Queil.Ring.DotNet.Cli.Dtos;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Tools;
-using NetExeConfig = Queil.Ring.Configuration.Runnables.NetExe;
+﻿using NetExeConfig = Queil.Ring.Configuration.Runnables.NetExe;
 
 namespace Queil.Ring.DotNet.Cli.Runnables.Windows.NetExe;
+
+using System.Threading;
+using System.Threading.Tasks;
+using CsProj;
+using Dtos;
+using Infrastructure;
+using Microsoft.Extensions.Logging;
+using Tools;
 
 public class NetExeRunnable(
     NetExeConfig config,

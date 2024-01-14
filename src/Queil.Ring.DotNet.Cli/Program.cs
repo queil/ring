@@ -6,14 +6,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
-using Queil.Ring.Configuration;
-using Queil.Ring.DotNet.Cli.Abstractions;
-using Queil.Ring.DotNet.Cli.Infrastructure;
-using Queil.Ring.DotNet.Cli.Infrastructure.Cli;
-using Queil.Ring.DotNet.Cli.Logging;
-using Queil.Ring.DotNet.Cli.Tools;
-using Queil.Ring.DotNet.Cli.Tools.Windows;
-using Queil.Ring.DotNet.Cli.Workspace;
 using k8s;
 using LightInject;
 using LightInject.Microsoft.AspNetCore.Hosting;
@@ -24,20 +16,31 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Queil.Ring.Configuration;
+using Queil.Ring.DotNet.Cli.Abstractions;
+using Queil.Ring.DotNet.Cli.Infrastructure;
+using Queil.Ring.DotNet.Cli.Infrastructure.Cli;
+using Queil.Ring.DotNet.Cli.Logging;
+using Queil.Ring.DotNet.Cli.Tools;
+using Queil.Ring.DotNet.Cli.Tools.Windows;
+using Queil.Ring.DotNet.Cli.Workspace;
 using Serilog;
 using Serilog.Events;
 using Tomlyn.Extensions.Configuration;
 using LogEvent = Queil.Ring.DotNet.Cli.Logging.LogEvent;
+using Scope = LightInject.Scope;
 
-static string Ring(string ver) => $"       _ _\n     *'   '*\n    * .*'*. 3\n   '  @   a  ;     ring! v{ver}\n    * '*.*' *\n     *. _ .*\n";
+static string Ring(string ver) =>
+    $"       _ _\n     *'   '*\n    * .*'*. 3\n   '  @   a  ;     ring! v{ver}\n    * '*.*' *\n     *. _ .*\n";
+
 var originalWorkingDir = Directory.GetCurrentDirectory();
 
 try
 {
     ThreadPool.SetMinThreads(100, 100);
     Log.Logger = new LoggerConfiguration().WriteTo.Console()
-                                            .MinimumLevel.Information()
-                                            .MinimumLevel.Override("Microsoft", LogEventLevel.Error).CreateLogger();
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Error).CreateLogger();
 
     var options = CliParser.GetOptions(args, originalWorkingDir);
 
@@ -65,7 +68,8 @@ try
 
     services.AddSingleton(options);
     if (options is ServeOptions) services.AddSingleton(f => (ServeOptions)f.GetRequiredService<BaseOptions>());
-    services.AddSingleton<Func<Uri, HttpClient>>(_ => uri => clients.GetOrAdd(uri, new HttpClient { BaseAddress = uri, MaxResponseContentBufferSize = 1 }));
+    services.AddSingleton<Func<Uri, HttpClient>>(_ =>
+        uri => clients.GetOrAdd(uri, new HttpClient { BaseAddress = uri, MaxResponseContentBufferSize = 1 }));
     services.AddOptions();
     services.Configure<RingConfiguration>(builder.Configuration);
     services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
@@ -84,7 +88,8 @@ try
     {
         var configuredPath = f.GetRequiredService<IOptions<RingConfiguration>>().Value.Kubernetes.ConfigPath;
         var maybeKubeconfigEnv = Environment.GetEnvironmentVariable("KUBECONFIG");
-        var configPath = maybeKubeconfigEnv ?? configuredPath ?? throw new InvalidOperationException("Kubernetes config path is not set");
+        var configPath = maybeKubeconfigEnv ??
+                         configuredPath ?? throw new InvalidOperationException("Kubernetes config path is not set");
         return new Kubernetes(KubernetesClientConfiguration.BuildConfigFromConfigFile(configPath));
     });
 
@@ -103,36 +108,42 @@ try
 
     builder.Host.ConfigureContainer<IServiceContainer>((ctx, container) =>
     {
-        var runnableTypes = Assembly.GetEntryAssembly().GetExportedTypes().Where(t => typeof(IRunnable).IsAssignableFrom(t)).ToList();
+        var runnableTypes = Assembly.GetEntryAssembly().GetExportedTypes()
+            .Where(t => typeof(IRunnable).IsAssignableFrom(t)).ToList();
 
         var configMap = (from r in runnableTypes
-                         let cfg = r.GetProperty(nameof(Runnable<object, IRunnableConfig>.Config))
-                         where cfg != null
-                         select (RunnableType: r, ConfigType: cfg.PropertyType)).ToDictionary(x => x.ConfigType, x => x.RunnableType);
+                let cfg = r.GetProperty(nameof(Runnable<object, IRunnableConfig>.Config))
+                where cfg != null
+                select (RunnableType: r, ConfigType: cfg.PropertyType))
+            .ToDictionary(x => x.ConfigType, x => x.RunnableType);
 
-        foreach (var (_, rt) in configMap) { container.Register(rt, rt, new PerRequestLifeTime()); }
+        foreach (var (_, rt) in configMap) container.Register(rt, rt, new PerRequestLifeTime());
 
         container.Register<IRunnableConfig, IRunnable>((factory, cfg) =>
         {
             var ct = configMap[cfg.GetType()];
             var ctor = ct.GetConstructors().Single();
             var args = ctor.GetParameters().Select(x =>
-               typeof(IRunnableConfig).IsAssignableFrom(x.ParameterType) ? cfg : factory.GetInstance(x.ParameterType)).ToArray();
+                    typeof(IRunnableConfig).IsAssignableFrom(x.ParameterType)
+                        ? cfg
+                        : factory.GetInstance(x.ParameterType))
+                .ToArray();
 
             return (IRunnable)ctor.Invoke(args);
         });
-        container.Register<Func<LightInject.Scope>>(x => x.BeginScope);
+        container.Register<Func<Scope>>(x => x.BeginScope);
     });
 
     builder.Host.ConfigureAppConfiguration((_, b) =>
     {
         b.Sources.Clear();
-        b.AddTomlFile(InstallationDir.SettingsPath, optional: false);
-        b.AddTomlFile(InstallationDir.LoggingPath, optional: false);
-        b.AddTomlFile(UserSettingsDir.SettingsPath, optional: true);
-        b.AddTomlFile(Directories.Working(originalWorkingDir).SettingsPath, optional: true);
+        b.AddTomlFile(InstallationDir.SettingsPath, false);
+        b.AddTomlFile(InstallationDir.LoggingPath, false);
+        b.AddTomlFile(UserSettingsDir.SettingsPath, true);
+        b.AddTomlFile(Directories.Working(originalWorkingDir).SettingsPath, true);
         b.AddEnvironmentVariables("RING_");
-        if (options is ServeOptions { Port: var port }) b.AddInMemoryCollection(new Dictionary<string, string> { ["ring:port"] = port.ToString() });
+        if (options is ServeOptions { Port: var port })
+            b.AddInMemoryCollection(new Dictionary<string, string> { ["ring:port"] = port.ToString() });
     });
     builder.Host.UseServiceProviderFactory(new LightInjectServiceProviderFactory());
     builder.WebHost.UseLightInject(container);

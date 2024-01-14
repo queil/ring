@@ -1,20 +1,18 @@
 ﻿namespace Queil.Ring.DotNet.Cli.Workspace;
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Abstractions;
 using Configuration;
 using Dtos;
 using Tools;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 internal sealed class RunnableContainer : IAsyncDisposable
 {
-    public IRunnable Runnable { get; }
     private readonly CancellationTokenSource _aggregateCts;
-    private readonly CancellationTokenSource _cts = new();
     private readonly IRunnableConfig _config;
-    private Task? Task { get; set; }
+    private readonly CancellationTokenSource _cts = new();
 
     private RunnableContainer(IRunnable runnable, IRunnableConfig config,
         CancellationToken token)
@@ -22,6 +20,16 @@ internal sealed class RunnableContainer : IAsyncDisposable
         _config = config;
         Runnable = runnable;
         _aggregateCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, token);
+    }
+
+    public IRunnable Runnable { get; }
+    private Task? Task { get; set; }
+
+    public async ValueTask DisposeAsync()
+    {
+        await CancelAsync();
+        _aggregateCts.Dispose();
+        _cts.Dispose();
     }
 
     private async Task InitialiseAsync(TimeSpan delay)
@@ -38,7 +46,10 @@ internal sealed class RunnableContainer : IAsyncDisposable
         return container;
     }
 
-    public void Start() => Task = Runnable.RunAsync(_aggregateCts.Token);
+    public void Start()
+    {
+        Task = Runnable.RunAsync(_aggregateCts.Token);
+    }
 
     private async Task CancelAsync()
     {
@@ -50,7 +61,6 @@ internal sealed class RunnableContainer : IAsyncDisposable
     public (Func<ProcessRunner, CancellationToken, Task<ExecuteTaskResult>>, bool bringDown) PrepareTask(string taskId)
     {
         if (_config.Tasks.TryGetValue(taskId, out var taskDefinition))
-        {
             return (async (runner, token) =>
             {
                 var workDir =
@@ -62,15 +72,7 @@ internal sealed class RunnableContainer : IAsyncDisposable
                 var finalResult = result.Task is { } t ? await t : result;
                 return finalResult.IsSuccess ? ExecuteTaskResult.Ok : ExecuteTaskResult.Failed;
             }, bringDown: taskDefinition.BringDown);
-        }
 
         return (delegate { return Task.FromResult(ExecuteTaskResult.UnknownTask); }, bringDown: false);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await CancelAsync();
-        _aggregateCts.Dispose();
-        _cts.Dispose();
     }
 }

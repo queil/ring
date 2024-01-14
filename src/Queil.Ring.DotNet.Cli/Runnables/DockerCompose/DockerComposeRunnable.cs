@@ -1,13 +1,13 @@
 namespace Queil.Ring.DotNet.Cli.Runnables.DockerCompose;
 
+using System.Threading;
+using System.Threading.Tasks;
 using Abstractions;
 using Dtos;
 using Infrastructure;
-using Tools;
-using DockerComposeConfig = Queil.Ring.Configuration.Runnables.DockerCompose;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Tools;
+using DockerComposeConfig = Configuration.Runnables.DockerCompose;
 
 public class DockerComposeRunnable(
     DockerComposeConfig config,
@@ -33,10 +33,8 @@ public class DockerComposeRunnable(
         ctx.ProcessId = result.Pid;
     }
 
-    protected override Task<HealthStatus> CheckHealthAsync(DockerComposeContext ctx, CancellationToken token)
-    {
-        return Task.FromResult(ProcessExtensions.IsProcessRunning(ctx.ProcessId) ? HealthStatus.Ok : HealthStatus.Dead);
-    }
+    protected override Task<HealthStatus> CheckHealthAsync(DockerComposeContext ctx, CancellationToken token) =>
+        Task.FromResult(ProcessExtensions.IsProcessRunning(ctx.ProcessId) ? HealthStatus.Ok : HealthStatus.Dead);
 
     protected override async Task StopAsync(DockerComposeContext ctx, CancellationToken token)
     {

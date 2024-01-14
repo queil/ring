@@ -4,11 +4,11 @@ using = [
     "Serilog.Sinks.Console",
     "Serilog.Sinks.File"
 ]
-enrich = [ "FromLogContext" ]
+enrich = ["FromLogContext"]
 
 [serilog.minimumlevel]
 default = "Information"
-override = { Microsoft = "Warning", System = "Warning"}
+override = { Microsoft = "Warning", System = "Warning" }
 
 [[serilog.writeto]]
 name = "Console"
