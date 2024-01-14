@@ -1,5 +1,6 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable CollectionNeverUpdated.Global
+
 namespace Queil.Ring.Configuration.Runnables;
 
 public enum TaskType
@@ -10,20 +11,20 @@ public enum TaskType
 public class TaskDefinition
 {
     public TaskType Type { get; init; }
-    public bool BringDown { get; init; } 
+    public bool BringDown { get; init; }
     public required string Command { get; init; }
     public List<string> Args { get; } = [];
 }
 
 public abstract class RunnableConfigBase : IRunnableConfig
 {
-    public abstract string UniqueId { get; }
-    public string? FriendlyName { get; init; }
-
     /// <summary>
-    /// If implemented in derived class enables overriding the default <see cref="UniqueId"/>
+    ///     If implemented in derived class enables overriding the default <see cref="UniqueId" />
     /// </summary>
     public string? Id { get; init; }
+
+    public abstract string UniqueId { get; }
+    public string? FriendlyName { get; init; }
 
     public HashSet<string> DeclaredPaths { get; } = [];
 

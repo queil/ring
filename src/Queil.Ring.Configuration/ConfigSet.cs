@@ -5,8 +5,9 @@ using System.Linq;
 public class ConfigSet : Dictionary<string, IRunnableConfig>
 {
     public const string AllFlavours = "__all";
-    public HashSet<string> Flavours { get; }
-    public string Path { get; }
+
+    public static readonly ConfigSet Empty = new(string.Empty, []);
+
     public ConfigSet(string path, Dictionary<string, IRunnableConfig> bareConfigs)
     {
         foreach (var (key, value) in bareConfigs)
@@ -14,9 +15,11 @@ public class ConfigSet : Dictionary<string, IRunnableConfig>
             value.Tags.Add(AllFlavours);
             Add(key, value);
         }
+
         Path = path;
         Flavours = [..bareConfigs.Values.SelectMany(x => x.Tags)];
     }
 
-    public static readonly ConfigSet Empty = new(string.Empty, []);
+    public HashSet<string> Flavours { get; }
+    public string Path { get; }
 }

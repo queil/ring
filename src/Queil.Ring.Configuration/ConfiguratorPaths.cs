@@ -6,6 +6,7 @@ public class ConfiguratorPaths
 {
     private const string WslMnt = "/mnt/";
     private readonly string _path = string.Empty;
+
     public string WorkspacePath
     {
         get => _path;

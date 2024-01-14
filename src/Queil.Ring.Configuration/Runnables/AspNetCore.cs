@@ -1,4 +1,5 @@
 // ReSharper disable CollectionNeverUpdated.Global
+
 namespace Queil.Ring.Configuration.Runnables;
 
 public class AspNetCore : CsProjRunnable

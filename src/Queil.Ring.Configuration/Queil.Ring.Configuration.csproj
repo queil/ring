@@ -1,19 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-	<LangVersion>preview</LangVersion>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Tomlyn" Version="0.*" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Tomlyn" Version="0.*"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Using Include="System.Collections.Generic" />
-    <Using Include="System.IO" />
-  </ItemGroup>
+    <ItemGroup>
+        <Using Include="System.Collections.Generic"/>
+        <Using Include="System.IO"/>
+    </ItemGroup>
 
 </Project>

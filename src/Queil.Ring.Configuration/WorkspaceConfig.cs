@@ -1,6 +1,7 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable CollectionNeverUpdated.Global
 // ReSharper disable ReturnTypeCanBeEnumerable.Global
+
 namespace Queil.Ring.Configuration;
 
 using System.Linq;
@@ -9,9 +10,6 @@ using Runnables;
 public class WorkspaceConfig : IWorkspaceConfig
 {
     public WorkspaceConfig? Parent { get; set; }
-    public HashSet<string> DeclaredPaths { get; set; } = [];
-    public string UniqueId => string.IsNullOrWhiteSpace(Path) ? "" : System.IO.Path.GetFullPath(Path);
-
     public string Path { get; set; } = string.Empty;
     public List<Proc> Proc { get; } = [];
     public List<AspNetCore> Aspnetcore { get; } = [];
@@ -30,4 +28,7 @@ public class WorkspaceConfig : IWorkspaceConfig
             .Union(Netexe)
             .Union(Dockercompose)
             .Union(Kustomize);
+
+    public HashSet<string> DeclaredPaths { get; set; } = [];
+    public string UniqueId => string.IsNullOrWhiteSpace(Path) ? "" : System.IO.Path.GetFullPath(Path);
 }
