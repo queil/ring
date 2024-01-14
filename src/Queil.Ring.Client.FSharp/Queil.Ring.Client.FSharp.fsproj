@@ -1,21 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="WsClient.fs" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Include="WsClient.fs"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Queil.Ring.Protocol\Queil.Ring.Protocol.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Queil.Ring.Protocol\Queil.Ring.Protocol.csproj"/>
+    </ItemGroup>
 
 </Project>

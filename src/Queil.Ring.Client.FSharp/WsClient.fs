@@ -3,7 +3,6 @@
 open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
-open System.Text.Unicode
 open System.Threading.Channels
 open Queil.Ring.Protocol
 open Queil.Ring.Protocol.Events
