@@ -1,13 +1,20 @@
-﻿using System;
+﻿namespace Queil.Ring.Protocol.Events;
+
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Queil.Ring.Protocol.Events;
-
 public class WorkspaceInfo : IEquatable<WorkspaceInfo>
 {
+    private static readonly Lazy<JsonSerializerOptions> SerializerOptions = new(() =>
+    {
+        var options = new JsonSerializerOptions();
+        options.Converters.Add(new JsonStringEnumConverter());
+        return options;
+    });
+
     public WorkspaceInfo(string path,
         RunnableInfo[] runnables,
         string[] flavours,
@@ -29,8 +36,10 @@ public class WorkspaceInfo : IEquatable<WorkspaceInfo>
     public WorkspaceState WorkspaceState { get; }
     public string[] Flavours { get; }
 
-    [DisallowNull]
-    public string? CurrentFlavour { get; }
+    [DisallowNull] public string? CurrentFlavour { get; }
+
+    public static WorkspaceInfo Empty { get; } = new(string.Empty, Array.Empty<RunnableInfo>(), Array.Empty<string>(),
+        string.Empty, ServerState.IDLE, WorkspaceState.NONE);
 
     public bool Equals(WorkspaceInfo? other)
     {
@@ -52,14 +61,8 @@ public class WorkspaceInfo : IEquatable<WorkspaceInfo>
         return Equals((WorkspaceInfo)obj);
     }
 
-    public override int GetHashCode() => HashCode.Combine(Path, Runnables, Flavours, CurrentFlavour, ServerState, WorkspaceState);
-    public static WorkspaceInfo Empty { get; } = new(string.Empty, Array.Empty<RunnableInfo>(), Array.Empty<string>(), string.Empty, ServerState.IDLE, WorkspaceState.NONE);
-    public ReadOnlySpan<byte> Serialize() => JsonSerializer.SerializeToUtf8Bytes(this, SerializerOptions.Value);
+    public override int GetHashCode() =>
+        HashCode.Combine(Path, Runnables, Flavours, CurrentFlavour, ServerState, WorkspaceState);
 
-    private static readonly Lazy<JsonSerializerOptions> SerializerOptions = new(() =>
-    {
-        var options = new JsonSerializerOptions();
-        options.Converters.Add(new JsonStringEnumConverter());
-        return options;
-    });
+    public ReadOnlySpan<byte> Serialize() => JsonSerializer.SerializeToUtf8Bytes(this, SerializerOptions.Value);
 }

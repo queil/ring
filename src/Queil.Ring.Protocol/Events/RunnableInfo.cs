@@ -1,12 +1,13 @@
-﻿using System;
+﻿namespace Queil.Ring.Protocol.Events;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Queil.Ring.Protocol.Events;
-
 public class RunnableInfo : IEquatable<RunnableInfo>
 {
-    public RunnableInfo(string id, string[] declaredIn, string type, RunnableState state, string[] tags, IReadOnlyDictionary<string, object> details, string[] tasks)
+    public RunnableInfo(string id, string[] declaredIn, string type, RunnableState state, string[] tags,
+        IReadOnlyDictionary<string, object> details, string[] tasks)
     {
         Id = id;
         DeclaredIn = declaredIn;
@@ -29,7 +30,8 @@ public class RunnableInfo : IEquatable<RunnableInfo>
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
-        return string.Equals(Id, other.Id) && DeclaredIn.SequenceEqual(other.DeclaredIn) && string.Equals(Type, other.Type) && State == other.State && Details.SequenceEqual(other.Details);
+        return string.Equals(Id, other.Id) && DeclaredIn.SequenceEqual(other.DeclaredIn) &&
+               string.Equals(Type, other.Type) && State == other.State && Details.SequenceEqual(other.Details);
     }
 
     public override bool Equals(object? obj)

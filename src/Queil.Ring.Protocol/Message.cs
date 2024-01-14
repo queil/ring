@@ -1,8 +1,8 @@
-﻿using System;
-using System.Text;
-using Queil.Ring.Protocol.Events;
+﻿namespace Queil.Ring.Protocol;
 
-namespace Queil.Ring.Protocol;
+using System;
+using System.Text;
+using Events;
 
 // ReSharper disable InconsistentNaming
 public enum M : byte
@@ -44,6 +44,7 @@ public enum M : byte
 public static class ReadOnlySpanExtensions
 {
     public static string AsUtf8String(this ReadOnlySpan<byte> span) => Encoding.UTF8.GetString(span);
+
     public static ReadOnlySpan<byte> SliceUntilNull(this ReadOnlySpan<byte> span)
     {
         var nullChar = span.IndexOf((byte)0);
@@ -59,8 +60,15 @@ public readonly ref struct Message
     public string PayloadString => Payload.AsUtf8String();
 
     public Message(ReadOnlySpan<byte> bytes) => Bytes = bytes.SliceUntilNull();
-    public Message(M type, string value) : this(type, Encoding.UTF8.GetBytes(value)) { }
-    public Message(M type, byte value) : this(type, new[] { value }) { }
+
+    public Message(M type, string value) : this(type, Encoding.UTF8.GetBytes(value))
+    {
+    }
+
+    public Message(M type, byte value) : this(type, new[] { value })
+    {
+    }
+
     public Message(M type, ReadOnlySpan<byte> bytes)
     {
         var trimmedBytes = bytes.SliceUntilNull();
