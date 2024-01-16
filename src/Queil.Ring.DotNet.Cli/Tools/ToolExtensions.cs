@@ -50,65 +50,20 @@ public static class ToolExtensions
         return await TryAsync(times, backOffInterval, () => func(t), r => r.IsSuccess, token);
     }
 
-    public static Task<ExecutionInfo> RunProcessWaitAsync(this ITool tool, CancellationToken token) =>
-        tool.RunProcessCoreAsync(null, true, token: token);
-
-    public static Task<ExecutionInfo> RunProcessWaitAsync(this ITool tool, object[] args, CancellationToken token) =>
-        tool.RunProcessCoreAsync(args, true, token: token);
-
-    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, object[] args, CancellationToken token) =>
-        tool.RunProcessCoreAsync(args, token: token);
-
-    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, string workingDirectory,
-        IDictionary<string, string>? envVars = null, object[]? args = null, CancellationToken token = default) =>
-        tool.RunProcessCoreAsync(args, envVars: envVars, workingDirectory: workingDirectory,
-            captureStdOut: false,
-            token: token);
-
-    public static Task<ExecutionInfo> RunProcessAsync(this ITool tool, Action<string> onErrorData,
-        IDictionary<string, string>? envVars, object[]? args, CancellationToken token) =>
-        tool.RunProcessCoreAsync(args, onErrorData: onErrorData, envVars: envVars, token: token);
-
-    private static async Task<ExecutionInfo> RunProcessCoreAsync(this ITool tool,
-        IEnumerable<object>? args,
-        bool wait = false,
+    public static async Task<ExecutionInfo> RunAsync(this ITool tool,
+        IEnumerable<string>? args = null,
         string? workingDirectory = null,
         IDictionary<string, string>? envVars = null,
         Action<string>? onErrorData = null,
+        bool wait = false,
         bool captureStdOut = true,
         CancellationToken token = default)
     {
         var procUid = Guid.NewGuid().ToString("n").Remove(10);
         try
         {
-            var allArgs = string.Join(" ",
-                (tool.DefaultArgs ?? Array.Empty<object>()).Concat(
-                    (args ?? Array.Empty<object>()).Select(x => x.ToString())));
+            var allArgs = string.Join(" ", tool.DefaultArgs.Concat(args ?? Array.Empty<string>()));
             var sb = new StringBuilder();
-
-            void OnData(object _, DataReceivedEventArgs line)
-            {
-                if (line.Data == null) return;
-                if (captureStdOut) sb.AppendLine(line.Data);
-
-                if (FailureWords.Any(x => line.Data.Contains(x, StringComparison.OrdinalIgnoreCase)))
-                    using (tool.Logger.WithLogErrorScope())
-                    {
-                        tool.Logger.LogWarning($"{ScopeLoggingExtensions.Red}{line.Data}");
-                    }
-                else
-                    using (tool.Logger.WithLogInfoScope())
-                    {
-                        tool.Logger.LogInformation($"{ScopeLoggingExtensions.Gray}{line.Data}");
-                    }
-            }
-
-            void OnError(object _, DataReceivedEventArgs x)
-            {
-                if (string.IsNullOrWhiteSpace(x.Data)) return;
-                tool.Logger.LogInformation("ERROR: {Data}", x.Data);
-                onErrorData?.Invoke(x.Data);
-            }
 
             var s = new ProcessStartInfo
             {
@@ -145,14 +100,11 @@ public static class ToolExtensions
                 p.TrackAsChild();
             }
 
-            // not sure yet what can be done for Linux/Darwin to support it
             p.EnableRaisingEvents = true;
             p.OutputDataReceived += OnData;
             p.ErrorDataReceived += OnError;
-
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
-
 
             tool.Logger.LogDebug("{procUid} - Process started: {Pid}", procUid, p.Id);
 
@@ -160,16 +112,44 @@ public static class ToolExtensions
 
             token.Register(() =>
             {
-                if (tcs.TrySetCanceled())
-                    try
-                    {
-                        p.Kill();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.ToString());
-                    }
+                if (!tcs.TrySetCanceled()) return;
+                try
+                {
+                    p.Kill();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                }
             });
+
+            p.Exited += OnExit;
+
+            ExecutionInfo result;
+
+            if (wait)
+                result = await tcs.Task;
+            else
+                result = new ExecutionInfo(p.Id, null, sb.ToString().Trim('\r', '\n', ' ', '\t'), tcs.Task);
+
+            return result;
+
+            void OnData(object _, DataReceivedEventArgs line)
+            {
+                if (line.Data == null) return;
+                if (captureStdOut) sb.AppendLine(line.Data);
+
+                if (FailureWords.Any(x => line.Data.Contains(x, StringComparison.OrdinalIgnoreCase)))
+                    using (tool.Logger.WithLogErrorScope())
+                    {
+                        tool.Logger.LogWarning($"{ScopeLoggingExtensions.Red}{line.Data}");
+                    }
+                else
+                    using (tool.Logger.WithLogInfoScope())
+                    {
+                        tool.Logger.LogInformation($"{ScopeLoggingExtensions.Gray}{line.Data}");
+                    }
+            }
 
             void OnExit(object? sender, EventArgs _)
             {
@@ -182,16 +162,12 @@ public static class ToolExtensions
                 e.Dispose();
             }
 
-            p.Exited += OnExit;
-
-            ExecutionInfo result;
-
-            if (wait)
-                result = await tcs.Task;
-            else
-                result = new ExecutionInfo(p.Id, null, sb.ToString().Trim('\r', '\n', ' ', '\t'), tcs.Task);
-
-            return result;
+            void OnError(object _, DataReceivedEventArgs x)
+            {
+                if (string.IsNullOrWhiteSpace(x.Data)) return;
+                tool.Logger.LogInformation("ERROR: {Data}", x.Data);
+                onErrorData?.Invoke(x.Data);
+            }
         }
         catch (OperationCanceledException)
         {

@@ -25,7 +25,7 @@ public class KubectlBundle(
 
     public async Task EnsureContextIsAllowed(CancellationToken token)
     {
-        var result = await this.RunProcessWaitAsync(["config", "current-context"], token);
+        var result = await this.RunAsync(["config", "current-context"], wait: true, token: token);
         var currentContext = result.Output;
         if (!_allowedContexts.Contains(currentContext))
             throw new InvalidOperationException(
@@ -34,9 +34,9 @@ public class KubectlBundle(
 
     public async Task<bool> IsValidManifestAsync(string filePath, CancellationToken token)
     {
-        var result = await this.RunProcessWaitAsync([
+        var result = await this.RunAsync([
             "apply", "--validate=true", "--dry-run=client", "-f", $"\"{filePath}\""
-        ], token);
+        ], wait: true, token: token);
         return result.IsSuccess;
     }
 
@@ -47,7 +47,8 @@ public class KubectlBundle(
     public async Task<ExecutionInfo> ApplyJsonPathAsync(string path, string jsonPath, CancellationToken token)
     {
         await EnsureContextIsAllowed(token);
-        return await this.RunProcessWaitAsync(["apply", "-o", $"jsonpath=\"{jsonPath}\"", "-f", $"\"{path}\""], token);
+        return await this.RunAsync(["apply", "-o", $"jsonpath=\"{jsonPath}\"", "-f", $"\"{path}\""],
+            wait: true, token: token);
     }
 
     public async Task<string[]> GetPods(string nameSpace)
@@ -66,8 +67,8 @@ public class KubectlBundle(
         // Ignore the parent token. It should never cancel the delete on shutdown
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         await EnsureContextIsAllowed(cts.Token);
-        return await this.RunProcessWaitAsync([
+        return await this.RunAsync([
             "delete", "--ignore-not-found", "--wait=false", "--now=true", "-f", $"\"{path}\""
-        ], cts.Token);
+        ], wait: true, token: cts.Token);
     }
 }

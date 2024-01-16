@@ -15,7 +15,7 @@ public class KustomizeTool(ILogger<ITool> logger) : ITool
 
     public async Task<ExecutionInfo> BuildAsync(string kustomizeDir, string outputFilePath, CancellationToken token)
     {
-        var output = await this.RunProcessWaitAsync(["build", kustomizeDir], token);
+        var output = await this.RunAsync(["build", kustomizeDir], wait: true, token: token);
         await File.WriteAllTextAsync(outputFilePath, output.Output, token);
         return output;
     }
