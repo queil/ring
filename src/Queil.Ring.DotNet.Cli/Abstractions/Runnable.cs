@@ -13,21 +13,22 @@ using Infrastructure;
 using Logging;
 using Microsoft.Extensions.Logging;
 using Protocol;
+using Protocol.Events;
 using Stateless;
 
 [DebuggerDisplay("{UniqueId}")]
-public abstract class Runnable<TContext, TConfig> : IRunnable
+public abstract class App<TContext, TConfig> : IRunnable
     where TConfig : IRunnableConfig
 {
     private readonly Dictionary<string, object> _details = new();
     private readonly Fsm _fsm = new();
-    private readonly ILogger<Runnable<TContext, TConfig>> _logger;
+    private readonly ILogger<App<TContext, TConfig>> _logger;
     protected readonly ISender Sender;
     private TContext? _context;
     private Task _destroyTask = Task.CompletedTask;
     private Task _stopTask = Task.CompletedTask;
 
-    protected Runnable(TConfig config, ILogger<Runnable<TContext, TConfig>> logger, ISender sender)
+    protected App(TConfig config, ILogger<App<TContext, TConfig>> logger, ISender sender)
     {
         Config = config;
         if (Config.FriendlyName != null) _details.Add(DetailsKeys.FriendlyName, Config.FriendlyName);
@@ -343,6 +344,11 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         }
     }
 
+    protected virtual void PublishLogs(string line)
+    {
+        Sender.Enqueue(Message.RunnableLogs(new RunnableLogLine { RunnableId = UniqueId, Line = line }));
+    }
+    
     private class Fsm() : StateMachine<State, Trigger>(State.Zero);
 }
 

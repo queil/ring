@@ -10,12 +10,12 @@ using Infrastructure;
 using Microsoft.Extensions.Logging;
 using Tools;
 
-public class NetExeRunnable(
+public class NetExeApp(
     NetExeConfig config,
     ProcessRunner processRunner,
-    ILogger<NetExeRunnable> logger,
+    ILogger<NetExeApp> logger,
     ISender sender)
-    : CsProjRunnable<NetExeContext, NetExeConfig>(config, logger, sender)
+    : CsProjApp<NetExeContext, NetExeConfig>(config, logger, sender)
 {
     protected override NetExeContext CreateContext()
     {

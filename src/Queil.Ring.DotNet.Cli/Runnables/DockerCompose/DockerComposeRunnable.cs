@@ -9,12 +9,12 @@ using Microsoft.Extensions.Logging;
 using Tools;
 using DockerComposeConfig = Configuration.Runnables.DockerCompose;
 
-public class DockerComposeRunnable(
+public class DockerComposeApp(
     DockerComposeConfig config,
-    ILogger<Runnable<DockerComposeContext, DockerComposeConfig>> logger,
+    ILogger<App<DockerComposeContext, DockerComposeConfig>> logger,
     ISender sender,
     DockerCompose dockerCompose)
-    : Runnable<DockerComposeContext, DockerComposeConfig>(config, logger, sender)
+    : App<DockerComposeContext, DockerComposeConfig>(config, logger, sender)
 {
     public override string UniqueId => Config.Path;
 

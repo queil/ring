@@ -8,11 +8,11 @@ using CsProj;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 
-public abstract class CsProjRunnable<TContext, TConfig>(
+public abstract class CsProjApp<TContext, TConfig>(
     TConfig config,
-    ILogger<CsProjRunnable<TContext, TConfig>> logger,
+    ILogger<CsProjApp<TContext, TConfig>> logger,
     ISender sender)
-    : ProcessRunnable<TContext, TConfig>(config, logger, sender)
+    : ProcessApp<TContext, TConfig>(config, logger, sender)
     where TContext : ITrackProcessId, ICsProjContext, ITrackRetries
     where TConfig : IRunnableConfig, IUseCsProjFile
 {

@@ -1,6 +1,5 @@
 namespace Queil.Ring.DotNet.Cli.Tools;
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Abstractions.Tools;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.Logging;
 public class DockerCompose(ILogger<ITool> logger) : ITool
 {
     public string Command { get; set; } = "docker-compose";
-    public string[] DefaultArgs { get; set; } = Array.Empty<string>();
+    public string[] DefaultArgs { get; set; } = [];
     public ILogger<ITool> Logger { get; } = logger;
 
     public async Task<ExecutionInfo> RmAsync(string composeFilePath, CancellationToken token) =>

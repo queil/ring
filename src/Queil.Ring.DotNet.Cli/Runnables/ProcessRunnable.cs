@@ -9,11 +9,11 @@ using Infrastructure;
 using Microsoft.Extensions.Logging;
 using Tools;
 
-public abstract class ProcessRunnable<TContext, TConfig>(
+public abstract class ProcessApp<TContext, TConfig>(
     TConfig config,
-    ILogger<ProcessRunnable<TContext, TConfig>> logger,
+    ILogger<ProcessApp<TContext, TConfig>> logger,
     ISender sender)
-    : Runnable<TContext, TConfig>(config, logger, sender)
+    : App<TContext, TConfig>(config, logger, sender)
     where TContext : ITrackProcessId
     where TConfig : IRunnableConfig
 {

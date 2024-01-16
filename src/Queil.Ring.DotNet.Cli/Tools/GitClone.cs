@@ -20,7 +20,7 @@ public partial class GitClone(ILogger<GitClone> logger, IOptions<RingConfigurati
         ringCfg?.Value ?? throw new NullReferenceException(nameof(ringCfg.Value));
 
     public string Command { get; set; } = "git";
-    public string[] DefaultArgs { get; set; } = Array.Empty<string>();
+    public string[] DefaultArgs { get; set; } = [];
     public ILogger<ITool> Logger { get; } = logger;
 
     public string ResolveFullClonePath(IFromGit gitCfg, string? rootPathOverride = null)

@@ -10,13 +10,13 @@ using Infrastructure;
 using Microsoft.Extensions.Logging;
 using Tools;
 
-public abstract class DotnetRunnableBase<TContext, TConfig>(
+public abstract class DotnetAppBase<TContext, TConfig>(
     TConfig config,
     DotnetCliBundle dotnet,
-    ILogger<DotnetRunnableBase<TContext, TConfig>> logger,
+    ILogger<DotnetAppBase<TContext, TConfig>> logger,
     ISender sender,
     GitClone gitClone)
-    : ProcessRunnable<TContext, TConfig>(config, logger, sender)
+    : ProcessApp<TContext, TConfig>(config, logger, sender)
     where TContext : DotnetContext
     where TConfig : IUseCsProjFile, IRunnableConfig
 {
