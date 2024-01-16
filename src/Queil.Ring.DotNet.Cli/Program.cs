@@ -73,6 +73,7 @@ try
     services.AddOptions();
     services.Configure<RingConfiguration>(builder.Configuration);
     services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
+    services.AddSingleton<BroadcastSink>();
     services.AddSingleton<IServer, Server>();
     services.AddSingleton<WebsocketsHandler>();
     services.AddSingleton<IConfigurationTreeReader, ConfigurationTreeReader>();
@@ -104,7 +105,12 @@ try
     services.AddTransient<DotnetCliBundle>();
     services.AddTransient<DockerCompose>();
 
-    builder.Host.UseSerilog();
+    builder.Host.UseSerilog((c, f, l) =>
+    {
+        l.ReadFrom.Configuration(c.Configuration)
+         .WriteTo.Sink(f.GetRequiredService<BroadcastSink>());
+        if (options.IsDebug) l.MinimumLevel.Debug();
+    });
 
     builder.Host.ConfigureContainer<IServiceContainer>((ctx, container) =>
     {
@@ -150,12 +156,7 @@ try
 
     var app = builder.Build();
     app.Urls.Add($"http://0.0.0.0:{app.Configuration.GetValue<int>("ring:port")}");
-
-    var loggingConfig = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration);
-
-    if (options.IsDebug) loggingConfig.MinimumLevel.Debug();
-
-    Log.Logger = loggingConfig.CreateLogger();
+   
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
     using (logger.WithHostScope(LogEvent.INIT))

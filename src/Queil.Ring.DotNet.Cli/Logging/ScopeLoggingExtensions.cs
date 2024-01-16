@@ -49,9 +49,15 @@ public static class ScopeLoggingExtensions
 
     public static IDisposable? WithLogErrorScope<T>(this ILogger<T> logger) =>
         logger.BeginScope(new Scope
-            { [Scope.LogEventKey] = $"{Red}ERROR" });
+        {
+            [Scope.LogEventKey] = $"{Red}ERROR",
+            [Scope.Broadcast] = true
+        });
 
     public static IDisposable? WithLogInfoScope<T>(this ILogger<T> logger) =>
         logger.BeginScope(new Scope
-            { [Scope.LogEventKey] = $"{Gray}LOG" });
+        {
+            [Scope.LogEventKey] = $"{Gray}LOG",
+            [Scope.Broadcast] = true
+        });
 }
