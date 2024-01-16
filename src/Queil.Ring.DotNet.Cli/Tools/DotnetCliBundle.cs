@@ -13,7 +13,7 @@ public class DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundl
     : ITool
 {
     private const string UrlsEnvVar = "ASPNETCORE_URLS";
-    public Dictionary<string, string> DefaultEnvVars = new() { ["ASPNETCORE_ENVIRONMENT"] = "Development" };
+    private readonly Dictionary<string, string> DefaultEnvVars = new() { ["ASPNETCORE_ENVIRONMENT"] = "Development" };
     public ILogger<ITool> Logger { get; } = logger;
     public string Command { get; set; } = "dotnet";
     public string[] DefaultArgs { get; set; } = Array.Empty<string>();
@@ -25,13 +25,15 @@ public class DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundl
         if (File.Exists(ctx.ExePath))
         {
             processRunner.Command = ctx.ExePath;
-            return await processRunner.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, null, token);
+            return await processRunner.RunAsync(workingDirectory: ctx.WorkingDir, envVars: DefaultEnvVars,
+                token: token);
         }
 
         if (File.Exists(ctx.EntryAssemblyPath))
             // Using dotnet exec here because dotnet run spawns subprocesses and killing it doesn't actually kill them
-            return await this.RunProcessAsync(ctx.WorkingDir, DefaultEnvVars, ["exec", $"\"{ctx.EntryAssemblyPath}\""],
-                token);
+            return await this.RunAsync(["exec", $"\"{ctx.EntryAssemblyPath}\""],
+                workingDirectory: ctx.WorkingDir, envVars: DefaultEnvVars,
+                token: token);
         throw new InvalidOperationException($"Neither Exe path nor Dll path specified. {ctx.CsProjPath}");
 
         void HandleUrls()
@@ -45,5 +47,6 @@ public class DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundl
     }
 
     public async Task<ExecutionInfo> BuildAsync(string csProjFile, CancellationToken token) =>
-        await this.RunProcessWaitAsync(["build", csProjFile, "-v:q", "/nologo", "/nodereuse:false"], token);
+        await this.RunAsync(["build", csProjFile, "-v:q", "/nologo", "/nodereuse:false"], wait: true,
+            token: token);
 }

@@ -36,7 +36,7 @@ public class NetExeRunnable(
     protected override async Task StartAsync(NetExeContext ctx, CancellationToken token)
     {
         processRunner.Command = ctx.EntryAssemblyPath;
-        var result = await processRunner.RunProcessAsync(Config.Args.ToArray(), token);
+        var result = await processRunner.RunAsync(Config.Args, token: token);
         ctx.ProcessId = result.Pid;
         ctx.Output = result.Output;
     }

@@ -29,7 +29,7 @@ public class WorkspaceInitHook : IWorkspaceInitHook
         if (_configured)
         {
             _logger.LogDebug("Executing Workspace Init Hook");
-            await _runner.RunProcessWaitAsync(token);
+            await _runner.RunAsync(wait: true, token: token);
         }
         else
         {

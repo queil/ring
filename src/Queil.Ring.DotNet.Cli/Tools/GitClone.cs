@@ -13,7 +13,7 @@ using Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-public class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ringCfg)
+public partial class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ringCfg)
     : ITool
 {
     private readonly RingConfiguration _ringCfg =
@@ -25,7 +25,7 @@ public class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ring
 
     public string ResolveFullClonePath(IFromGit gitCfg, string? rootPathOverride = null)
     {
-        if (gitCfg == null) throw new ArgumentNullException(nameof(gitCfg));
+        ArgumentNullException.ThrowIfNull(gitCfg);
         if (gitCfg.SshRepoUrl == null) throw new NullReferenceException(nameof(gitCfg.SshRepoUrl));
 
         var chunks = gitCfg.SshRepoUrl.Split(":");
@@ -44,7 +44,8 @@ public class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ring
 
     private Func<CancellationToken, Task<ExecutionInfo>> Git(params string[] args)
     {
-        return token => this.TryAsync(3, TimeSpan.FromSeconds(10), t => t.RunProcessWaitAsync(args, token), token);
+        return token => this.TryAsync(3, TimeSpan.FromSeconds(10),
+            t => t.RunAsync(args, wait: true, token: token), token);
     }
 
     public async Task<ExecutionInfo> CloneOrPullAsync(IFromGit gitCfg, CancellationToken token, bool shallow = false,
@@ -54,14 +55,6 @@ public class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ring
         var depthArg = shallow ? "--depth=1" : "";
         var singleBranchArg = defaultBranchOnly ? "--single-branch" : "";
         var repoFullPath = ResolveFullClonePath(gitCfg, rootPathOverride);
-
-        async Task<ExecutionInfo> CloneAsync()
-        {
-            Logger.LogDebug("Cloning to {OutputPath}", repoFullPath);
-            var result = await Git("clone", singleBranchArg, depthArg, "--", gitCfg.SshRepoUrl, repoFullPath)(token);
-            Logger.LogInformation(result.IsSuccess ? LogEventStatus.OK : LogEventStatus.FAILED);
-            return result;
-        }
 
         if (!Directory.Exists(repoFullPath)) return await CloneAsync();
 
@@ -73,16 +66,13 @@ public class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ring
 
             if (shallow)
             {
-                var remoteBranchName = Regex.Match(output.Output, @".*\.\.\.([^\s]+).*");
-                if (remoteBranchName.Success)
-                {
-                    await Git("-C", repoFullPath, "fetch", depthArg)(token);
-                    await Git("-C", repoFullPath, "reset", "--hard", remoteBranchName.Groups[1].Value)(token);
-                    return await Git("-C", repoFullPath, "clean", "-fdx")(token);
-                }
-
-                throw new InvalidOperationException(
-                    $"Could not get branch name from git status output: {output.Output}");
+                var remoteBranchName = BranchRegex().Match(output.Output);
+                if (!remoteBranchName.Success)
+                    throw new InvalidOperationException(
+                        $"Could not get branch name from git status output: {output.Output}");
+                await Git("-C", repoFullPath, "fetch", depthArg)(token);
+                await Git("-C", repoFullPath, "reset", "--hard", remoteBranchName.Groups[1].Value)(token);
+                return await Git("-C", repoFullPath, "clean", "-fdx")(token);
             }
 
             var result = await Git("-C", repoFullPath, "pull", depthArg)(token);
@@ -106,6 +96,14 @@ public class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ring
             }
 
         return await CloneAsync();
+
+        async Task<ExecutionInfo> CloneAsync()
+        {
+            Logger.LogDebug("Cloning to {OutputPath}", repoFullPath);
+            var result = await Git("clone", singleBranchArg, depthArg, "--", gitCfg.SshRepoUrl, repoFullPath)(token);
+            Logger.LogInformation(result.IsSuccess ? LogEventStatus.OK : LogEventStatus.FAILED);
+            return result;
+        }
     }
 
     // Git process does the same thing as libgit2sharp https://github.com/libgit2/libgit2sharp/issues/1354
@@ -124,4 +122,7 @@ public class GitClone(ILogger<GitClone> logger, IOptions<RingConfiguration> ring
 
         Directory.Delete(dir);
     }
+
+    [GeneratedRegex(@".*\.\.\.([^\s]+).*")]
+    private static partial Regex BranchRegex();
 }
