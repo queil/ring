@@ -9,13 +9,13 @@ using Microsoft.Extensions.Logging;
 using Tools;
 using static Dtos.DetailsKeys;
 
-public class AspNetCoreRunnable(
+public class AspNetCoreApp(
     AspNetCore config,
     DotnetCliBundle dotnet,
-    ILogger<AspNetCoreRunnable> logger,
+    ILogger<AspNetCoreApp> logger,
     ISender sender,
     GitClone gitClone)
-    : DotnetRunnableBase<AspNetCoreContext, AspNetCore>(config, dotnet, logger, sender, gitClone)
+    : DotnetAppBase<AspNetCoreContext, AspNetCore>(config, dotnet, logger, sender, gitClone)
 {
     protected override async Task<AspNetCoreContext> InitAsync(CancellationToken token)
     {

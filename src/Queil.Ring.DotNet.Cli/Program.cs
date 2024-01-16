@@ -112,7 +112,7 @@ try
             .Where(t => typeof(IRunnable).IsAssignableFrom(t)).ToList();
 
         var configMap = (from r in runnableTypes
-                let cfg = r.GetProperty(nameof(Runnable<object, IRunnableConfig>.Config))
+                let cfg = r.GetProperty(nameof(App<object, IRunnableConfig>.Config))
                 where cfg != null
                 select (RunnableType: r, ConfigType: cfg.PropertyType))
             .ToDictionary(x => x.ConfigType, x => x.RunnableType);

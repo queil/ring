@@ -13,12 +13,12 @@ public class ProcContext : ITrackProcessId
     public int ProcessId { get; set; }
 }
 
-public class ProcRunnable : ProcessRunnable<ProcContext, Proc>
+public class ProcApp : ProcessApp<ProcContext, Proc>
 {
     private readonly ProcessRunner _runner;
 
-    public ProcRunnable(Proc config,
-        ILogger<ProcessRunnable<ProcContext, Proc>> logger,
+    public ProcApp(Proc config,
+        ILogger<ProcessApp<ProcContext, Proc>> logger,
         ISender sender,
         ProcessRunner runner) : base(config, logger, sender)
     {

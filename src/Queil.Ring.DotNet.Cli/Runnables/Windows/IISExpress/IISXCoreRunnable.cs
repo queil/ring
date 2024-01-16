@@ -10,13 +10,13 @@ using Tools;
 using Tools.Windows;
 using IISXCoreConfig = Configuration.Runnables.IISXCore;
 
-public class IISXCoreRunnable(
+public class IisxCoreApp(
     IISXCoreConfig config,
     IISExpressExe iisExpress,
-    ILogger<IISXCoreRunnable> logger,
+    ILogger<IisxCoreApp> logger,
     ISender sender,
     GitClone gitClone)
-    : CsProjRunnable<IISXCoreContext, IISXCoreConfig>(config, logger, sender)
+    : CsProjApp<IISXCoreContext, IISXCoreConfig>(config, logger, sender)
 {
     protected override IISXCoreContext CreateContext()
     {

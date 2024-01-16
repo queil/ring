@@ -16,20 +16,20 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tools;
 
-public class KustomizeRunnable(
+public class KustomizeApp(
     KustomizeConfig config,
     IOptions<RingConfiguration> ringCfg,
-    ILogger<Runnable<KustomizeContext, KustomizeConfig>> logger,
+    ILogger<App<KustomizeContext, KustomizeConfig>> logger,
     ISender sender,
     KubectlBundle bundle)
-    : Runnable<KustomizeContext, KustomizeConfig>(config, logger, sender)
+    : App<KustomizeContext, KustomizeConfig>(config, logger, sender)
 {
     private const string NamespacesPath = "{range .items[?(@.kind=='Namespace')]}{.metadata.name}{'\\n'}{end}";
 
     private readonly string _cacheDir = ringCfg?.Value?.Kustomize.CachePath ??
                                         throw new ArgumentNullException(nameof(RingConfiguration.Kustomize.CachePath));
 
-    private readonly ILogger<Runnable<KustomizeContext, KustomizeConfig>> _logger = logger;
+    private readonly ILogger<App<KustomizeContext, KustomizeConfig>> _logger = logger;
 
     public override string UniqueId => Config.Path;
     protected override TimeSpan HealthCheckPeriod => TimeSpan.FromSeconds(10);

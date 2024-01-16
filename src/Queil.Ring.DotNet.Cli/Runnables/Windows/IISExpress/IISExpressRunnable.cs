@@ -16,13 +16,13 @@ using Microsoft.Extensions.Logging;
 using Tools.Windows;
 using IISExpressConfig = Configuration.Runnables.IISExpress;
 
-public class IISExpressRunnable(
+public class IisExpressApp(
     IISExpressConfig config,
     IISExpressExe iisExpress,
-    ILogger<IISExpressRunnable> logger,
+    ILogger<IisExpressApp> logger,
     ISender sender,
     Func<Uri, HttpClient> clientFactory)
-    : CsProjRunnable<IISExpressContext, IISExpressConfig>(config, logger, sender)
+    : CsProjApp<IISExpressContext, IISExpressConfig>(config, logger, sender)
 {
     private readonly List<string> _wcfServices = [];
 
