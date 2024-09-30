@@ -75,7 +75,10 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
             result = await func(_newProcRunner(), token);
         }
 
-        if (bringDown && result == ExecuteTaskResult.Ok) await IncludeAsync(task.RunnableId, token);
+        if (bringDown && _configurator.TryGet(task.RunnableId, out var cfg))
+        {
+            await AddAsync(task.RunnableId, cfg, TimeSpan.Zero, start: result == ExecuteTaskResult.Ok, token: _cts.Token);
+        }
         return result;
     }
 
@@ -145,7 +148,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     public async Task<IncludeResult> IncludeAsync(string id, CancellationToken token)
     {
         if (!_configurator.TryGet(id, out var cfg)) return IncludeResult.UnknownRunnable;
-        await AddAsync(id, cfg, TimeSpan.Zero, _cts.Token);
+        await AddAsync(id, cfg, TimeSpan.Zero, token: _cts.Token);
         return IncludeResult.Ok;
     }
 
@@ -180,7 +183,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
                     _logger.LogDebug("Starting in {delay}", delay);
                 }
 
-                return AddAsync(key, configs[key], delay, token);
+                return AddAsync(key, configs[key], delay, token: token);
             });
 
             await Task.WhenAll(additionsTask.Concat(deletionsTask));
@@ -229,21 +232,21 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
             var details = isRunning ? container!.Runnable.Details : DetailsExtractors.Extract(cfg);
 
             var runnableInfo = new RunnableInfo(id,
-                cfg.DeclaredPaths.ToArray(),
+                [.. cfg.DeclaredPaths],
                 cfg.GetType().Name,
                 runnableState,
-                cfg.Tags.ToArray(),
+                [.. cfg.Tags],
                 details,
-                cfg.Tasks.Keys.ToArray());
+                [.. cfg.Tasks.Keys]);
 
             return runnableInfo;
         }).OrderBy(x => x.Id).ToArray();
 
-        return new WorkspaceInfo(WorkspacePath, runnables, _configurator.Current.Flavours.ToArray(), CurrentFlavour,
+        return new WorkspaceInfo(WorkspacePath, runnables, [.. _configurator.Current.Flavours], CurrentFlavour,
             serverState, state);
     }
 
-    private async Task AddAsync(string id, IRunnableConfig cfg, TimeSpan delay, CancellationToken token)
+    private async Task AddAsync(string id, IRunnableConfig cfg, TimeSpan delay, bool start = true, CancellationToken token = default)
     {
         if (_runnables.ContainsKey(id)) return;
         var container = await RunnableContainer.CreateAsync(cfg, _createRunnable, delay, token);
@@ -253,7 +256,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
         _runnables.TryAdd(id, container);
 
-        container.Start();
+        if (start) container.Start();
     }
 
     private async Task<bool> RemoveAsync(string key)

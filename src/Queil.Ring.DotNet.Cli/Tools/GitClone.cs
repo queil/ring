@@ -37,7 +37,7 @@ public partial class GitClone(ILogger<GitClone> logger, IOptions<RingConfigurati
         var pathChunks = new List<string> { rootPathOverride ?? _ringCfg.Git.ClonePath };
         var inRepoPath = chunks[1].Replace(".git", "").Split("/");
         pathChunks.AddRange(inRepoPath);
-        var targetPath = Path.Combine(pathChunks.ToArray());
+        var targetPath = Path.Combine([.. pathChunks]);
         targetPath = Env.ExpandPath(targetPath);
         return Path.IsPathRooted(targetPath) ? targetPath : Path.GetFullPath(targetPath);
     }

@@ -27,7 +27,7 @@ public class WebsocketsHandler(
 
         foreach (var client in _clients.Values.Where(x => x.IsOpen)) tasks.Add(client.SendAsync(m));
 
-        return Task.WhenAll(tasks.ToArray());
+        return Task.WhenAll([.. tasks]);
     }
 
     public async Task InitializeAsync(CancellationToken token)
