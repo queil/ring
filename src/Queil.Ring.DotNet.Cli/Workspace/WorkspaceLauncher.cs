@@ -75,7 +75,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
             result = await func(_newProcRunner(), token);
         }
 
-        if (bringDown) await IncludeAsync(task.RunnableId, token);
+        if (bringDown && result == ExecuteTaskResult.Ok) await IncludeAsync(task.RunnableId, token);
         return result;
     }
 
