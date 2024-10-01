@@ -55,7 +55,7 @@ public static class ToolExtensions
         string? workingDirectory = null,
         IDictionary<string, string>? envVars = null,
         Action<string>? onErrorData = null,
-        bool wait = false,
+        bool foreground = false,
         bool captureStdOut = true,
         CancellationToken token = default)
     {
@@ -86,29 +86,20 @@ public static class ToolExtensions
             tool.Logger.LogDebug("{procUid} - Starting process: {Tool} {Args} ({ProcessWorkingDir})", procUid,
                 tool.Command, allArgs, workingDirectory ?? ringWorkingDir);
 
-            var p = Process.Start(s);
-
-            if (p == null)
+            var tcs = new TaskCompletionSource<ExecutionInfo>();
+            var p = new Process
             {
-                tool.Logger.LogError("{procUid} - Process failed: {Tool} {Args} ({ProcessWorkingDir})", procUid,
-                    tool.Command, allArgs, workingDirectory ?? ringWorkingDir);
-                return new ExecutionInfo();
-            }
+                StartInfo = s,
+                EnableRaisingEvents = true
+            };
+            if (!foreground) p.OutputDataReceived += OnData;
+            p.ErrorDataReceived += OnError;
+            p.Exited += OnExit;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 p.TrackAsChild();
             }
-
-            p.EnableRaisingEvents = true;
-            p.OutputDataReceived += OnData;
-            p.ErrorDataReceived += OnError;
-            p.BeginOutputReadLine();
-            p.BeginErrorReadLine();
-
-            tool.Logger.LogDebug("{procUid} - Process started: {Pid}", procUid, p.Id);
-
-            var tcs = new TaskCompletionSource<ExecutionInfo>();
 
             token.Register(() =>
             {
@@ -123,12 +114,21 @@ public static class ToolExtensions
                 }
             });
 
-            p.Exited += OnExit;
+            p.Start();
+            if (!foreground) p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+
+            tool.Logger.LogDebug("{procUid} - Process started: {Pid}", procUid, p.Id);
 
             ExecutionInfo result;
 
-            if (wait)
-                result = await tcs.Task;
+            if (foreground)
+            {
+                await p.WaitForExitAsync(token);
+                result = new ExecutionInfo(p.Id, p.ExitCode, (await p.StandardOutput.ReadToEndAsync(token)).Trim('\r', '\n', ' ', '\t'), tcs.Task);
+
+                //result = await tcs.Task;
+            }
             else
                 result = new ExecutionInfo(p.Id, null, sb.ToString().Trim('\r', '\n', ' ', '\t'), tcs.Task);
 
@@ -159,7 +159,6 @@ public static class ToolExtensions
                 e.Exited -= OnExit;
                 tcs.TrySetResult(new ExecutionInfo(e.Id, e.ExitCode, sb.ToString().Trim('\r', '\n', ' ', '\t'),
                     tcs.Task));
-                e.Dispose();
             }
 
             void OnError(object _, DataReceivedEventArgs x)

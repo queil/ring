@@ -46,6 +46,8 @@ internal sealed class RunnableContainer : IAsyncDisposable
         return container;
     }
 
+    public Task ConfigureAsync() => Runnable.ConfigureAsync(_aggregateCts.Token);
+
     public void Start()
     {
         Task = Runnable.RunAsync(_aggregateCts.Token);

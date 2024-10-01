@@ -47,6 +47,6 @@ public class DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundl
     }
 
     public async Task<ExecutionInfo> BuildAsync(string csProjFile, CancellationToken token) =>
-        await this.RunAsync(["build", csProjFile, "-v:q", "/nologo", "/nodereuse:false"], wait: true,
+        await this.RunAsync(["build", csProjFile, "-v:q", "/nologo", "/nodereuse:false"], foreground: true,
             token: token);
 }

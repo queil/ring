@@ -17,7 +17,7 @@ public class ConfigSet : Dictionary<string, IRunnableConfig>
         }
 
         Path = path;
-        Flavours = [..bareConfigs.Values.SelectMany(x => x.Tags)];
+        Flavours = [.. bareConfigs.Values.SelectMany(x => x.Tags)];
     }
 
     public HashSet<string> Flavours { get; }

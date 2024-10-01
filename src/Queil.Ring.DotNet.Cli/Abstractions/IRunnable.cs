@@ -10,6 +10,7 @@ public interface IRunnable
     string UniqueId { get; }
     State State { get; }
     IReadOnlyDictionary<string, object> Details { get; }
+    Task ConfigureAsync(CancellationToken token);
     Task RunAsync(CancellationToken token);
     Task TerminateAsync();
     event EventHandler OnHealthCheckCompleted;

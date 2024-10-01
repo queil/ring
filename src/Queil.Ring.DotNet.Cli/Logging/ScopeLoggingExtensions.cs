@@ -28,14 +28,14 @@ public static class ScopeLoggingExtensions
     }
 
     public static IDisposable? WithClientScope<T>(this ILogger<T> logger) => logger.BeginScope(new Scope
-        { [Scope.UniqueIdKey] = "PROTOCOL", [Scope.LogEventKey] = "CLIENT" });
+    { [Scope.UniqueIdKey] = "PROTOCOL", [Scope.LogEventKey] = "CLIENT" });
 
     public static IDisposable? WithReceivedScope<T>(this ILogger<T> logger, M protocolEvent) =>
         logger.BeginScope(new Scope { [Scope.UniqueIdKey] = protocolEvent, [Scope.LogEventKey] = "<<" });
 
     public static IDisposable? WithSentScope<T>(this ILogger<T> logger, bool isDelivered, M protocolEvent) =>
         logger.BeginScope(new Scope
-            { [Scope.UniqueIdKey] = protocolEvent, [Scope.LogEventKey] = isDelivered ? ">>" : "->" });
+        { [Scope.UniqueIdKey] = protocolEvent, [Scope.LogEventKey] = isDelivered ? ">>" : "->" });
 
     public static IDisposable? WithHostScope<T>(this ILogger<T> logger, LogEvent logEvent) =>
         logger.WithScope("HOST", logEvent);
@@ -45,13 +45,13 @@ public static class ScopeLoggingExtensions
 
     public static IDisposable? WithTaskScope<T>(this ILogger<T> logger, string runtimeId, string taskId) =>
         logger.BeginScope(new Scope
-            { [Scope.UniqueIdKey] = $"{runtimeId}:{taskId}", [Scope.LogEventKey] = "TASK" });
+        { [Scope.UniqueIdKey] = $"{runtimeId}:{taskId}", [Scope.LogEventKey] = "TASK" });
 
     public static IDisposable? WithLogErrorScope<T>(this ILogger<T> logger) =>
         logger.BeginScope(new Scope
-            { [Scope.LogEventKey] = $"{Red}ERROR" });
+        { [Scope.LogEventKey] = $"{Red}ERROR" });
 
     public static IDisposable? WithLogInfoScope<T>(this ILogger<T> logger) =>
         logger.BeginScope(new Scope
-            { [Scope.LogEventKey] = $"{Gray}LOG" });
+        { [Scope.LogEventKey] = $"{Gray}LOG" });
 }

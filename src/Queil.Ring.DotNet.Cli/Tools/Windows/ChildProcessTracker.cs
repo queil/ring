@@ -49,7 +49,7 @@ internal static class ChildProcessTracker
         //  close the job handle, and when that happens, we want the child processes to
         //  be killed, too.
         var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION
-            { LimitFlags = JOBOBJECTLIMIT.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE };
+        { LimitFlags = JOBOBJECTLIMIT.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE };
 
         var extendedInfo = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION { BasicLimitInformation = info };
 

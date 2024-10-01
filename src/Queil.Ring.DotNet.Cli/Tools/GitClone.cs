@@ -45,7 +45,7 @@ public partial class GitClone(ILogger<GitClone> logger, IOptions<RingConfigurati
     private Func<CancellationToken, Task<ExecutionInfo>> Git(params string[] args)
     {
         return token => this.TryAsync(3, TimeSpan.FromSeconds(10),
-            t => t.RunAsync(args, wait: true, token: token), token);
+            t => t.RunAsync(args, foreground: true, token: token), token);
     }
 
     public async Task<ExecutionInfo> CloneOrPullAsync(IFromGit gitCfg, CancellationToken token, bool shallow = false,
@@ -66,7 +66,7 @@ public partial class GitClone(ILogger<GitClone> logger, IOptions<RingConfigurati
 
             if (shallow)
             {
-                var remoteBranchName = BranchRegex().Match(output.Output);
+                var remoteBranchName = BranchRegex().Match(output.Output.Split(Environment.NewLine)[0]);
                 if (!remoteBranchName.Success)
                     throw new InvalidOperationException(
                         $"Could not get branch name from git status output: {output.Output}");
