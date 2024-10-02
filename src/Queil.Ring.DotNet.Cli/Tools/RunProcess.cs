@@ -14,7 +14,7 @@ using Abstractions.Tools;
 using Logging;
 using Microsoft.Extensions.Logging;
 
-public static class ToolExtensions
+public static class RunProcess
 {
     //TODO: this should be configurable
     private static readonly string[] FailureWords = ["err", "error", "fail"];
@@ -62,7 +62,7 @@ public static class ToolExtensions
         var procUid = Guid.NewGuid().ToString("n").Remove(10);
         try
         {
-            var allArgs = string.Join(" ", tool.DefaultArgs.Concat(args ?? Array.Empty<string>()));
+            var allArgs = string.Join(" ", tool.DefaultArgs.Concat(args ?? []));
             var sb = new StringBuilder();
 
             var s = new ProcessStartInfo

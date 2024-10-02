@@ -1,4 +1,4 @@
-﻿using static Queil.Ring.DotNet.Cli.Tools.ToolExtensions;
+﻿using static Queil.Ring.DotNet.Cli.Tools.RunProcess;
 using KustomizeConfig = Queil.Ring.Configuration.Runnables.Kustomize;
 
 namespace Queil.Ring.DotNet.Cli.Runnables.Kustomize;

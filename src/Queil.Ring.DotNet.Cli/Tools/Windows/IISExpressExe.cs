@@ -1,6 +1,5 @@
 namespace Queil.Ring.DotNet.Cli.Tools.Windows;
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +9,7 @@ using Microsoft.Extensions.Logging;
 public class IISExpressExe(ILogger<IISExpressExe> logger) : ITool
 {
     public string Command { get; set; } = @"C:\Program Files\IIS Express\iisexpress.exe";
-    public string[] DefaultArgs { get; set; } = Array.Empty<string>();
+    public string[] DefaultArgs { get; set; } = [];
     public ILogger<ITool> Logger { get; } = logger;
 
     private void OnError(string error)

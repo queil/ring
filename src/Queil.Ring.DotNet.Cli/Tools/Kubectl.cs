@@ -17,10 +17,10 @@ public class KubectlBundle(
     IOptions<RingConfiguration> config)
     : ITool
 {
-    private readonly string[] _allowedContexts = config.Value.Kubernetes.AllowedContexts ?? Array.Empty<string>();
+    private readonly string[] _allowedContexts = config.Value.Kubernetes.AllowedContexts ?? [];
 
     public string Command { get; set; } = "kubectl";
-    public string[] DefaultArgs { get; set; } = Array.Empty<string>();
+    public string[] DefaultArgs { get; set; } = [];
     public ILogger<ITool> Logger { get; } = logger;
 
     public async Task EnsureContextIsAllowed(CancellationToken token)
