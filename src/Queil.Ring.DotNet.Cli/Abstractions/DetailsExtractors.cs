@@ -14,7 +14,7 @@ public static class DetailsExtractors
         var details = cfg switch
         {
             CsProjRunnable c => New((DetailsKeys.CsProjPath, c.FullPath)),
-            _ => new Dictionary<string, object>()
+            _ => []
         };
 
         if (cfg.FriendlyName != null) details.Add(DetailsKeys.FriendlyName, cfg.FriendlyName);

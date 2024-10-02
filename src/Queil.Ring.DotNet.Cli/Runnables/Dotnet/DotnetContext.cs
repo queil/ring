@@ -11,7 +11,7 @@ using CsProj;
 public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITrackProcessOutput
 {
     public string ExePath => Path.ChangeExtension(EntryAssemblyPath, "exe");
-    public Dictionary<string, string> Env { get; set; } = new();
+    public Dictionary<string, string> Env { get; set; } = [];
     public string CsProjPath { get; set; }
     public string WorkingDir { get; set; }
     public string TargetFramework { get; set; }
