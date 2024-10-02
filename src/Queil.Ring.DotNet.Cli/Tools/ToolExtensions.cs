@@ -96,11 +96,6 @@ public static class ToolExtensions
             p.ErrorDataReceived += OnError;
             p.Exited += OnExit;
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                p.TrackAsChild();
-            }
-
             token.Register(() =>
             {
                 if (!tcs.TrySetCanceled()) return;
@@ -115,6 +110,12 @@ public static class ToolExtensions
             });
 
             p.Start();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                p.TrackAsChild();
+            }
+
             if (!foreground) p.BeginOutputReadLine();
             p.BeginErrorReadLine();
 
@@ -126,8 +127,6 @@ public static class ToolExtensions
             {
                 await p.WaitForExitAsync(token);
                 result = new ExecutionInfo(p.Id, p.ExitCode, (await p.StandardOutput.ReadToEndAsync(token)).Trim('\r', '\n', ' ', '\t'), tcs.Task);
-
-                //result = await tcs.Task;
             }
             else
                 result = new ExecutionInfo(p.Id, null, sb.ToString().Trim('\r', '\n', ' ', '\t'), tcs.Task);
