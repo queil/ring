@@ -298,7 +298,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     private void PublishStatusCore(ServerState serverState, bool force)
     {
         var state = serverState == ServerState.IDLE ? WorkspaceState.NONE :
-            !_runnables.Any() ? WorkspaceState.IDLE :
+            _runnables.IsEmpty ? WorkspaceState.IDLE :
             _runnables.Values.Select(x => x.Runnable)
                 .All(r => r.State == State.ProbingHealth || r.State == State.Healthy) ? WorkspaceState.HEALTHY :
             WorkspaceState.DEGRADED;
