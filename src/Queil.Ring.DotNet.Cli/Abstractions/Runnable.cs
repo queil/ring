@@ -19,7 +19,7 @@ using Stateless;
 public abstract class Runnable<TContext, TConfig> : IRunnable
     where TConfig : IRunnableConfig
 {
-    private readonly Dictionary<string, object> _details = new();
+    private readonly Dictionary<string, object> _details = [];
     private readonly Fsm _fsm = new();
     private readonly ILogger<Runnable<TContext, TConfig>> _logger;
     protected readonly ISender Sender;
@@ -45,12 +45,17 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
     public event EventHandler? OnInitExecuted;
     public IReadOnlyDictionary<string, object> Details => _details;
 
-    public async Task RunAsync(CancellationToken token)
+    public async Task ConfigureAsync(CancellationToken token)
     {
         using var _ = _logger.BeginScope(this.ToScope());
         var fsm = await InitFsm(token);
-
         await fsm.FireAsync(Trigger.Init);
+    }
+
+    public async Task RunAsync(CancellationToken token)
+    {
+        using var _ = _logger.BeginScope(this.ToScope());
+        await _fsm.FireAsync(Trigger.Start);
     }
 
     public async Task TerminateAsync()
@@ -91,6 +96,8 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
             .Ignore(Trigger.NoOp)
             .Ignore(Trigger.HcOk)
             .Ignore(Trigger.HcUnhealthy)
+            .Ignore(Trigger.Stop)
+            .Ignore(Trigger.Destroy)
             .Permit(Trigger.Init, State.Idle);
 
         _fsm.Configure(State.Idle)
@@ -198,7 +205,6 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
             _logger.LogContextDebug(_context);
             _logger.LogDebug(LogEventStatus.OK);
             await Sender.EnqueueAsync(Message.RunnableInitiated(UniqueId), token);
-            await _fsm.FireAsync(Trigger.Start);
         }
         catch (Exception ex)
         {

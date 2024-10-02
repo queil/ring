@@ -80,38 +80,38 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
         try
         {
             while (await _channel.Reader.WaitToReadAsync(token))
-            while (_channel.Reader.TryPeek(out var peek))
-                if (peek.IsCompleted)
-                {
-                    if (!_channel.Reader.TryRead(out var task)) continue;
-
-                    var ack = await task;
-                    if (!logger.IsEnabled(LogLevel.Debug))
+                while (_channel.Reader.TryPeek(out var peek))
+                    if (peek.IsCompleted)
                     {
-                        await Ws.SendAckAsync(ack, token);
+                        if (!_channel.Reader.TryRead(out var task)) continue;
+
+                        var ack = await task;
+                        if (!logger.IsEnabled(LogLevel.Debug))
+                        {
+                            await Ws.SendAckAsync(ack, token);
+                        }
+                        else
+                        {
+                            var sendTask = Ws.SendAckAsync(ack, token);
+                            using (logger.WithSentScope(false, M.ACK))
+                            {
+                                logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id, task.Id);
+                            }
+
+                            await sendTask.ContinueWith(_ =>
+                            {
+                                using (logger.WithSentScope(true, M.ACK))
+                                {
+                                    logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id,
+                                        task.Id);
+                                }
+                            }, TaskContinuationOptions.OnlyOnRanToCompletion);
+                        }
                     }
                     else
                     {
-                        var sendTask = Ws.SendAckAsync(ack, token);
-                        using (logger.WithSentScope(false, M.ACK))
-                        {
-                            logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id, task.Id);
-                        }
-
-                        await sendTask.ContinueWith(_ =>
-                        {
-                            using (logger.WithSentScope(true, M.ACK))
-                            {
-                                logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id,
-                                    task.Id);
-                            }
-                        }, TaskContinuationOptions.OnlyOnRanToCompletion);
+                        await Task.Delay(TimeSpan.FromMilliseconds(100), token);
                     }
-                }
-                else
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(100), token);
-                }
         }
         catch (OperationCanceledException)
         {

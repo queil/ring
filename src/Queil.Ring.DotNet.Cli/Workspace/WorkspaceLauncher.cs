@@ -256,6 +256,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
         _runnables.TryAdd(id, container);
 
+        await container.ConfigureAsync();
         if (start) container.Start();
     }
 
@@ -266,7 +267,19 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         Interlocked.Decrement(ref _initCounter);
         container.Runnable.OnHealthCheckCompleted -= OnPublishStatus;
         container.Runnable.OnInitExecuted -= OnRunnableInitExecuted;
-        await container.DisposeAsync();
+        try
+        {
+            await container.DisposeAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Runnable disposal failed");
+            return false;
+        }
         return true;
     }
 
@@ -285,7 +298,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     private void PublishStatusCore(ServerState serverState, bool force)
     {
         var state = serverState == ServerState.IDLE ? WorkspaceState.NONE :
-            !_runnables.Any() ? WorkspaceState.IDLE :
+            _runnables.IsEmpty ? WorkspaceState.IDLE :
             _runnables.Values.Select(x => x.Runnable)
                 .All(r => r.State == State.ProbingHealth || r.State == State.Healthy) ? WorkspaceState.HEALTHY :
             WorkspaceState.DEGRADED;

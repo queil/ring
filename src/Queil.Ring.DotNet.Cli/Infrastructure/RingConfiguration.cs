@@ -75,7 +75,7 @@ public class KubernetesSettings
 public class InitHookConfig
 {
     public string? Command { get; set; }
-    public string[] Args { get; set; } = Array.Empty<string>();
+    public string[] Args { get; set; } = [];
 }
 
 public class HooksConfiguration

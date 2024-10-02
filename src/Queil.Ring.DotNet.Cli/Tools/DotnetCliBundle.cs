@@ -16,7 +16,7 @@ public class DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundl
     private readonly Dictionary<string, string> DefaultEnvVars = new() { ["ASPNETCORE_ENVIRONMENT"] = "Development" };
     public ILogger<ITool> Logger { get; } = logger;
     public string Command { get; set; } = "dotnet";
-    public string[] DefaultArgs { get; set; } = Array.Empty<string>();
+    public string[] DefaultArgs { get; set; } = [];
 
     public async Task<ExecutionInfo> RunAsync(DotnetContext ctx, CancellationToken token, string[]? urls = null)
     {
@@ -47,6 +47,6 @@ public class DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundl
     }
 
     public async Task<ExecutionInfo> BuildAsync(string csProjFile, CancellationToken token) =>
-        await this.RunAsync(["build", csProjFile, "-v:q", "/nologo", "/nodereuse:false"], wait: true,
+        await this.RunAsync(["build", csProjFile, "-v:q", "/nologo", "/nodereuse:false"], foreground: true,
             token: token);
 }

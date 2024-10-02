@@ -17,15 +17,15 @@ public class KubectlBundle(
     IOptions<RingConfiguration> config)
     : ITool
 {
-    private readonly string[] _allowedContexts = config.Value.Kubernetes.AllowedContexts ?? Array.Empty<string>();
+    private readonly string[] _allowedContexts = config.Value.Kubernetes.AllowedContexts ?? [];
 
     public string Command { get; set; } = "kubectl";
-    public string[] DefaultArgs { get; set; } = Array.Empty<string>();
+    public string[] DefaultArgs { get; set; } = [];
     public ILogger<ITool> Logger { get; } = logger;
 
     public async Task EnsureContextIsAllowed(CancellationToken token)
     {
-        var result = await this.RunAsync(["config", "current-context"], wait: true, token: token);
+        var result = await this.RunAsync(["config", "current-context"], foreground: true, token: token);
         var currentContext = result.Output;
         if (!_allowedContexts.Contains(currentContext))
             throw new InvalidOperationException(
@@ -35,8 +35,12 @@ public class KubectlBundle(
     public async Task<bool> IsValidManifestAsync(string filePath, CancellationToken token)
     {
         var result = await this.RunAsync([
-            "apply", "--validate=true", "--dry-run=client", "-f", $"\"{filePath}\""
-        ], wait: true, token: token);
+            "apply",
+            "--validate=true",
+            "--dry-run=client",
+            "-f",
+            $"\"{filePath}\""
+        ], foreground: true, token: token);
         return result.IsSuccess;
     }
 
@@ -48,7 +52,7 @@ public class KubectlBundle(
     {
         await EnsureContextIsAllowed(token);
         return await this.RunAsync(["apply", "-o", $"jsonpath=\"{jsonPath}\"", "-f", $"\"{path}\""],
-            wait: true, token: token);
+            foreground: true, token: token);
     }
 
     public async Task<string[]> GetPods(string nameSpace)
@@ -68,7 +72,12 @@ public class KubectlBundle(
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         await EnsureContextIsAllowed(cts.Token);
         return await this.RunAsync([
-            "delete", "--ignore-not-found", "--wait=false", "--now=true", "-f", $"\"{path}\""
-        ], wait: true, token: cts.Token);
+            "delete",
+            "--ignore-not-found",
+            "--wait=false",
+            "--now=true",
+            "-f",
+            $"\"{path}\""
+        ], foreground: true, token: cts.Token);
     }
 }
