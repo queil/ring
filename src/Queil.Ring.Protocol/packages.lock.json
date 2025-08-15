@@ -4,29 +4,9 @@
     "net8.0": {
       "ErrorProne.NET.Structs": {
         "type": "Direct",
-        "requested": "[0.4.0-beta.1, )",
-        "resolved": "0.4.0-beta.1",
-        "contentHash": "3cTaYc/hcDJumpCTjYNu+X0IEyTFRKHsIlsHwDjju1rGpH7/9dcostXJlRtmIIno6PgRWIh5ZalHDq76QYUA2w=="
-      },
-      "System.Text.Json": {
-        "type": "Direct",
-        "requested": "[8.*, )",
-        "resolved": "8.0.4",
-        "contentHash": "bAkhgDJ88XTsqczoxEMliSrpijKZHhbJQldhAmObj/RbrN3sU5dcokuXmWJWsdQAhiMJ9bTayWsL1C9fbbCRhw==",
-        "dependencies": {
-          "System.Text.Encodings.Web": "8.0.0"
-        }
-      },
-      "System.Threading.Channels": {
-        "type": "Direct",
-        "requested": "[8.*, )",
-        "resolved": "8.0.0",
-        "contentHash": "CMaFr7v+57RW7uZfZkPExsPB6ljwzhjACWW1gfU35Y56rk72B/Wu+sTqxVmGSk4SFUlPc3cjeKND0zktziyjBA=="
-      },
-      "System.Text.Encodings.Web": {
-        "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ=="
+        "requested": "[0.6.1-beta.1, )",
+        "resolved": "0.6.1-beta.1",
+        "contentHash": "NE/uA2yqAu3CqP0IHa8Cnn4tu87/KOBdkkec4w82ttatWYak1ewFda3pC7Qq0Sdz6vrq/Q+CyGqPrn//y6wLZg=="
       }
     }
   }
