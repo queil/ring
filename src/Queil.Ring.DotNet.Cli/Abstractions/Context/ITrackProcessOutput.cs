@@ -2,5 +2,5 @@
 
 public interface ITrackProcessOutput
 {
-    string Output { get; set; }
+    string Output { get; }
 }

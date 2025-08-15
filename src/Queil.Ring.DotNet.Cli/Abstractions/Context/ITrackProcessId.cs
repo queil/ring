@@ -2,5 +2,5 @@
 
 public interface ITrackProcessId
 {
-    int ProcessId { get; set; }
+    int ProcessId { get; }
 }

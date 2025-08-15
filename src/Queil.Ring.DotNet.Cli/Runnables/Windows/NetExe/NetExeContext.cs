@@ -9,7 +9,7 @@ public class NetExeContext : ITrackProcessId,
     ITrackRetries
 {
     public string CsProjPath { get; set; }
-    public string WorkingDir { get; set; }
+    public required string WorkingDir { get; init; }
     public string TargetFramework { get; set; }
     public string TargetRuntime { get; set; }
     public string EntryAssemblyPath { get; set; }
