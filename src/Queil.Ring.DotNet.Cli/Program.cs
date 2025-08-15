@@ -108,7 +108,7 @@ try
 
     builder.Host.ConfigureContainer<IServiceContainer>((ctx, container) =>
     {
-        var runnableTypes = Assembly.GetEntryAssembly().GetExportedTypes()
+        var runnableTypes = Assembly.GetEntryAssembly()!.GetExportedTypes()
             .Where(t => typeof(IRunnable).IsAssignableFrom(t)).ToList();
 
         var configMap = (from r in runnableTypes
@@ -168,10 +168,6 @@ try
 
     app.Lifetime.ApplicationStarted.Register(async () =>
         await app.Services.GetRequiredService<ConsoleClient>().StartAsync(app.Lifetime.ApplicationStopping)
-    );
-
-    app.Lifetime.ApplicationStopping.Register(async () =>
-        await app.Services.GetRequiredService<ConsoleClient>().StopAsync(app.Lifetime.ApplicationStopped)
     );
 
     await app.RunRingAsync();

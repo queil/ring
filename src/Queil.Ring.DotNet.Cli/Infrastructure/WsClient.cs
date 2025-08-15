@@ -130,13 +130,6 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
                 logger.LogInformation("Client disconnected ({Id}) ({WebSocketState})", Id, Ws.State);
             }
         }
-        catch (OperationCanceledException)
-        {
-            using (logger.WithClientScope())
-            {
-                logger.LogInformation("Client disconnected ({Id}) ({WebSocketState})", Id, Ws.State);
-            }
-        }
         catch (WebSocketException wx)
         {
             using var _ = logger.WithClientScope();
@@ -146,9 +139,12 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
         finally
         {
             using var _ = logger.WithClientScope();
-            logger.LogDebug("Closing websocket ({Id}) ({WebSocketState})", Id, Ws.State);
-            await Ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, default);
-            logger.LogDebug("Closed websocket ({Id}) ({WebSocketState})", Id, Ws.State);
+            if (IsOpen)
+            {
+                logger.LogDebug("Closing websocket ({Id}) ({WebSocketState})", Id, Ws.State);
+                await Ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, default);
+                logger.LogDebug("Closed websocket ({Id}) ({WebSocketState})", Id, Ws.State);
+            }
         }
 
         return;

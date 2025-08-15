@@ -56,7 +56,7 @@ public class WebsocketsHandler(
                 await server.TerminateAsync(default);
                 logger.LogInformation("Workspace terminated");
                 logger.LogDebug("Draining pub-sub");
-                await queue.CompleteAsync(TimeSpan.FromSeconds(5));
+                queue.Complete();
                 await messageLoop;
                 logger.LogDebug("Shutdown");
             }, true);
@@ -79,7 +79,9 @@ public class WebsocketsHandler(
         client = CreateClient(clientId, await createSocket());
         await server.ConnectAsync(t);
         await client.ListenAsync(Dispatch, t);
-        _clients.TryRemove(clientId, out _);
+        if (_clients.TryRemove(clientId, out var c)) {
+            await c.DisposeAsync();
+        }
     }
 
     private Task<Ack> Dispatch(Message m, CancellationToken token)
@@ -112,9 +114,6 @@ public class WebsocketsHandler(
     {
         var wsClient = new WsClient(logger, key, socket);
         if (!_clients.TryAdd(key, wsClient)) throw new InvalidOperationException($"Client already exists: {key}");
-
-        appLifetime.ApplicationStopped.Register(async () => await wsClient.DisposeAsync());
-
         return wsClient;
     }
 }

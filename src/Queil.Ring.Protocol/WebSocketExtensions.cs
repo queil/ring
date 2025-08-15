@@ -47,6 +47,10 @@ public static class WebSocketExtensions
                 var maybeAck = OnReceived(ms.ToArray(), onReceived, token);
                 if (maybeAck is Task<Ack> ack) await webSocket.SendAckAsync(await ack, token);
             }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
             finally
             {
                 ArrayPool<byte>.Shared.Return(buffer, true);
