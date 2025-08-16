@@ -33,12 +33,15 @@ public sealed class Queue() : ISender, IReceiver, IDisposable
         }
     }
 
-    public Task DequeueAsync(OnDequeue action)
+    public async Task<bool> DequeueAsync(OnDequeue action)
     {
-        if (!_channel.Reader.TryRead(out var bytes)) return Task.CompletedTask;
+        if (!_channel.Reader.TryRead(out var bytes)) return true;
         try
         {
-            return action(new Message(bytes));
+            var message = new Message(bytes);
+            var waitForNext = message.Type != M.SERVER_SHUTDOWN;
+            await action(message);
+            return waitForNext;
         }
         finally
         {

@@ -20,7 +20,6 @@ public class Server(
     Func<Scope> getScope,
     ILogger<Server> logger,
     IWorkspaceLauncher launcher,
-    IHostApplicationLifetime appLifetime,
     ISender sender)
     : IServer
 {

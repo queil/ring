@@ -8,7 +8,7 @@ public delegate Task OnDequeue(Message message);
 
 public interface IReceiver
 {
-    Task DequeueAsync(OnDequeue action);
+    Task<bool> DequeueAsync(OnDequeue action);
     void Complete();
     Task<bool> WaitToReadAsync(CancellationToken token);
     CancellationToken Completed { get; }

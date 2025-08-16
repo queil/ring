@@ -40,15 +40,11 @@ public class WebsocketsHandler(
             var messageLoop = Task.Run(async () =>
             {
                 while (await queue.WaitToReadAsync(appLifetime.ApplicationStopped))
-                    try
-                    {
-                        await queue.DequeueAsync(BroadcastAsync);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        break;
-                    }
-            }, appLifetime.ApplicationStopping);
+                {
+                    if (!await queue.DequeueAsync(BroadcastAsync)) break;
+                }
+          
+            }, CancellationToken.None);
 
             appLifetime.ApplicationStopping.Register(async () =>
             {
