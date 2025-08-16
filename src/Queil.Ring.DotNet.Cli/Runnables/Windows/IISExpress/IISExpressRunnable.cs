@@ -58,7 +58,7 @@ public class IISExpressRunnable(
 
     protected override async Task StartAsync(IISExpressContext ctx, CancellationToken token)
     {
-        var result = await iisExpress.StartWebsite(ctx.TempAppHostConfigPath, token);
+        var result = await iisExpress.StartWebsite(ctx.TempAppHostConfigPath!, token);
         ctx.ProcessId = result.Pid;
         ctx.Output = result.Output;
         logger.LogInformation("{Uri}", ctx.Uri);

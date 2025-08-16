@@ -18,7 +18,7 @@ public static class UseCsProjFileExtensions
 
     public static string GetProjName(this IUseCsProjFile proj) => Path.GetFileNameWithoutExtension(proj.FullPath);
 
-    public static (string framework, string runtime) GetTargetFrameworkAndRuntime(this IUseCsProjFile proj)
+    public static (string framework, string? runtime) GetTargetFrameworkAndRuntime(this IUseCsProjFile proj)
     {
         if (proj == null) throw new ArgumentNullException(nameof(proj));
         var xp = new XPathDocument(proj.FullPath);

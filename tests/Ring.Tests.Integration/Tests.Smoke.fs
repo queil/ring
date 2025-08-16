@@ -122,10 +122,9 @@ let tests =
               File.WriteAllLines(
                   dir.WorkPath + "/ring.toml",
                   [ "[[aspnetcore]]"
-                    $"""csproj = '{dir.InSourceDir "../resources/apps/aspnetcore/aspnetcore.csproj"}' """ 
+                    $"""csproj = '{dir.InSourceDir "../resources/apps/aspnetcore/aspnetcore.csproj"}' """
                     "[aspnetcore.env]"
-                    """URLS="http://+:53412" """
-                  ]
+                    """URLS="http://+:53412" """ ]
               )
 
 

@@ -8,8 +8,8 @@ using Dotnet;
 
 public class IISXCoreContext : DotnetContext, ITrackUri
 {
-    public string TempAppHostConfigPath { get; set; }
-    public Uri Uri { get; set; }
+    public string? TempAppHostConfigPath { get; set; }
+    public required Uri Uri { get; set; }
 
     public static IISXCoreContext Create<C>(C config, Func<IFromGit, string> resolveFullClonePath)
         where C : IUseCsProjFile

@@ -26,12 +26,12 @@ public class ApphostConfig
 
         var apphostConfig = (XmlDocument)ApphostConfigTemplate.Value.Clone();
 
-        var siteNode = apphostConfig.SelectSingleNode("/configuration/system.applicationHost/sites/site[@id='1']");
+        var siteNode = apphostConfig.SelectSingleNode("/configuration/system.applicationHost/sites/site[@id='1']")!;
 
-        siteNode.SelectSingleNode("application/virtualDirectory").Attributes["physicalPath"].Value = VirtualDir;
-        var binding = siteNode.SelectSingleNode("bindings/binding");
-        binding.Attributes["bindingInformation"].Value = $":{Uri.Port}:{Uri.Host}";
-        binding.Attributes["protocol"].Value = Uri.Scheme;
+        siteNode.SelectSingleNode("application/virtualDirectory")!.Attributes!["physicalPath"]!.Value = VirtualDir;
+        var binding = siteNode.SelectSingleNode("bindings/binding")!;
+        binding.Attributes!["bindingInformation"]!.Value = $":{Uri.Port}:{Uri.Host}";
+        binding.Attributes!["protocol"]!.Value = Uri.Scheme;
         var cfgPath = Path.Combine(IisExpressTempDir, $"applicationhost{Guid.NewGuid():n}.config");
 
         apphostConfig.Save(cfgPath);
@@ -51,7 +51,7 @@ public class ApphostConfig
 
         void SetValue(string xpath, string value)
         {
-            var node = config.SelectSingleNode(xpath);
+            var node = config.SelectSingleNode(xpath)!;
             if (string.Compare(node.Value, value, StringComparison.OrdinalIgnoreCase) != 0) return;
             node.Value = value;
         }
@@ -60,7 +60,7 @@ public class ApphostConfig
         {
             var nodeToRemove = config.SelectSingleNode(xpath);
             if (nodeToRemove == null) return;
-            var parent = nodeToRemove.ParentNode;
+            var parent = nodeToRemove.ParentNode!;
             parent.ReplaceChild(config.CreateComment(nodeToRemove.OuterXml), nodeToRemove);
         }
     }

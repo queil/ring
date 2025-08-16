@@ -34,7 +34,7 @@ public abstract class DotnetRunnableBase<TContext, TConfig>(
 
         logger.LogDebug("Building {Project}", ctx.CsProjPath);
         var result =
-            await Dotnet.TryAsync(3, TimeSpan.FromSeconds(10), f => f.BuildAsync(ctx.CsProjPath, token), token);
+            await Dotnet.TryAsync(3, TimeSpan.FromSeconds(10), f => f.BuildAsync(ctx.CsProjPath!, token), token);
 
         if (!result.IsSuccess) logger.LogInformation("Build failed | {output}", result.Output);
         return ctx;

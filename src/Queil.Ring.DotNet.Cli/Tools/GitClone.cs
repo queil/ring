@@ -34,7 +34,7 @@ public partial class GitClone(ILogger<GitClone> logger, IOptions<RingConfigurati
             throw new InvalidOperationException(
                 $"Git Ssh Url is expected to be split by a colon into two parts. {gitCfg.SshRepoUrl}");
 
-        var pathChunks = new List<string> { rootPathOverride ?? _ringCfg.Git.ClonePath };
+        var pathChunks = new List<string> { rootPathOverride ?? _ringCfg.Git.ClonePath! };
         var inRepoPath = chunks[1].Replace(".git", "").Split("/");
         pathChunks.AddRange(inRepoPath);
         var targetPath = Path.Combine([.. pathChunks]);
@@ -51,7 +51,7 @@ public partial class GitClone(ILogger<GitClone> logger, IOptions<RingConfigurati
     public async Task<ExecutionInfo> CloneOrPullAsync(IFromGit gitCfg, CancellationToken token, bool shallow = false,
         bool defaultBranchOnly = false, string? rootPathOverride = null)
     {
-        using var _ = Logger.WithScope(gitCfg.SshRepoUrl, LogEvent.GIT);
+        using var _ = Logger.WithScope(gitCfg.SshRepoUrl!, LogEvent.GIT);
         var depthArg = shallow ? "--depth=1" : "";
         var singleBranchArg = defaultBranchOnly ? "--single-branch" : "";
         var repoFullPath = ResolveFullClonePath(gitCfg, rootPathOverride);
@@ -100,7 +100,7 @@ public partial class GitClone(ILogger<GitClone> logger, IOptions<RingConfigurati
         async Task<ExecutionInfo> CloneAsync()
         {
             Logger.LogDebug("Cloning to {OutputPath}", repoFullPath);
-            var result = await Git("clone", singleBranchArg, depthArg, "--", gitCfg.SshRepoUrl, repoFullPath)(token);
+            var result = await Git("clone", singleBranchArg, depthArg, "--", gitCfg.SshRepoUrl!, repoFullPath)(token);
             Logger.LogInformation(result.IsSuccess ? LogEventStatus.OK : LogEventStatus.FAILED);
             return result;
         }

@@ -4,8 +4,8 @@ using Abstractions.Context;
 
 public class KustomizeContext : ITrackRetries
 {
-    public string KustomizationDir { get; set; }
-    public string CachePath { get; set; }
+    public required string KustomizationDir { get; init; }
+    public required string CachePath { get; init; }
     public Namespace[] Namespaces { get; set; } = [];
     public int ConsecutiveFailures { get; set; }
     public int TotalFailures { get; set; }
@@ -13,6 +13,6 @@ public class KustomizeContext : ITrackRetries
 
 public class Namespace
 {
-    public string Name { get; set; }
+    public required string Name { get; init; }
     public string[] Pods { get; set; } = [];
 }

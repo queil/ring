@@ -34,7 +34,7 @@ public class ConsoleClient(ILogger<ConsoleClient> logger, ServeOptions options)
                 await Task.Delay(TimeSpan.FromSeconds(consoleOpts.StartupDelaySeconds), token);
                 await _clientSocket.ConnectAsync(new Uri($"ws://localhost:{options.Port}/ws?clientId={ClientId}"),
                     token);
-                await _clientSocket.SendMessageAsync(new Message(M.LOAD, consoleOpts.WorkspacePath), token);
+                await _clientSocket.SendMessageAsync(new Message(M.LOAD, consoleOpts.WorkspacePath!), token);
                 await _clientSocket.SendMessageAsync(M.START, token);
             }
             catch (Exception ex)
