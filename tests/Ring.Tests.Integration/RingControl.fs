@@ -83,8 +83,9 @@ module RingControl =
                 ValueTask(
                     task {
                         if client.HasEverConnected then
+                            let shutdown = client.NewEvents |> AsyncSeq.exists Server.shutdown |> Async.AsTaskTimeout
                             do! client.Terminate()
-                            let! _ = client.NewEvents |> AsyncSeq.exists Server.shutdown |> Async.AsTaskTimeout
+                            let! _ = shutdown
                             do! (client :> IAsyncDisposable).DisposeAsync()
 
                         cts.Dispose()
