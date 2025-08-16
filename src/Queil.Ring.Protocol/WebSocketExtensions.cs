@@ -37,7 +37,7 @@ public static class WebSocketExtensions
                 do
                 {
                     Array.Clear(buffer);
-                    result = await webSocket.ReceiveAsync(buffer, token);
+                    result = await webSocket.ReceiveAsync(buffer, CancellationToken.None).WaitAsync(token);
                     if (result.MessageType == WebSocketMessageType.Close) return;
                     await ms.WriteAsync(buffer.AsMemory(0, result.Count), token);
                 } while (!result.EndOfMessage);
