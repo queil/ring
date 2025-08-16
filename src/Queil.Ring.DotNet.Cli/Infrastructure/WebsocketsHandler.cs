@@ -52,8 +52,8 @@ public class WebsocketsHandler(
                 await server.TerminateAsync(CancellationToken.None);
                 logger.LogInformation("Workspace terminated");
                 logger.LogDebug("Draining pub-sub");
-                queue.Complete();
                 await messageLoop;
+                queue.Complete();
                 logger.LogDebug("Shutdown");
             }, true);
             await messageLoop;
