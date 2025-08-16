@@ -2,5 +2,5 @@
 
 public class Root
 {
-    public iisSettings iisSettings { get; set; }
+    public required iisSettings iisSettings { get; init; }
 }

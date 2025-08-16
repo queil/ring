@@ -22,11 +22,11 @@ internal static class Env
 
 public class RingConfiguration
 {
-    public GitSettings Git { get; set; }
-    public KustomizeSettings Kustomize { get; set; }
-    public KubernetesSettings Kubernetes { get; set; }
-    public WorkspaceSettings Workspace { get; set; }
-    public HooksConfiguration? Hooks { get; set; }
+    public required GitSettings Git { get; init; }
+    public required KustomizeSettings Kustomize { get; init; }
+    public required KubernetesSettings Kubernetes { get; init; }
+    public required WorkspaceSettings Workspace { get; init; }
+    public HooksConfiguration? Hooks { get; init; }
 }
 
 public class WorkspaceSettings

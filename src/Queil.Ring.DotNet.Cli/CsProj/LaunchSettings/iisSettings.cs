@@ -2,5 +2,5 @@
 
 public class iisSettings
 {
-    public iisExpress iisExpress { get; set; }
+    public required iisExpress iisExpress { get; init; }
 }

@@ -92,7 +92,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
     private async Task<Fsm> InitFsm(CancellationToken token)
     {
         _fsm.Configure(State.Zero)
-            .OnEntryFromAsync(Trigger.Destroy, ctx => _destroyTask = DestroyCoreAsync(_context, token))
+            .OnEntryFromAsync(Trigger.Destroy, _ => _destroyTask = DestroyCoreAsync(_context!, token))
             .Ignore(Trigger.NoOp)
             .Ignore(Trigger.HcOk)
             .Ignore(Trigger.HcUnhealthy)
@@ -102,7 +102,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
 
         _fsm.Configure(State.Idle)
             .OnEntryFromAsync(Trigger.Init, () => InitCoreAsync(token))
-            .OnEntryFromAsync(Trigger.Stop, () => _stopTask = StopCoreAsync(_context, token))
+            .OnEntryFromAsync(Trigger.Stop, () => _stopTask = StopCoreAsync(_context!, token))
             .Permit(Trigger.Start, State.Pending)
             .Permit(Trigger.InitFailure, State.Pending)
             .Permit(Trigger.Destroy, State.Zero)
@@ -115,7 +115,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
             .OnEntryFromAsync(Trigger.Start,
                 async () =>
                 {
-                    await StartCoreAsync(_context, token);
+                    await StartCoreAsync(_context!, token);
                     await QueueHealthCheckAsync(token);
                 })
             .OnEntryFromAsync(Trigger.InitFailure, () => QueueHealthCheckAsync(token))
@@ -127,7 +127,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
                 async () =>
                 {
                     await Sender.EnqueueAsync(Message.RunnableHealthCheck(UniqueId), token);
-                    var healthResult = await CheckHealthCoreAsync(_context, token);
+                    var healthResult = await CheckHealthCoreAsync(_context!, token);
                     await _fsm.FireAsync(healthResult switch
                     {
                         HealthStatus.Dead => Trigger.HcDead,
@@ -163,7 +163,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
                 async () =>
                 {
                     await Sender.EnqueueAsync(Message.RunnableRecovering(UniqueId), token);
-                    await RecoverCoreAsync(_context, token);
+                    await RecoverCoreAsync(_context!, token);
                 })
             .Permit(Trigger.Stop, State.Idle);
 
@@ -202,7 +202,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
             using var _ = _logger.BeginScope(Scope.Event(LogEvent.INIT));
             _logger.LogDebug(LogEventStatus.PENDING);
             _context = await InitAsync(token);
-            _logger.LogContextDebug(_context);
+            _logger.LogContextDebug(_context!);
             _logger.LogDebug(LogEventStatus.OK);
             await Sender.EnqueueAsync(Message.RunnableInitiated(UniqueId), token);
         }
@@ -224,7 +224,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         using var _ = _logger.BeginScope(Scope.Event(LogEvent.START));
         _logger.LogDebug(LogEventStatus.PENDING);
         await StartAsync(ctx, token);
-        _logger.LogContextDebug(ctx);
+        _logger.LogContextDebug(ctx!);
         _logger.LogInformation(LogEventStatus.OK);
         await Sender.EnqueueAsync(Message.RunnableStarted(UniqueId), token);
     }
@@ -248,7 +248,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
                 result = HealthStatus.Unhealthy;
             }
 
-            _logger.LogContextDebug(ctx);
+            _logger.LogContextDebug(ctx!);
 
             switch (result)
             {
@@ -300,7 +300,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         using var _ = _logger.BeginScope(Scope.Event(LogEvent.RECOVERY));
         _logger.LogDebug(LogEventStatus.PENDING);
         await RecoverAsync(ctx, token);
-        _logger.LogContextDebug(ctx);
+        _logger.LogContextDebug(ctx!);
     }
 
     protected async Task StopCoreAsync(TContext ctx, CancellationToken token)
@@ -321,7 +321,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         finally
         {
             await Sender.EnqueueAsync(Message.RunnableStopped(UniqueId), default);
-            _logger.LogContextDebug(ctx);
+            _logger.LogContextDebug(ctx!);
             _logger.LogDebug(LogEventStatus.OK);
         }
     }
@@ -344,7 +344,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         finally
         {
             await Sender.EnqueueAsync(Message.RunnableDestroyed(UniqueId), default);
-            _logger.LogContextDebug(ctx);
+            _logger.LogContextDebug(ctx!);
             _logger.LogInformation(LogEventStatus.OK);
         }
     }

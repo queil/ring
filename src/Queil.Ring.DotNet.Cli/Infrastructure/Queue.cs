@@ -38,9 +38,8 @@ public sealed class Queue() : ISender, IReceiver, IDisposable
         if (!_channel.Reader.TryRead(out var bytes)) return true;
         try
         {
-            var message = new Message(bytes);
-            var waitForNext = message.Type != M.SERVER_SHUTDOWN;
-            await action(message);
+            var waitForNext = new Message(bytes).Type != M.SERVER_SHUTDOWN;
+            await action(new Message(bytes));
             return waitForNext;
         }
         finally

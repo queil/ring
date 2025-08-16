@@ -16,7 +16,7 @@ public static class WebApplicationExtensions
         switch (opts)
         {
             case CloneOptions c:
-                await app.Services.GetRequiredService<ICloneMaker>().CloneWorkspaceRepos(c.WorkspacePath, c.OutputDir);
+                await app.Services.GetRequiredService<ICloneMaker>().CloneWorkspaceRepos(c.WorkspacePath!, c.OutputDir);
                 break;
             case ConfigDump:
                 {

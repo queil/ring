@@ -38,7 +38,7 @@ public class IISXCoreRunnable(
 
     protected override async Task StartAsync(IISXCoreContext ctx, CancellationToken token)
     {
-        var result = await iisExpress.StartWebsite(ctx.TempAppHostConfigPath, token, new Dictionary<string, string>
+        var result = await iisExpress.StartWebsite(ctx.TempAppHostConfigPath!, token, new Dictionary<string, string>
         {
             ["LAUNCHER_PATH"] = ctx.ExePath
         });

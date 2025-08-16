@@ -5,5 +5,5 @@ using System.Threading.Tasks;
 
 public interface ICloneMaker
 {
-    Task CloneWorkspaceRepos(string workspacePath, string outputDir, CancellationToken token = default);
+    Task CloneWorkspaceRepos(string workspacePath, string? outputDir = null, CancellationToken token = default);
 }

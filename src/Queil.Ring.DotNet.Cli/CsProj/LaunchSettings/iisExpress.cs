@@ -4,6 +4,6 @@ using System;
 
 public class iisExpress
 {
-    public Uri applicationUrl { get; set; }
-    public int sslPort { get; set; }
+    public required Uri applicationUrl { get; init; }
+    public required int sslPort { get; init; }
 }
