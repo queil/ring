@@ -1,12 +1,10 @@
 ﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
 
 using System;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Logging;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 public class RingMiddleware(RequestDelegate next, WebsocketsHandler broadcast)

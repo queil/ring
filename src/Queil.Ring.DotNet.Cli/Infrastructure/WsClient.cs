@@ -124,7 +124,7 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(t, _localCts.Token);
             _backgroundAwaiter = Task.Run(() => AckLongRunning(cts.Token), cts.Token);
-            await Ws.ListenAsync(YieldOrQueueLongRunning, cts.Token);
+            await Ws.ListenAsync(YieldOrQueueLongRunning, WebSocketRole.Server, cts.Token);
             using (logger.WithClientScope())
             {
                 logger.LogInformation("Client disconnected ({Id}) ({WebSocketState})", Id, Ws.State);

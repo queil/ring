@@ -101,7 +101,7 @@ let tests =
                     M.RUNNABLE_HEALTH_CHECK
                     M.RUNNABLE_HEALTHY ]
 
-              do! ring.Client.Terminate()
+              do! ring.Client.StopWorkspace()
 
               let! events =
                   (ring.Stream
@@ -122,7 +122,10 @@ let tests =
               File.WriteAllLines(
                   dir.WorkPath + "/ring.toml",
                   [ "[[aspnetcore]]"
-                    $"""csproj = '{dir.InSourceDir "../resources/apps/aspnetcore/aspnetcore.csproj"}' """ ]
+                    $"""csproj = '{dir.InSourceDir "../resources/apps/aspnetcore/aspnetcore.csproj"}' """ 
+                    "[aspnetcore.env]"
+                    """URLS="http://+:53412" """
+                  ]
               )
 
 

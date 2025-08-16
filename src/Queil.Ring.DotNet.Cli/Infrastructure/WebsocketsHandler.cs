@@ -53,7 +53,7 @@ public class WebsocketsHandler(
             appLifetime.ApplicationStopping.Register(async () =>
             {
                 using var _ = logger.WithHostScope(LogEvent.DESTROY);
-                await server.TerminateAsync(default);
+                await server.TerminateAsync(CancellationToken.None);
                 logger.LogInformation("Workspace terminated");
                 logger.LogDebug("Draining pub-sub");
                 queue.Complete();
@@ -79,9 +79,16 @@ public class WebsocketsHandler(
         client = CreateClient(clientId, await createSocket());
         await server.ConnectAsync(t);
         await client.ListenAsync(Dispatch, t);
-        if (_clients.TryRemove(clientId, out var c)) {
+        if (_clients.TryRemove(clientId, out var c))
+        {
             await c.DisposeAsync();
         }
+    }
+
+    private Task<Ack> StopApplication()
+    {
+        appLifetime.StopApplication();
+        return Task.FromResult(Ack.Ok);
     }
 
     private Task<Ack> Dispatch(Message m, CancellationToken token)
@@ -92,7 +99,7 @@ public class WebsocketsHandler(
             {
                 (M.LOAD, var path) => server.LoadAsync(path.AsUtf8String(), token),
                 (M.UNLOAD, _) => server.UnloadAsync(token),
-                (M.TERMINATE, _) => server.TerminateAsync(token),
+                (M.TERMINATE, _) => StopApplication(),
                 (M.START, _) => server.StartAsync(token),
                 (M.STOP, _) => server.StopAsync(token),
                 (M.RUNNABLE_INCLUDE, var runnableId) => server.IncludeAsync(runnableId.AsUtf8String(), token),

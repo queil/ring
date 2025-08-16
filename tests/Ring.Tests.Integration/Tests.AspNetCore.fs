@@ -38,8 +38,6 @@ let tests =
                   |> Response.toText
 
               "Response on port 7123 should be OK" |> Expect.equal response "OK"
-
-              do! ring.Client.Terminate()
           }
 
           testTask "should execute shell task" {
@@ -76,8 +74,6 @@ let tests =
                     M.RUNNABLE_INITIATED, MsgScope.Runnable "aspnetcore"
                     M.RUNNABLE_STARTED, MsgScope.Runnable "aspnetcore"
                     M.ACK, MsgScope.Ack Ack.TaskOk ]
-
-              do! ring.Client.Terminate()
           } ]
 
     |> testLabel "aspnetcore"
