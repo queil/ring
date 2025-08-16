@@ -20,7 +20,6 @@ public class Server(
     Func<Scope> getScope,
     ILogger<Server> logger,
     IWorkspaceLauncher launcher,
-    IHostApplicationLifetime appLifetime,
     ISender sender)
     : IServer
 {
@@ -112,7 +111,6 @@ public class Server(
         await launcher.WaitUntilStoppedAsync(token);
         await _fsm.FireAsync(T.Unload);
         _scope?.Dispose();
-        if (!appLifetime.ApplicationStopping.IsCancellationRequested) appLifetime.StopApplication();
         await sender.EnqueueAsync(new Message(M.SERVER_SHUTDOWN), token);
         return Ack.Ok;
     }

@@ -2,9 +2,9 @@
 
 public interface ICsProjContext
 {
-    string CsProjPath { get; set; }
-    string WorkingDir { get; set; }
-    string TargetFramework { get; set; }
-    string TargetRuntime { get; set; }
-    string EntryAssemblyPath { get; set; }
+    string CsProjPath { get; }
+    string WorkingDir { get; }
+    string TargetFramework { get; }
+    string TargetRuntime { get; }
+    string EntryAssemblyPath { get; }
 }

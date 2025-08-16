@@ -24,7 +24,7 @@ public static class WebSocketExtensions
             : s.SendAsync(new ArraySegment<byte>(m.Bytes.SliceUntilNull().ToArray()), WebSocketMessageType.Binary, true,
                 token);
 
-    public static async Task ListenAsync(this WebSocket webSocket, HandleMessage onReceived,
+    public static async Task ListenAsync(this WebSocket webSocket, HandleMessage onReceived, WebSocketRole role,
         CancellationToken token = default)
     {
         WebSocketReceiveResult? result;
@@ -37,15 +37,25 @@ public static class WebSocketExtensions
                 do
                 {
                     Array.Clear(buffer);
-                    result = await webSocket.ReceiveAsync(buffer, token);
-                    if (result.MessageType == WebSocketMessageType.Close) return;
+                    result = await webSocket.ReceiveAsync(buffer, CancellationToken.None).WaitAsync(token);
+                    if (result.MessageType == WebSocketMessageType.Close) {
+                        if (role == WebSocketRole.Server)
+                        {
+                            await webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                        }
+                        return;
+                    }
                     await ms.WriteAsync(buffer.AsMemory(0, result.Count), token);
                 } while (!result.EndOfMessage);
 
                 ms.Seek(0, SeekOrigin.Begin);
                 await ms.FlushAsync(token);
                 var maybeAck = OnReceived(ms.ToArray(), onReceived, token);
-                if (maybeAck is Task<Ack> ack) await webSocket.SendAckAsync(await ack, token);
+                if (maybeAck is Task<Ack> ack) await webSocket.SendAckAsync(await ack, CancellationToken.None).WaitAsync(token);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
             finally
             {

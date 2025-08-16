@@ -7,15 +7,19 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Protocol;
 
-public sealed class Queue : ISender, IReceiver
+public sealed class Queue() : ISender, IReceiver, IDisposable
 {
     private readonly Channel<byte[]> _channel = Channel.CreateUnbounded<byte[]>();
 
-    public async Task CompleteAsync(TimeSpan timeout)
+    public void Complete()
     {
-        await Task.Delay(timeout);
         _channel.Writer.Complete();
+        _channelCompleted.Cancel();
     }
+
+    private readonly CancellationTokenSource _channelCompleted = new();
+
+    public CancellationToken Completed => _channelCompleted.Token;
 
     public async Task<bool> WaitToReadAsync(CancellationToken token)
     {
@@ -29,12 +33,15 @@ public sealed class Queue : ISender, IReceiver
         }
     }
 
-    public Task DequeueAsync(OnDequeue action)
+    public async Task<bool> DequeueAsync(OnDequeue action)
     {
-        if (!_channel.Reader.TryRead(out var bytes)) return Task.CompletedTask;
+        if (!_channel.Reader.TryRead(out var bytes)) return true;
         try
         {
-            return action(new Message(bytes));
+            var message = new Message(bytes);
+            var waitForNext = message.Type != M.SERVER_SHUTDOWN;
+            await action(message);
+            return waitForNext;
         }
         finally
         {
@@ -57,4 +64,6 @@ public sealed class Queue : ISender, IReceiver
         message.Bytes.CopyTo(bytes);
         return bytes;
     }
+
+    public void Dispose() => _channelCompleted.Dispose();
 }

@@ -124,14 +124,7 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(t, _localCts.Token);
             _backgroundAwaiter = Task.Run(() => AckLongRunning(cts.Token), cts.Token);
-            await Ws.ListenAsync(YieldOrQueueLongRunning, cts.Token);
-            using (logger.WithClientScope())
-            {
-                logger.LogInformation("Client disconnected ({Id}) ({WebSocketState})", Id, Ws.State);
-            }
-        }
-        catch (OperationCanceledException)
-        {
+            await Ws.ListenAsync(YieldOrQueueLongRunning, WebSocketRole.Server, cts.Token);
             using (logger.WithClientScope())
             {
                 logger.LogInformation("Client disconnected ({Id}) ({WebSocketState})", Id, Ws.State);
@@ -146,9 +139,12 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
         finally
         {
             using var _ = logger.WithClientScope();
-            logger.LogDebug("Closing websocket ({Id}) ({WebSocketState})", Id, Ws.State);
-            await Ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, default);
-            logger.LogDebug("Closed websocket ({Id}) ({WebSocketState})", Id, Ws.State);
+            if (IsOpen)
+            {
+                logger.LogDebug("Closing websocket ({Id}) ({WebSocketState})", Id, Ws.State);
+                await Ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, default);
+                logger.LogDebug("Closed websocket ({Id}) ({WebSocketState})", Id, Ws.State);
+            }
         }
 
         return;

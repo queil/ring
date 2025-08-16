@@ -5,7 +5,6 @@ using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Logging;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 public class RingMiddleware(RequestDelegate next, WebsocketsHandler broadcast)
@@ -44,14 +43,7 @@ public class RingMiddleware(RequestDelegate next, WebsocketsHandler broadcast)
                 }
 
                 return s;
-            }, context.Get<IHostApplicationLifetime>().ApplicationStopped);
-        }
-        catch (OperationCanceledException)
-        {
-            using (context.Logger().WithClientScope())
-            {
-                context.Logger().LogInformation("Client {clientId} disconnected", clientId);
-            }
+            }, context.Get<IReceiver>().Completed);
         }
         catch (Exception ex)
         {

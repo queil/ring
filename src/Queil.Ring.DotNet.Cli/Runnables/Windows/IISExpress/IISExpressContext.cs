@@ -7,8 +7,8 @@ using CsProj;
 public class IISExpressContext : ITrackProcessId, ITrackProcessOutput, ICsProjContext, ITrackRetries, ITrackUri
 {
     public string TempAppHostConfigPath { get; set; }
-    public string CsProjPath { get; set; }
-    public string WorkingDir { get; set; }
+    public required string CsProjPath { get; init; }
+    public required string WorkingDir { get; init; }
     public string TargetFramework { get; set; }
     public string TargetRuntime { get; set; }
     public string EntryAssemblyPath { get; set; }

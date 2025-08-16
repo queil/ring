@@ -4,5 +4,5 @@ using System;
 
 public interface ITrackUri
 {
-    Uri Uri { get; set; }
+    Uri Uri { get; }
 }

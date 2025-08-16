@@ -252,6 +252,7 @@ type WsClient(options: ClientOptions) =
                             Task.CompletedTask
 
                         ),
+                        WebSocketRole.Client,
                         cancellationToken
                     )
 
@@ -321,7 +322,6 @@ type WsClient(options: ClientOptions) =
                     if socket.IsValueCreated then
                         try
                             let! s = socket.Value
-                            do! s.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, String.Empty, cancellationToken)
                             do! listenTask
                             buffer.Writer.Complete()
                             cache.Writer.Complete()

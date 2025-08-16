@@ -84,7 +84,14 @@ module RingControl =
                     task {
                         if client.HasEverConnected then
                             do! client.Terminate()
-                            let! _ = client.NewEvents |> AsyncSeq.exists Server.shutdown |> Async.AsTaskTimeout
+                            let! _ = 
+                              async  {
+                                let! d = client.NewEvents 
+                                         |> AsyncSeq.tryFind Server.shutdown 
+                                     
+                                d |> Option.get
+                                }
+                                        |> Async.AsTaskTimeout
                             do! (client :> IAsyncDisposable).DisposeAsync()
 
                         cts.Dispose()
