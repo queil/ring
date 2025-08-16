@@ -183,7 +183,6 @@ type WsClient(options: ClientOptions) =
         buffer.Reader.ReadAllAsync()
         |> AsyncSeq.ofAsyncEnum
         |> AsyncSeq.map (fun m ->
-            printfn "%A" m.Type
             cache.Writer.TryWrite(m) |> ignore
             m)
 
