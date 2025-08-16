@@ -8,6 +8,7 @@
         <ToolCommandName>ring</ToolCommandName>
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <Authors>Krzysztof Kraszewski</Authors>
         <Configurations>Debug;Release</Configurations>
         <PackageType>DotNetCliTool</PackageType>
