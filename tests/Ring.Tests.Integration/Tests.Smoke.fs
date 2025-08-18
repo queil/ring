@@ -89,7 +89,7 @@ let tests =
                   (ring.Stream
                    |> AsyncSeq.filter (Runnable.byId "k8s-debug-poc")
                    |> AsyncSeq.takeWhileInclusive (not << Runnable.healthy ())
-                   |> AsyncSeq.map (fun m -> m.Type)
+                   |> AsyncSeq.map (_.Type)
                    |> AsyncSeq.toListAsync
                    |> Async.AsTaskTimeout)
 
@@ -107,7 +107,7 @@ let tests =
                   (ring.Stream
                    |> AsyncSeq.filter (Runnable.byId "k8s-debug-poc")
                    |> AsyncSeq.takeWhileInclusive (not << Runnable.destroyed ())
-                   |> AsyncSeq.map (fun m -> m.Type)
+                   |> AsyncSeq.map (_.Type)
                    |> AsyncSeq.toListAsync
                    |> Async.AsTaskTimeout)
 
@@ -135,7 +135,7 @@ let tests =
                   (ring.Stream
                    |> AsyncSeq.filter (Runnable.byId "aspnetcore")
                    |> AsyncSeq.takeWhileInclusive (not << Runnable.healthy ())
-                   |> AsyncSeq.map (fun m -> m.Type)
+                   |> AsyncSeq.map (_.Type)
                    |> AsyncSeq.toListAsync
                    |> Async.AsTaskTimeout)
 
@@ -153,7 +153,7 @@ let tests =
                   (ring.Stream
                    |> AsyncSeq.filter (Runnable.byId "aspnetcore")
                    |> AsyncSeq.takeWhileInclusive (not << Runnable.destroyed ())
-                   |> AsyncSeq.map (fun m -> m.Type)
+                   |> AsyncSeq.map (_.Type)
                    |> AsyncSeq.toListAsync
                    |> Async.AsTaskTimeout)
 

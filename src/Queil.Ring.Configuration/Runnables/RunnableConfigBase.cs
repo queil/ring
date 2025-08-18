@@ -18,12 +18,9 @@ public class TaskDefinition
 
 public abstract class RunnableConfigBase : IRunnableConfig
 {
-    /// <summary>
-    ///     If implemented in derived class enables overriding the default <see cref="UniqueId" />
-    /// </summary>
-    public string? Id { get; init; }
-
+    public string? Id { get; set; }
     public abstract string UniqueId { get; }
+    public abstract string TypeId { get; }
     public string? FriendlyName { get; init; }
 
     public HashSet<string> DeclaredPaths { get; } = [];
@@ -31,6 +28,8 @@ public abstract class RunnableConfigBase : IRunnableConfig
     public List<string> Tags { get; } = [];
 
     public Dictionary<string, TaskDefinition> Tasks { get; } = [];
+
+    public Dictionary<string, string> Env { get; } = [];
 
     protected static string GetFullPath(string? workDir, string path)
     {

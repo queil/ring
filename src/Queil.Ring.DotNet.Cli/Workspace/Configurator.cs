@@ -91,6 +91,10 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
                 tree = configReader.GetConfigTree(paths);
                 break;
             }
+            catch (FileNotFoundException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Could not open workspace '{WorkspacePath}'. {RetriesLeft} retries left",

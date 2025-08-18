@@ -1,6 +1,7 @@
 ﻿namespace Queil.Ring.DotNet.Cli.Infrastructure;
 
 using System;
+using System.IO;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Logging;
@@ -11,7 +12,6 @@ public class RingMiddleware(RequestDelegate next, WebsocketsHandler broadcast)
 {
     public async Task Invoke(HttpContext context)
     {
-        var clientId = Guid.Empty;
         try
         {
             if (!await context.ShouldHandle(next)) return;
@@ -26,7 +26,7 @@ public class RingMiddleware(RequestDelegate next, WebsocketsHandler broadcast)
                 return;
             }
 
-            if (!Guid.TryParse(context.Request.Query[clientIdKey], out clientId))
+            if (!Guid.TryParse(context.Request.Query[clientIdKey], out var clientId))
             {
                 var errorSocket = await context.WebSockets.AcceptWebSocketAsync();
                 await errorSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError,
@@ -44,6 +44,11 @@ public class RingMiddleware(RequestDelegate next, WebsocketsHandler broadcast)
 
                 return s;
             }, context.Get<IReceiver>().Completed);
+        }
+        catch (FileNotFoundException x)
+        {
+            Console.WriteLine($"ERROR: {x.Message}");
+            Environment.Exit(1);
         }
         catch (Exception ex)
         {

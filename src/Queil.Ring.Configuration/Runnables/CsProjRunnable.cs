@@ -11,7 +11,6 @@ public abstract class CsProjRunnable : RunnableConfigBase, IUseCsProjFile, IFrom
     public string? WorkingDir { get; set; }
     public string Csproj { get; set; } = string.Empty;
     public string Configuration { get; init; } = "Debug";
-    public Dictionary<string, string> Env { get; init; } = new();
     public string FullPath => GetFullPath(WorkingDir, Csproj);
 
     public string LaunchSettingsJsonPath =>

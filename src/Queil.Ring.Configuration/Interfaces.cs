@@ -20,8 +20,11 @@ public interface IFromGit
 public interface IRunnableConfig : IWorkspaceConfig
 {
     string? FriendlyName { get; }
+    string TypeId { get; }
     List<string> Tags { get; }
     Dictionary<string, TaskDefinition> Tasks { get; }
+    Dictionary<string, string> Env { get; }
+    
 }
 
 public interface IUseCsProjFile : IUseWorkingDir
@@ -30,7 +33,6 @@ public interface IUseCsProjFile : IUseWorkingDir
     string FullPath { get; }
     string LaunchSettingsJsonPath { get; }
     string Configuration { get; }
-    public Dictionary<string, string> Env { get; }
 }
 
 public interface IUseWorkingDir

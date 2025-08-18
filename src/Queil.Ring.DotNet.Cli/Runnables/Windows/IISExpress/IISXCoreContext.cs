@@ -12,7 +12,7 @@ public class IISXCoreContext : DotnetContext, ITrackUri
     public required Uri Uri { get; set; }
 
     public static IISXCoreContext Create<C>(C config, Func<IFromGit, string> resolveFullClonePath)
-        where C : IUseCsProjFile
+        where C : IUseCsProjFile, IRunnableConfig
     {
         var ctx = Create<IISXCoreContext, C>(config, resolveFullClonePath);
         ctx.Uri = config.GetIISUrl();

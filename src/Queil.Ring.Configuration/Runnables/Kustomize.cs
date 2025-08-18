@@ -7,6 +7,9 @@ public class Kustomize : RunnableConfigBase, IUseWorkingDir, IFromGit
     public string FullPath => GetFullPath(WorkingDir, Path);
     public string? SshRepoUrl { get; init; }
     public string? WorkingDir { get; set; }
+
+    public override string TypeId => nameof(Kustomize).ToLowerInvariant();
+
     public bool IsRemote() => Path.StartsWith("git@") || Path.StartsWith("ssh://");
 
     public override bool Equals(object? obj) => obj is Kustomize d && d.Path == Path;
