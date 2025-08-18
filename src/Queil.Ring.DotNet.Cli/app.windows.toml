@@ -13,4 +13,4 @@ allowedContexts = [
 ]
 
 [workspace]
-startupSpreadFactor = 1500
+startupSpreadFactor = 0
