@@ -158,7 +158,14 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
     public async Task WaitUntilStoppedAsync(CancellationToken token)
     {
-        if (_stopTask != null) await _stopTask;
+        try
+        {
+            if (_stopTask != null) await _stopTask;
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogTrace("Wait cancelled");
+        }
     }
 
 
