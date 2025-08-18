@@ -36,8 +36,8 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
     }
 
     protected virtual TimeSpan HealthCheckPeriod { get; } = TimeSpan.FromSeconds(5);
-    protected virtual int MaxConsecutiveFailuresUntilDead { get; } = 2;
-    protected virtual int MaxTotalFailuresUntilDead { get; } = 3;
+    protected virtual int MaxConsecutiveFailuresUntilDead => 2;
+    protected virtual int MaxTotalFailuresUntilDead => 3;
     public TConfig Config { get; }
     public abstract string UniqueId { get; }
     public State State => _fsm.State;
@@ -66,16 +66,8 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         await _fsm.FireAsync(Trigger.Destroy);
         await _destroyTask;
     }
-
-    /// <summary>
-    ///     Details added via this method are pushed to clients where can be used for different purposes
-    /// </summary>
-    /// <param name="key"></param>
-    /// <param name="value"></param>
-    protected void AddDetail(string key, object value)
-    {
-        _details.TryAdd(key, value);
-    }
+    
+    protected void AddDetail(string key, object value) => _details.TryAdd(key, value);
 
     protected abstract Task<TContext> InitAsync(CancellationToken token);
     protected abstract Task StartAsync(TContext ctx, CancellationToken token);
@@ -83,7 +75,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
     protected abstract Task StopAsync(TContext ctx, CancellationToken token);
     protected abstract Task DestroyAsync(TContext ctx, CancellationToken token);
 
-    protected virtual async Task RecoverAsync(TContext ctx, CancellationToken token)
+    protected async Task RecoverAsync(TContext ctx, CancellationToken token)
     {
         await _fsm.FireAsync(Trigger.Stop);
         await _fsm.FireAsync(Trigger.Start);
@@ -205,6 +197,10 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
             _logger.LogContextDebug(_context!);
             _logger.LogDebug(LogEventStatus.OK);
             await Sender.EnqueueAsync(Message.RunnableInitiated(UniqueId), token);
+        }
+        catch (OperationCanceledException)
+        {
+             _logger.LogTrace("Initialization cancelled");
         }
         catch (Exception ex)
         {

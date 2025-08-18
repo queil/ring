@@ -123,8 +123,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
     public Task StartAsync(CancellationToken token)
     {
         _cts = new CancellationTokenSource();
-        _startTask = Task.Factory.StartNew(async () => await ApplyConfigChanges(_configurator.Current, _cts.Token),
-            _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        _startTask = ApplyConfigChanges(_configurator.Current, _cts.Token);
         return Task.CompletedTask;
     }
 
@@ -194,7 +193,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error");
+            _logger.LogError(ex, "Error: {ex}", ex);
         }
     }
 
@@ -256,8 +255,19 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
         _runnables.TryAdd(id, container);
 
-        await container.ConfigureAsync();
-        if (start) container.Start();
+        try
+        {
+            await container.ConfigureAsync();
+            if (start) container.Start();
+        }
+        catch (ObjectDisposedException ex)
+        {
+             _logger.LogTrace("Startup interrupted: {Message}", ex.Message);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogTrace("Startup interrupted");
+        }
     }
 
     private async Task<bool> RemoveAsync(string key)

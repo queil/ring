@@ -8,7 +8,7 @@ public static class WorkspaceConfigExtensions
     {
         return new ConfigSet(root.Path, GetEffectiveConfig(root).ToDictionary(x => x.UniqueId, x => x));
 
-        IEnumerable<IRunnableConfig> GetEffectiveConfig(WorkspaceConfig node)
+        static IEnumerable<IRunnableConfig> GetEffectiveConfig(WorkspaceConfig node)
         {
             var configs = node.All.DistinctBy(x => x.UniqueId).ToArray();
             var nested = (from w in node.Import select GetEffectiveConfig(w)).SelectMany(w => w).ToArray();

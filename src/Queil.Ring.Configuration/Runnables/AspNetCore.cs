@@ -5,6 +5,9 @@ namespace Queil.Ring.Configuration.Runnables;
 public class AspNetCore : CsProjRunnable
 {
     public List<string> Urls { get; } = [];
-    public override bool Equals(object? obj) => obj is AspNetCore core && Csproj == core.Csproj;
-    public override int GetHashCode() => -576574704 + Csproj.GetHashCode();
+
+    public override string TypeId => nameof(AspNetCore).ToLowerInvariant();
+
+    public override bool Equals(object? obj) => obj is AspNetCore core && UniqueId == core.UniqueId;
+    public override int GetHashCode() => -576574704 + UniqueId.GetHashCode();
 }

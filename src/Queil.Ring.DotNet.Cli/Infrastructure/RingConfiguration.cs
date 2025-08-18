@@ -26,7 +26,7 @@ public class RingConfiguration
     public required KustomizeSettings Kustomize { get; init; }
     public required KubernetesSettings Kubernetes { get; init; }
     public required WorkspaceSettings Workspace { get; init; }
-    public HooksConfiguration? Hooks { get; init; }
+    public required HooksConfiguration? Hooks { get; init; }
 }
 
 public class WorkspaceSettings

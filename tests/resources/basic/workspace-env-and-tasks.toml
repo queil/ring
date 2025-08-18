@@ -1,0 +1,20 @@
+[env.aspnetcore]
+  SUAVE_PORT="4444"
+
+[tasks.aspnetcore.build]
+    bringDown = true
+    command = "dotnet"
+    args = ["build"]
+
+[[aspnetcore]]
+id = "x1"
+sshRepoUrl = "git@github.com:queil/k8s-debug-poc.git"
+csproj = "src/k8s-debug-poc.fsproj"
+
+[[aspnetcore]]
+id = "x2"
+sshRepoUrl = "git@github.com:queil/k8s-debug-poc.git"
+csproj = "src/k8s-debug-poc.fsproj"
+
+[aspnetcore.env]
+    SUAVE_PORT = "4445"

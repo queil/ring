@@ -11,6 +11,8 @@ public class WorkspaceConfig : IWorkspaceConfig
 {
     public WorkspaceConfig? Parent { get; set; }
     public string Path { get; set; } = string.Empty;
+    public Dictionary<string, Dictionary<string, string>> Env { get; init; } = [];
+    public Dictionary<string, Dictionary<string, TaskDefinition>> Tasks { get; } = [];
     public List<Proc> Proc { get; } = [];
     public List<AspNetCore> Aspnetcore { get; } = [];
     public List<IISExpress> Iisexpress { get; } = [];

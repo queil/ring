@@ -34,7 +34,7 @@ let tests =
               let ws: WorkspaceInfo = "Expected some workspace" |> Expect.wantSome result
 
               "Workspace should contain a runnable"
-              |> Expect.containsAll (ws.Runnables |> Seq.map (fun x -> x.Id)) [ "k8s-debug-poc" ]
+              |> Expect.containsAll (ws.Runnables |> Seq.map (_.Id)) [ "k8s-debug-poc" ]
           }
 
           testTask "import - simple (TOML array)" {
@@ -56,7 +56,30 @@ let tests =
               let ws: WorkspaceInfo = "Expected workspace info" |> Expect.wantSome result
 
               "Workspace should contain 2 runnables"
-              |> Expect.containsAll (ws.Runnables |> Seq.map (fun x -> x.Id)) [ "k8s-debug-poc"; "dummy" ]
+              |> Expect.containsAll (ws.Runnables |> Seq.map (_.Id)) [ "k8s-debug-poc"; "dummy" ]
+
+
+          } 
+          testTask "merge envs and tasks simple (no imports)" {
+              use ctx =
+                  new TestContext(localOptions >> logToFile "merge.envs.simple.ring.log")
+
+              let! (ring: Ring, dir: TestDir) = ctx.Init()
+
+              ring.Headless(debugMode = true)
+              do! ring.Client.Connect()
+              do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/basic/workspace-env-and-tasks.toml")
+
+              let! result =
+                  ring.Stream
+                  |> AsyncSeq.choose Workspace.info
+                  |> AsyncSeq.tryFirst
+                  |> Async.AsTaskTimeout
+
+              let ws: WorkspaceInfo = "Expected workspace info" |> Expect.wantSome result
+
+              "Workspace should contain runnable"
+              |> Expect.containsAll (ws.Runnables |> Seq.map (_.Id)) [ "x1" ]
 
 
           } ]

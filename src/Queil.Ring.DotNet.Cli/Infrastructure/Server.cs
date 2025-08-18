@@ -6,15 +6,14 @@ using System.Threading.Tasks;
 using Configuration;
 using Dtos;
 using Logging;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Protocol;
 using Protocol.Events;
 using Stateless;
 using Workspace;
 using Scope = LightInject.Scope;
-using S = Server.State;
-using T = Server.Trigger;
+using State = Server.State;
+using Trigger = Server.Trigger;
 
 public class Server(
     Func<Scope> getScope,
@@ -28,42 +27,42 @@ public class Server(
 
     public Task InitializeAsync(CancellationToken token)
     {
-        _fsm.Configure(S.Idle)
-            .OnEntryFromAsync(T.Unload, async () =>
+        _fsm.Configure(State.Idle)
+            .OnEntryFromAsync(Trigger.Unload, async () =>
             {
                 await launcher.UnloadAsync(token);
                 RequestWorkspaceInfo();
             })
-            .Ignore(T.Unload)
-            .Ignore(T.Stop)
-            .Permit(T.Load, S.Loaded);
+            .Ignore(Trigger.Unload)
+            .Ignore(Trigger.Stop)
+            .Permit(Trigger.Load, State.Loaded);
 
-        _fsm.Configure(S.Loaded)
-            .OnEntryFromAsync(T.Load.Of<string>(), async path =>
+        _fsm.Configure(State.Loaded)
+            .OnEntryFromAsync(Trigger.Load.Of<string>(), async path =>
             {
                 await launcher.LoadAsync(new ConfiguratorPaths { WorkspacePath = path }, token);
                 RequestWorkspaceInfo();
             })
-            .OnEntryFromAsync(T.Stop, async () =>
+            .OnEntryFromAsync(Trigger.Stop, async () =>
             {
                 await launcher.StopAsync(token);
                 RequestWorkspaceInfo();
             })
-            .InternalTransition(T.Include, () => { })
-            .InternalTransition(T.Exclude, () => { })
-            .Permit(T.Unload, S.Idle)
-            .Permit(T.Start, S.Running)
-            .Ignore(T.Stop);
+            .InternalTransition(Trigger.Include, () => { })
+            .InternalTransition(Trigger.Exclude, () => { })
+            .Permit(Trigger.Unload, State.Idle)
+            .Permit(Trigger.Start, State.Running)
+            .Ignore(Trigger.Stop);
 
-        _fsm.Configure(S.Running)
-            .OnEntryFromAsync(T.Start, async () =>
+        _fsm.Configure(State.Running)
+            .OnEntryFromAsync(Trigger.Start, async () =>
             {
                 _scope = getScope();
                 await launcher.StartAsync(token);
             })
-            .InternalTransition(T.Include, () => { })
-            .InternalTransition(T.Exclude, () => { })
-            .Permit(T.Stop, S.Loaded);
+            .InternalTransition(Trigger.Include, () => { })
+            .InternalTransition(Trigger.Exclude, () => { })
+            .Permit(Trigger.Stop, State.Loaded);
 
         _fsm.OnUnhandledTrigger((s, t) =>
             logger.LogInformation("Trigger: {trigger} is not supported in state: {state}", t, s));
@@ -76,9 +75,9 @@ public class Server(
         {
             var maybeMessage = _fsm.State switch
             {
-                S.Idle => Message.ServerIdle(),
-                S.Loaded => Message.ServerLoaded(launcher.WorkspacePath.AsSpan()),
-                S.Running => Message.ServerRunning(launcher.WorkspacePath.AsSpan()),
+                State.Idle => Message.ServerIdle(),
+                State.Loaded => Message.ServerLoaded(launcher.WorkspacePath.AsSpan()),
+                State.Running => Message.ServerRunning(launcher.WorkspacePath.AsSpan()),
                 _ => Message.Empty()
             };
             return maybeMessage is not { Type: M.EMPTY }
@@ -92,14 +91,14 @@ public class Server(
 
     public async Task<Ack> LoadAsync(string path, CancellationToken token)
     {
-        await _fsm.FireAsync(T.Load.Of<string>(), path);
+        await _fsm.FireAsync(Trigger.Load.Of<string>(), path);
         return Ack.Ok;
     }
 
     public async Task<Ack> UnloadAsync(CancellationToken token)
     {
-        if (_fsm.CanFire(T.Stop)) await _fsm.FireAsync(T.Stop);
-        if (_fsm.CanFire(T.Unload)) await _fsm.FireAsync(T.Unload);
+        if (_fsm.CanFire(Trigger.Stop)) await _fsm.FireAsync(Trigger.Stop);
+        if (_fsm.CanFire(Trigger.Unload)) await _fsm.FireAsync(Trigger.Unload);
         return Ack.Ok;
     }
 
@@ -107,9 +106,9 @@ public class Server(
     {
         using var _ = logger.WithHostScope(LogEvent.DESTROY);
         logger.LogInformation("Shutdown requested");
-        await _fsm.FireAsync(T.Stop);
+        await _fsm.FireAsync(Trigger.Stop);
         await launcher.WaitUntilStoppedAsync(token);
-        await _fsm.FireAsync(T.Unload);
+        await _fsm.FireAsync(Trigger.Unload);
         _scope?.Dispose();
         await sender.EnqueueAsync(new Message(M.SERVER_SHUTDOWN), token);
         return Ack.Ok;
@@ -117,7 +116,7 @@ public class Server(
 
     public async Task<Ack> IncludeAsync(string id, CancellationToken token)
     {
-        await _fsm.FireAsync(T.Include);
+        await _fsm.FireAsync(Trigger.Include);
         return await launcher.IncludeAsync(id, token) == IncludeResult.UnknownRunnable ? Ack.NotFound : Ack.Ok;
     }
 
@@ -140,9 +139,9 @@ public class Server(
     {
         launcher.PublishStatus(_fsm.State switch
         {
-            S.Idle => ServerState.IDLE,
-            S.Loaded => ServerState.LOADED,
-            S.Running => ServerState.RUNNING,
+            State.Idle => ServerState.IDLE,
+            State.Loaded => ServerState.LOADED,
+            State.Running => ServerState.RUNNING,
             _ => throw new NotSupportedException($"State {_fsm.State} not supported")
         });
 
@@ -151,19 +150,19 @@ public class Server(
 
     public async Task<Ack> ExcludeAsync(string id, CancellationToken token)
     {
-        await _fsm.FireAsync(T.Exclude);
+        await _fsm.FireAsync(Trigger.Exclude);
         return await launcher.ExcludeAsync(id, token) == ExcludeResult.UnknownRunnable ? Ack.NotFound : Ack.Ok;
     }
 
     public async Task<Ack> StartAsync(CancellationToken token)
     {
-        await _fsm.FireAsync(T.Start);
+        await _fsm.FireAsync(Trigger.Start);
         return Ack.Ok;
     }
 
     public async Task<Ack> StopAsync(CancellationToken token)
     {
-        await _fsm.FireAsync(T.Stop);
+        await _fsm.FireAsync(Trigger.Stop);
         return Ack.Ok;
     }
 
@@ -185,10 +184,10 @@ public class Server(
         Stop
     }
 
-    internal class ServerFsm() : StateMachine<S, T>(S.Idle);
+    private class ServerFsm() : StateMachine<State, Trigger>(State.Idle);
 }
 
 internal static class StateMachineExtensions
 {
-    internal static StateMachine<S, Server.Trigger>.TriggerWithParameters<T> Of<T>(this Server.Trigger t) => new(t);
+    internal static StateMachine<State, Trigger>.TriggerWithParameters<T> Of<T>(this Trigger t) => new(t);
 }
