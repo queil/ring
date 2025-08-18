@@ -1,8 +1,10 @@
 ﻿namespace Queil.Ring.DotNet.Cli.Workspace;
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Configuration;
@@ -13,7 +15,7 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
     : IConfigurator, IDisposable
 {
     private static readonly object FswLock = new();
-    private FileSystemWatcher? _currentWatcher;
+    private List<FileSystemWatcher> _currentWatchers = [];
     public ConfigSet Current { get; private set; } = ConfigSet.Empty;
     public event EventHandler<ConfigurationChangedArgs>? OnConfigurationChanged;
 
@@ -21,28 +23,37 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
 
     public async Task LoadAsync(ConfiguratorPaths paths, CancellationToken token)
     {
-        Current = await LoadConfigurationAsync(paths);
-        _currentWatcher = Watch(paths.WorkspacePath,
-            async () =>
-            {
-                OnConfigurationChanged?.Invoke(this, new ConfigurationChangedArgs(await LoadConfigurationAsync(paths)));
-            });
+        Current = await LoadConfiguration(paths, token) ?? Current;
+        _currentWatchers =
+        [
+            ..from path in Current.AllPaths
+            select Watch(path,
+                async () =>
+                {
+                    OnConfigurationChanged?.Invoke(this,
+                        new ConfigurationChangedArgs(await LoadConfiguration(paths, token) ?? Current));
+                })
+        ];
     }
 
     public Task UnloadAsync(CancellationToken token)
     {
-        _currentWatcher?.Dispose();
+        foreach (var watcher in _currentWatchers) watcher.Dispose();
+        _currentWatchers.Clear();
         Current = ConfigSet.Empty;
         return Task.CompletedTask;
     }
 
     public void Dispose()
     {
-        _currentWatcher?.Dispose();
+        foreach (var watcher in _currentWatchers) watcher.Dispose();
+        _currentWatchers.Clear();
     }
 
-    private static FileSystemWatcher Watch(string path, Func<Task> react)
+    private FileSystemWatcher Watch(string path, Func<Task> react)
     {
+        using var _ = logger.WithHostScope(LogEvent.CONFIG);
+        logger.LogDebug("Watching file: {Path}", path);
         var directoryName = Path.GetDirectoryName(path);
 
         if (directoryName == null)
@@ -79,41 +90,44 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
         return fsw;
     }
 
-    private async Task<ConfigSet> LoadConfigurationAsync(ConfiguratorPaths paths)
+    private async Task<ConfigSet?> LoadConfiguration(ConfiguratorPaths paths, CancellationToken token)
     {
-        WorkspaceConfig? tree = null;
-        const int retries = 5;
-        var tryCount = retries;
-        while (tryCount > 0)
+        using var _ = logger.WithHostScope(LogEvent.CONFIG);
+        while (true)
+        {
             try
             {
-                tryCount--;
-                tree = configReader.GetConfigTree(paths);
-                break;
+                token.ThrowIfCancellationRequested();
+                var tree = configReader.GetConfigTree(paths);
+                var effectiveConfig = tree.ToEffectiveConfig();
+                logger.LogInformation("Workspace: {WorkspaceFile}", paths.WorkspacePath);
+                logger.LogInformation(LogEventStatus.OK);
+                Current = effectiveConfig;
+                return effectiveConfig;
             }
-            catch (FileNotFoundException)
+            catch (OperationCanceledException)
             {
-                throw;
+                return null;
+            }
+            catch (FileNotFoundException fx)
+            {
+                using var __ = logger.WithLogErrorScope();
+                logger.LogError("File not found: {FilePath} when loading workspace: {WorkspacePath}", fx.FileName, paths.WorkspacePath);
+                await Task.Delay(5000, token);
+            }
+            catch (Tomlyn.TomlException tx)
+            {
+                using var __ = logger.WithLogErrorScope();
+                logger.LogError("Invalid workspace TOML: {Message}", tx.Message);
+                await Task.Delay(5000, token);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Could not open workspace '{WorkspacePath}'. {RetriesLeft} retries left",
-                    paths.WorkspacePath, tryCount);
-                await Task.Delay(1000);
+                using var __ = logger.WithLogErrorScope();
+                logger.LogError(ex, "Workspace loading failed: '{WorkspacePath}'",
+                    paths.WorkspacePath);
+                await Task.Delay(5000, token);
             }
-
-        if (tree == null)
-            throw new FileLoadException(
-                $"Could not (re)load workspace after {retries} tries. Path: '{paths.WorkspacePath}'");
-        var effectiveConfig = tree.ToEffectiveConfig();
-
-        using (logger.WithHostScope(LogEvent.CONFIG))
-        {
-            logger.LogInformation("Workspace: {WorkspaceFile}", paths.WorkspacePath);
-            logger.LogInformation(LogEventStatus.OK);
         }
-
-        Current = effectiveConfig;
-        return effectiveConfig;
     }
 }

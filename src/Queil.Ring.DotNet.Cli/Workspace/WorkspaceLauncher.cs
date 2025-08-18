@@ -62,7 +62,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         _cts.Dispose();
     }
 
-    public string WorkspacePath => _configurator.Current.Path;
+    public string WorkspacePath => _configurator.Current.RootPath;
 
     public async Task<ExecuteTaskResult> ExecuteTaskAsync(RunnableTask task, CancellationToken token)
     {
@@ -193,6 +193,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
             });
 
             await Task.WhenAll(additionsTask.Concat(deletionsTask));
+            PublishStatusCore(CurrentInfo.ServerState, false);
         }
         catch (OperationCanceledException)
         {
@@ -209,7 +210,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         lock (_rnd)
         {
             return TimeSpan.FromMilliseconds(runnablesCount <= 7
-                ? 1000
+                ? 0
                 : _rnd.Next(0, Math.Max(runnablesCount - 1, 0) * _spreadFactor));
         }
     }
@@ -317,7 +318,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         var state = serverState == ServerState.IDLE ? WorkspaceState.NONE :
             _runnables.IsEmpty ? WorkspaceState.IDLE :
             _runnables.Values.Select(x => x.Runnable)
-                .All(r => r.State == State.ProbingHealth || r.State == State.Healthy) ? WorkspaceState.HEALTHY :
+                .All(r => r.State is State.ProbingHealth or State.Healthy) ? WorkspaceState.HEALTHY :
             WorkspaceState.DEGRADED;
 
         if (!force && state == CurrentStatus) return;

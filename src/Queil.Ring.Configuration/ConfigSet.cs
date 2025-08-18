@@ -6,9 +6,9 @@ public class ConfigSet : Dictionary<string, IRunnableConfig>
 {
     public const string AllFlavours = "__all";
 
-    public static readonly ConfigSet Empty = new(string.Empty, []);
+    public static readonly ConfigSet Empty = new(string.Empty, [],[]);
 
-    public ConfigSet(string path, Dictionary<string, IRunnableConfig> bareConfigs)
+    public ConfigSet(string rootPath, Dictionary<string, IRunnableConfig> bareConfigs, string[] allPaths)
     {
         foreach (var (key, value) in bareConfigs)
         {
@@ -16,10 +16,12 @@ public class ConfigSet : Dictionary<string, IRunnableConfig>
             Add(key, value);
         }
 
-        Path = path;
+        RootPath = rootPath;
         Flavours = [.. bareConfigs.Values.SelectMany(x => x.Tags)];
+        AllPaths = new HashSet<string>(allPaths);
     }
 
     public HashSet<string> Flavours { get; }
-    public string Path { get; }
+    public string RootPath { get; }
+    public HashSet<string> AllPaths { get; }
 }
