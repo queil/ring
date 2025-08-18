@@ -23,7 +23,7 @@ public class DotnetContext : ICsProjContext, ITrackRetries, ITrackProcessId, ITr
     public int TotalFailures { get; set; }
 
     public static T Create<T, C>(C config, Func<IFromGit, string> resolveFullClonePath)
-        where C : IUseCsProjFile where T : DotnetContext
+        where C : IUseCsProjFile, IRunnableConfig where T : DotnetContext
     {
         var originalCsProjPath = config.Csproj;
         try
