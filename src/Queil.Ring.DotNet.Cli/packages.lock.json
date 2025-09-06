@@ -11,8 +11,8 @@
       "KubernetesClient": {
         "type": "Direct",
         "requested": "[17.*, )",
-        "resolved": "17.0.4",
-        "contentHash": "cpWJdHP2HM2/p+GCeZf5vdIZrmGcRmfJeCJYg7YCbyYrWvIPFdR0daFdBj1k1DDZ9hIgqf6h4EvXF8pz49lDAA==",
+        "resolved": "17.0.14",
+        "contentHash": "FMGWjGtN8WEUKAAQxs96PK2tYvPrvwhoJzay/6HiByVTvHoJ0i9u7ykvYb7E3vLTSlfv26Q2Ktxr41zYCppu8A==",
         "dependencies": {
           "Fractions": "7.3.0",
           "YamlDotNet": "16.3.0"
@@ -93,8 +93,8 @@
       "Stateless": {
         "type": "Direct",
         "requested": "[5.*, )",
-        "resolved": "5.18.0",
-        "contentHash": "klgTnBb3OQhnCtiuHkL2o/bHg8Bolpvqpc0sl8OE2qJkDCMmlVbsrOtbMvGxjGFms+KL9Ia4FEfotAR2IjxB9g=="
+        "resolved": "5.19.0",
+        "contentHash": "DslTYbU3AOTC+t2tSOeX2TMNEVzfeg9kbRJO/idzWpj3zekDhfMef0n8npo5tFVV3ms5wVErUcXliigPmXP3Jg=="
       },
       "Tomlyn.Extensions.Configuration": {
         "type": "Direct",

@@ -23,7 +23,6 @@ public class AspNetCoreRunnable(
         var ctx = await base.InitAsync(token);
         ctx.Urls = [.. Config.Urls];
         AddDetail(WorkDir, ctx.WorkingDir);
-        AddDetail(ProcessId, ctx.ProcessId);
         if (ctx.Urls.Any()) AddDetail(Uri, ctx.Urls);
         return ctx;
     }
@@ -32,6 +31,7 @@ public class AspNetCoreRunnable(
     {
         var info = await Dotnet.RunAsync(ctx, token, ctx.Urls);
         ctx.ProcessId = info.Pid;
+        AddDetail(ProcessId, ctx.ProcessId);
         ctx.Output = info.Output;
     }
 }

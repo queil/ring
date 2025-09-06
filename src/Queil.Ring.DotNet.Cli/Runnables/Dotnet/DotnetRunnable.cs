@@ -9,6 +9,7 @@ using CsProj;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 using Tools;
+using static Dtos.DetailsKeys;
 
 public abstract class DotnetRunnableBase<TContext, TConfig>(
     TConfig config,
@@ -44,6 +45,7 @@ public abstract class DotnetRunnableBase<TContext, TConfig>(
     {
         var info = await Dotnet.RunAsync(ctx, token);
         ctx.ProcessId = info.Pid;
+        AddDetail(ProcessId, ctx.ProcessId);
         ctx.Output = info.Output;
     }
 }
