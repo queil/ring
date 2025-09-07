@@ -26,13 +26,13 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
         Current = await LoadConfiguration(paths, token) ?? Current;
         _currentWatchers =
         [
-            ..from path in Current.AllPaths
-            select Watch(path,
-                async () =>
-                {
-                    OnConfigurationChanged?.Invoke(this,
-                        new ConfigurationChangedArgs(await LoadConfiguration(paths, token) ?? Current));
-                })
+            .. from path in Current.AllPaths
+               select Watch(path,
+                   async () =>
+                   {
+                       OnConfigurationChanged?.Invoke(this,
+                           new ConfigurationChangedArgs(await LoadConfiguration(paths, token) ?? Current));
+                   })
         ];
     }
 

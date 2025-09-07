@@ -6,7 +6,7 @@ public class ConfigSet : Dictionary<string, IRunnableConfig>
 {
     public const string AllFlavours = "__all";
 
-    public static readonly ConfigSet Empty = new(string.Empty, [],[]);
+    public static readonly ConfigSet Empty = new(string.Empty, [], []);
 
     public ConfigSet(string rootPath, Dictionary<string, IRunnableConfig> bareConfigs, string[] allPaths)
     {

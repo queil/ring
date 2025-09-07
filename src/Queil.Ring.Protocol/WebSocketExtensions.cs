@@ -38,7 +38,8 @@ public static class WebSocketExtensions
                 {
                     Array.Clear(buffer);
                     result = await webSocket.ReceiveAsync(buffer, CancellationToken.None).WaitAsync(token);
-                    if (result.MessageType == WebSocketMessageType.Close) {
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
                         if (role == WebSocketRole.Server)
                         {
                             await webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);

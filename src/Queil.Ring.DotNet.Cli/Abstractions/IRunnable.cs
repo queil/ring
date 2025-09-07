@@ -13,6 +13,7 @@ public interface IRunnable
     Task ConfigureAsync(CancellationToken token);
     Task RunAsync(CancellationToken token);
     Task TerminateAsync();
+    Task WaitUntilStarted();
     event EventHandler OnHealthCheckCompleted;
     event EventHandler OnInitExecuted;
 }

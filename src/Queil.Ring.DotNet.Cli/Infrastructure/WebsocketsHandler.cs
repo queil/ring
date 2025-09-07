@@ -43,7 +43,6 @@ public class WebsocketsHandler(
                 {
                     if (!await queue.DequeueAsync(BroadcastAsync)) break;
                 }
-          
             }, CancellationToken.None);
 
             appLifetime.ApplicationStopping.Register(async () =>

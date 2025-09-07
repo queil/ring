@@ -41,9 +41,11 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
     public TConfig Config { get; }
     public abstract string UniqueId { get; }
     public State State => _fsm.State;
+    public Task WaitUntilStarted() => _runnableStarted.Task;
     public event EventHandler? OnHealthCheckCompleted;
     public event EventHandler? OnInitExecuted;
     public IReadOnlyDictionary<string, object> Details => _details;
+    private readonly TaskCompletionSource _runnableStarted = new();
 
     public async Task ConfigureAsync(CancellationToken token)
     {
@@ -66,7 +68,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         await _fsm.FireAsync(Trigger.Destroy);
         await _destroyTask;
     }
-    
+
     protected void AddDetail(string key, object value) => _details.TryAdd(key, value);
 
     protected abstract Task<TContext> InitAsync(CancellationToken token);
@@ -200,7 +202,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         }
         catch (OperationCanceledException)
         {
-             _logger.LogTrace("Initialization cancelled");
+            _logger.LogTrace("Initialization cancelled");
         }
         catch (Exception ex)
         {
@@ -223,6 +225,7 @@ public abstract class Runnable<TContext, TConfig> : IRunnable
         _logger.LogContextDebug(ctx!);
         _logger.LogInformation(LogEventStatus.OK);
         await Sender.EnqueueAsync(Message.RunnableStarted(UniqueId), token);
+        _runnableStarted.SetResult();
     }
 
     private async Task<HealthStatus> CheckHealthCoreAsync(TContext ctx, CancellationToken token)

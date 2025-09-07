@@ -24,7 +24,6 @@ public interface IRunnableConfig : IWorkspaceConfig
     List<string> Tags { get; }
     Dictionary<string, TaskDefinition> Tasks { get; }
     Dictionary<string, string> Env { get; }
-    
 }
 
 public interface IUseCsProjFile : IUseWorkingDir

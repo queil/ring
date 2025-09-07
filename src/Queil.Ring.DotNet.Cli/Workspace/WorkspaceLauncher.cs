@@ -77,7 +77,8 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
         if (bringDown && _configurator.TryGet(task.RunnableId, out var cfg))
         {
-            await AddAsync(task.RunnableId, cfg, TimeSpan.Zero, start: result == ExecuteTaskResult.Ok, token: _cts.Token);
+            await AddAsync(task.RunnableId, cfg, TimeSpan.Zero, start: result == ExecuteTaskResult.Ok,
+                waitUntilStarted: result == ExecuteTaskResult.Ok, token: _cts.Token);
         }
         return result;
     }
@@ -253,7 +254,8 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
             serverState, state);
     }
 
-    private async Task AddAsync(string id, IRunnableConfig cfg, TimeSpan delay, bool start = true, CancellationToken token = default)
+    private async Task AddAsync(string id, IRunnableConfig cfg, TimeSpan delay, bool start = true,
+        bool waitUntilStarted = false, CancellationToken token = default)
     {
         if (_runnables.ContainsKey(id)) return;
         var container = await RunnableContainer.CreateAsync(cfg, _createRunnable, delay, token);
@@ -267,10 +269,14 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         {
             await container.ConfigureAsync();
             if (start) container.Start();
+            if (waitUntilStarted)
+            {
+                await container.Runnable.WaitUntilStarted();
+            }
         }
         catch (ObjectDisposedException ex)
         {
-             _logger.LogTrace("Startup interrupted: {Message}", ex.Message);
+            _logger.LogTrace("Startup interrupted: {Message}", ex.Message);
         }
         catch (OperationCanceledException)
         {
@@ -298,6 +304,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
             _logger.LogDebug(ex, "Runnable disposal failed");
             return false;
         }
+
         return true;
     }
 
