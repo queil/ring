@@ -6,6 +6,8 @@
     <GenerateProgramFile>false</GenerateProgramFile>
 	<LangVersion>preview</LangVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    <DisableImplicitLibraryPacksFolder>true</DisableImplicitLibraryPacksFolder>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,9 +27,9 @@
     <PackageReference Include="Expecto" Version="10.*" />
     <PackageReference Include="Fake.Core.Environment" Version="6.*" />
     <PackageReference Include="Fake.Core.Process" Version="6.*" />
-    <PackageReference Include="FsHttp" Version="14.*" />
+    <PackageReference Include="Arquidev.Fetch" Version="1.4.0" />
     <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.*" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.*" />
     <PackageReference Update="FSharp.Core" Version="10.0.100" />
   </ItemGroup>
 

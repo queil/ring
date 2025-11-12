@@ -2,7 +2,7 @@ module Ring.Tests.Integration.AspNetCore
 
 open Expecto
 open FSharp.Control
-open FsHttp
+open Arquidev.Fetch
 open Queil.Ring.Protocol
 open Ring.Client
 open Ring.Client.Patterns
@@ -31,11 +31,9 @@ let tests =
 
               "Aspnetcore runnable expected healthy" |> Expect.isTrue healthy
 
-              let response =
-                  http { GET "http://localhost:7123" }
-                  |> Request.send
-                  |> Response.assertOk
-                  |> Response.toText
+              let! response =
+                  fetchTask<string> { GET "http://localhost:7123" }
+
 
               "Response on port 7123 should be OK" |> Expect.equal response "OK"
           }
