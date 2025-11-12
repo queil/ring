@@ -199,7 +199,7 @@ type WsClient(options: ClientOptions) =
         lazy
             (task {
                 let mutable s = new ClientWebSocket()
-                use connectionTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(20))
+                use connectionTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(20.0))
 
                 while s.State <> WebSocketState.Open
                       && not <| connectionTimeout.IsCancellationRequested do
@@ -209,7 +209,7 @@ type WsClient(options: ClientOptions) =
                         printfn $"Test client failed to connect to Ring: {ex.Message}. Reconnecting..."
                         s.Dispose()
                         s <- new ClientWebSocket()
-                        do! Task.Delay(TimeSpan.FromSeconds(1))
+                        do! Task.Delay(TimeSpan.FromSeconds(1.0))
 
                 listenTask <-
                     s.ListenAsync(
