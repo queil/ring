@@ -56,7 +56,7 @@ steps:
   displayName: 'Test'
   inputs:
     command: 'run'
-    arguments: '-- --sequenced'
+    arguments: '-- --sequenced --no-spinner'
     workingDirectory: tests/Ring.Tests.Integration
   condition: succeeded()
 
