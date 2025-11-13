@@ -1,6 +1,7 @@
 ﻿namespace Ring.Tests.Integration.DotNet
 
 open Fake.Core
+open System.IO
 
 module Types =
 
@@ -47,7 +48,7 @@ module Dotnet =
         }
 
     let newToolManifest (workingDir: string) =
-        task { return! (proc "dotnet" workingDir [ "new"; "tool-manifest"; "--output"; workingDir] []) }
+        task { return! (proc "dotnet" workingDir [ "new"; "tool-manifest" ] []) }
 
     let installTool (tool: Options) =
         task {
@@ -76,7 +77,7 @@ module Dotnet =
                       | None -> "--global"
                       | Some manifest ->
                           "--tool-manifest"
-                          manifest.ManifestFilePath ]
+                          Path.Combine(tool.WorkingDir, manifest.ManifestFilePath) ]
                     []
         }
 
@@ -94,6 +95,6 @@ module Dotnet =
                       | None -> "--global"
                       | Some manifest ->
                           "--tool-manifest"
-                          manifest.ManifestFilePath ]
+                          Path.Combine(tool.WorkingDir, manifest.ManifestFilePath) ]
                     []
         }
