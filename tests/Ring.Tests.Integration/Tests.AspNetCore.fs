@@ -31,8 +31,7 @@ let tests =
 
               "Aspnetcore runnable expected healthy" |> Expect.isTrue healthy
 
-              let! response =
-                  fetchTask<string> { GET "http://localhost:7123" }
+              let! response = fetchTask<string> { GET "http://localhost:7123" }
 
 
               "Response on port 7123 should be OK" |> Expect.equal response "OK"

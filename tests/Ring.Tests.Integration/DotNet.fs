@@ -1,6 +1,7 @@
 ﻿namespace Ring.Tests.Integration.DotNet
 
 open Fake.Core
+open System.IO
 
 module Types =
 
@@ -76,7 +77,7 @@ module Dotnet =
                       | None -> "--global"
                       | Some manifest ->
                           "--tool-manifest"
-                          manifest.ManifestFilePath ]
+                          Path.Combine(tool.WorkingDir, manifest.ManifestFilePath) ]
                     []
         }
 
@@ -94,6 +95,6 @@ module Dotnet =
                       | None -> "--global"
                       | Some manifest ->
                           "--tool-manifest"
-                          manifest.ManifestFilePath ]
+                          Path.Combine(tool.WorkingDir, manifest.ManifestFilePath) ]
                     []
         }
