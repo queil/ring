@@ -58,6 +58,8 @@ module Dotnet =
             | Some manifest ->
                 let! _ = proc "ls" tool.WorkingDir ["-la"; manifest.InstallPath] []
                 let! _ = (manifest.InstallPath |> newToolManifest)
+                let! _ = proc "ls" tool.WorkingDir ["-la"; manifest.InstallPath] []
+                let! _ = proc "ls" tool.WorkingDir ["-la"; ".config"] []
                 let! _ = proc "ls" tool.WorkingDir ["-la"; Path.Combine(tool.WorkingDir, manifest.ManifestFilePath)] []
                 ()
             
