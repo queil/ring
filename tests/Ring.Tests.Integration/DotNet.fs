@@ -57,8 +57,9 @@ module Dotnet =
             | None -> ()
             | Some manifest ->
                 let! _ = (manifest.InstallPath |> newToolManifest)
+                let! _ = proc "ls" tool.WorkingDir ["-la"; Path.Combine(tool.WorkingDir, manifest.ManifestFilePath)] []
                 ()
-
+            
             return!
                 proc
                     "dotnet"
