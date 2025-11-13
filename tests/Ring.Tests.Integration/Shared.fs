@@ -23,7 +23,7 @@ let localOptions (dir: TestDir) =
       LocalTool =
         Some
             { InstallPath = dir.WorkPath
-              ManifestFilePath = ".config/dotnet-tools.json" }
+              ManifestFilePath = "dotnet-tools.json" }
       WorkingDir = dir.WorkPath
       Env = []
       TestArtifactsDir = "artifacts" }

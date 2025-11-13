@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Ring.Tests.Integration/Ring.Tests.Integration.fsproj" />
+  </Folder>
+  <Project Path="src/Queil.Ring.Client.FSharp/Queil.Ring.Client.FSharp.fsproj" />
+  <Project Path="src/Queil.Ring.Configuration/Queil.Ring.Configuration.csproj" />
+  <Project Path="src/Queil.Ring.DotNet.Cli/Queil.Ring.DotNet.Cli.csproj" />
+  <Project Path="src/Queil.Ring.Protocol/Queil.Ring.Protocol.csproj" />
+</Solution>

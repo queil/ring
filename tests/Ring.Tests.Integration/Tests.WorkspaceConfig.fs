@@ -59,10 +59,9 @@ let tests =
               |> Expect.containsAll (ws.Runnables |> Seq.map (_.Id)) [ "k8s-debug-poc"; "dummy" ]
 
 
-          } 
+          }
           testTask "merge envs and tasks simple (no imports)" {
-              use ctx =
-                  new TestContext(localOptions >> logToFile "merge.envs.simple.ring.log")
+              use ctx = new TestContext(localOptions >> logToFile "merge.envs.simple.ring.log")
 
               let! (ring: Ring, dir: TestDir) = ctx.Init()
 

@@ -1,4 +1,4 @@
-image = "ghcr.io/queil/image:dotnet-8"
+image = "ghcr.io/queil/image:dotnet-10"
 shell = ["bash"]
 caches = [
   "~/.nuget"

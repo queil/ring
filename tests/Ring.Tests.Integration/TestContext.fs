@@ -12,14 +12,20 @@ module TestContext =
         let origDir =
             let cwd = Directory.GetCurrentDirectory()
             // ugly hack for https://github.com/microsoft/vstest/issues/2004
+            // running via dotnet run (expecto runner) the cwd is `${ROOT_PATH}/tests/Ring.Tests.Integration`
+            // running via dotnet test (vstest runner) the cwd is `${ROOT_PATH}/tests/Ring.Tests.Integration`
             if
                 Path.Combine(cwd, "../resources/NuGet.config")
                 |> Path.GetFullPath
                 |> File.Exists
             then
+                printfn $"Running via expecto runner. Cwd is: %s{cwd}"
                 cwd
+                
             else
-                $"{cwd}/../../../" |> Path.GetFullPath
+                let path = $"{cwd}/../../" |> Path.GetFullPath
+                printfn $"Running via vstest. Cwd is: %s{cwd}. Adjusting to: %s{path}"
+                path
 
         let dir =
             let d =
