@@ -20,6 +20,7 @@ using Queil.Ring.Configuration;
 using Queil.Ring.DotNet.Cli.Abstractions;
 using Queil.Ring.DotNet.Cli.Infrastructure;
 using Queil.Ring.DotNet.Cli.Infrastructure.Cli;
+using Queil.Ring.DotNet.Cli.Infrastructure.Http;
 using Queil.Ring.DotNet.Cli.Logging;
 using Queil.Ring.DotNet.Cli.Tools;
 using Queil.Ring.DotNet.Cli.Tools.Windows;
@@ -165,6 +166,7 @@ try
 
     app.UseWebSockets();
     app.UseMiddleware<RingMiddleware>();
+    app.MapRingApi();
 
     app.Lifetime.ApplicationStarted.Register(async () =>
         await app.Services.GetRequiredService<ConsoleClient>().StartAsync(app.Lifetime.ApplicationStopping)

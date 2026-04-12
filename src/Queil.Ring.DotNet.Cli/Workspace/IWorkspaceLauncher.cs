@@ -10,6 +10,7 @@ using Protocol.Events;
 public interface IWorkspaceLauncher
 {
     string WorkspacePath { get; }
+    Protocol.Events.WorkspaceInfo CurrentInfo { get; }
     Task LoadAsync(ConfiguratorPaths paths, CancellationToken token);
     Task StartAsync(CancellationToken token);
     Task StopAsync(CancellationToken token);

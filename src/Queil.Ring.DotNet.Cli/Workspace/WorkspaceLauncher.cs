@@ -53,7 +53,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         OnInitiated += WorkspaceLauncher_OnInitiated;
     }
 
-    private WorkspaceInfo CurrentInfo { get; set; } = WorkspaceInfo.Empty;
+    public WorkspaceInfo CurrentInfo { get; private set; } = WorkspaceInfo.Empty;
     private WorkspaceState CurrentStatus { get; set; }
     private string CurrentFlavour { get; set; } = ConfigSet.AllFlavours;
 
