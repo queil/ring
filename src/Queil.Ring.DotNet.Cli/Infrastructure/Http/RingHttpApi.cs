@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
 using Protocol;
 using Protocol.Events;
 using Workspace;
@@ -22,31 +23,31 @@ public static class RingHttpApi
     {
         var api = app.MapGroup("/ring");
 
-        api.MapGet("/status", (IWorkspaceLauncher launcher) =>
+        api.MapGet("/status", ([FromServices] IWorkspaceLauncher launcher) =>
             Results.Json(launcher.CurrentInfo, JsonOptions));
 
-        api.MapPost("/workspace/load", async (LoadRequest req, IServer server, CancellationToken ct) =>
+        api.MapPost("/workspace/load", async (LoadRequest req, [FromServices] IServer server, CancellationToken ct) =>
             AckResult(await server.LoadAsync(req.Path, ct)));
 
-        api.MapPost("/workspace/start", async (IServer server, CancellationToken ct) =>
+        api.MapPost("/workspace/start", async ([FromServices] IServer server, CancellationToken ct) =>
             AckResult(await server.StartAsync(ct)));
 
-        api.MapPost("/workspace/stop", async (IServer server, CancellationToken ct) =>
+        api.MapPost("/workspace/stop", async ([FromServices] IServer server, CancellationToken ct) =>
             AckResult(await server.StopAsync(ct)));
 
-        api.MapPost("/workspace/unload", async (IServer server, CancellationToken ct) =>
+        api.MapPost("/workspace/unload", async ([FromServices] IServer server, CancellationToken ct) =>
             AckResult(await server.UnloadAsync(ct)));
 
-        api.MapPost("/workspace/flavour/{flavour}", async (string flavour, IServer server, CancellationToken ct) =>
+        api.MapPost("/workspace/flavour/{flavour}", async (string flavour, [FromServices] IServer server, CancellationToken ct) =>
             AckResult(await server.ApplyFlavourAsync(flavour, ct)));
 
-        api.MapPost("/runnable/{id}/start", async (string id, IServer server, CancellationToken ct) =>
+        api.MapPost("/runnable/{id}/start", async (string id, [FromServices] IServer server, CancellationToken ct) =>
             AckResult(await server.IncludeAsync(id, ct)));
 
-        api.MapPost("/runnable/{id}/stop", async (string id, IServer server, CancellationToken ct) =>
+        api.MapPost("/runnable/{id}/stop", async (string id, [FromServices] IServer server, CancellationToken ct) =>
             AckResult(await server.ExcludeAsync(id, ct)));
 
-        api.MapPost("/runnable/{id}/restart", async (string id, IServer server, CancellationToken ct) =>
+        api.MapPost("/runnable/{id}/restart", async (string id, [FromServices] IServer server, CancellationToken ct) =>
         {
             var stopAck = await server.ExcludeAsync(id, ct);
             if (stopAck == Ack.NotFound) return AckResult(stopAck);
@@ -55,7 +56,7 @@ public static class RingHttpApi
         });
 
         api.MapPost("/runnable/{id}/task/{taskId}",
-            async (string id, string taskId, IServer server, CancellationToken ct) =>
+            async (string id, string taskId, [FromServices] IServer server, CancellationToken ct) =>
                 AckResult(await server.ExecuteTaskAsync(
                     new RunnableTask { RunnableId = id, TaskId = taskId }, ct)));
 
