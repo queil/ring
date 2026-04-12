@@ -4,11 +4,11 @@
     "net10.0": {
       "Arquidev.Fetch": {
         "type": "Direct",
-        "requested": "[1.4.0, )",
-        "resolved": "1.4.0",
-        "contentHash": "UC+emfNs8vQP6sEikh+Lg6FvoXK+ROM9uQnRdL6BN19Mhxw6txxFNr1GAGmboXkf0icjItKF5WoXp51GHGOu+g==",
+        "requested": "[2.0.1, )",
+        "resolved": "2.0.1",
+        "contentHash": "AsyKhU0FveJ3eCFyMiT1QGYtt6AFuFoAGa6qGna4pc+sYRoOFwtcBdnxpBrh+P/uCQvoaOlf0xjCfuie+0rgpA==",
         "dependencies": {
-          "FSharp.Core": "10.0.100",
+          "FSharp.Core": "10.1.201",
           "FSharp.SystemTextJson": "1.4.36"
         }
       },
@@ -47,9 +47,9 @@
       },
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[10.0.104, )",
-        "resolved": "10.0.104",
-        "contentHash": "2VQpRzjhuN6EHODVGiYZ/svc68up2/c3TdQ7eQtkY2MAN6EKMOF2SaraPCiMDu4+JMIbq9KkPxaWk5sXbfPs9Q=="
+        "requested": "[10.1.201, )",
+        "resolved": "10.1.201",
+        "contentHash": "s5w9LWYurZ9yZdIppoIaYLkRadyT5s3u0wbQCb0J4bQd3ubIlIWQ3Nd5+ll1y3pv5OnTS373dP8T1S/BP46QXg=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
@@ -230,7 +230,7 @@
         "type": "Project",
         "dependencies": {
           "FSharp.Control.AsyncSeq": "[3.2.1, )",
-          "FSharp.Core": "[10.0.104, )",
+          "FSharp.Core": "[10.1.201, )",
           "Queil.Ring.Protocol": "[1.0.0, )"
         }
       },
