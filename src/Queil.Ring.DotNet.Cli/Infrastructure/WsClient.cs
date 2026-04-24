@@ -15,6 +15,7 @@ public delegate Task<Ack> Dispatch(Message m, CancellationToken t);
 public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSocket ws) : IAsyncDisposable
 {
     private readonly Channel<Task<Ack>> _channel = Channel.CreateUnbounded<Task<Ack>>();
+    private readonly Channel<byte[]> _sendChannel = Channel.CreateUnbounded<byte[]>();
     private readonly CancellationTokenSource _localCts = new();
     private Task _backgroundAwaiter = Task.CompletedTask;
     public Guid Id { get; } = id;
@@ -40,10 +41,14 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
     {
         try
         {
-            if (!logger.IsEnabled(LogLevel.Debug)) return Ws.SendMessageAsync(m);
+            if (!IsOpen) return Task.CompletedTask;
+            if (!logger.IsEnabled(LogLevel.Debug))
+            {
+                _sendChannel.Writer.TryWrite(m.Bytes.SliceUntilNull().ToArray());
+                return Task.CompletedTask;
+            }
             var type = m.Type;
             string? payloadForLogging = null;
-
             try
             {
                 payloadForLogging = Regex.Unescape(m.PayloadString);
@@ -52,21 +57,12 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
             {
                 payloadForLogging = m.PayloadString;
             }
-
-            var task = Ws.SendMessageAsync(m);
             using (logger.WithSentScope(false, type))
             {
-                logger.LogDebug("{Payload:l} {Id} ({TaskId})", payloadForLogging, Id, task.Id);
+                logger.LogDebug("{Payload:l} {Id}", payloadForLogging, Id);
             }
-
-            task.ContinueWith(_ =>
-            {
-                using (logger.WithSentScope(true, type))
-                {
-                    logger.LogDebug("{Payload:l} {Id} ({TaskId})", payloadForLogging, Id, task.Id);
-                }
-            }, TaskContinuationOptions.OnlyOnRanToCompletion);
-            return task;
+            _sendChannel.Writer.TryWrite(m.Bytes.SliceUntilNull().ToArray());
+            return Task.CompletedTask;
         }
         catch (WebSocketException wse)
         {
@@ -86,27 +82,14 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
                         if (!_channel.Reader.TryRead(out var task)) continue;
 
                         var ack = await task;
-                        if (!logger.IsEnabled(LogLevel.Debug))
+                        if (logger.IsEnabled(LogLevel.Debug))
                         {
-                            await Ws.SendAckAsync(ack, token);
-                        }
-                        else
-                        {
-                            var sendTask = Ws.SendAckAsync(ack, token);
                             using (logger.WithSentScope(false, M.ACK))
                             {
                                 logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id, task.Id);
                             }
-
-                            await sendTask.ContinueWith(_ =>
-                            {
-                                using (logger.WithSentScope(true, M.ACK))
-                                {
-                                    logger.LogDebug("{Payload} {Id} ({TaskId})", ack, Id,
-                                        task.Id);
-                                }
-                            }, TaskContinuationOptions.OnlyOnRanToCompletion);
                         }
+                        _sendChannel.Writer.TryWrite(new Message(M.ACK, (byte)ack).Bytes.ToArray());
                     }
                     else
                     {
@@ -118,12 +101,32 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
         }
     }
 
+    private async Task SendLoop(CancellationToken token)
+    {
+        try
+        {
+            while (await _sendChannel.Reader.WaitToReadAsync(token))
+                while (_sendChannel.Reader.TryRead(out var bytes))
+                    if (Ws.State == WebSocketState.Open)
+                        await Ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Binary, true, token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (WebSocketException wx)
+        {
+            logger.LogDebug(wx, "Error in send loop");
+        }
+    }
+
     public async Task ListenAsync(Dispatch dispatch, CancellationToken t)
     {
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(t, _localCts.Token);
-            _backgroundAwaiter = Task.Run(() => AckLongRunning(cts.Token), cts.Token);
+            _backgroundAwaiter = Task.WhenAll(
+                Task.Run(() => AckLongRunning(cts.Token), cts.Token),
+                Task.Run(() => SendLoop(cts.Token), cts.Token));
             await Ws.ListenAsync(YieldOrQueueLongRunning, WebSocketRole.Server, cts.Token);
             using (logger.WithClientScope())
             {
