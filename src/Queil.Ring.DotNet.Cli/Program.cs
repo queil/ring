@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +21,7 @@ using Queil.Ring.DotNet.Cli.Abstractions;
 using Queil.Ring.DotNet.Cli.Infrastructure;
 using Queil.Ring.DotNet.Cli.Infrastructure.Cli;
 using Queil.Ring.DotNet.Cli.Logging;
+using Queil.Ring.DotNet.Cli.Mcp;
 using Queil.Ring.DotNet.Cli.Tools;
 using Queil.Ring.DotNet.Cli.Tools.Windows;
 using Queil.Ring.DotNet.Cli.Workspace;
@@ -38,13 +39,24 @@ var originalWorkingDir = Directory.GetCurrentDirectory();
 try
 {
     ThreadPool.SetMinThreads(100, 100);
-    Log.Logger = new LoggerConfiguration().WriteTo.Console()
-        .MinimumLevel.Information()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Error).CreateLogger();
 
     var options = CliParser.GetOptions(args, originalWorkingDir);
 
-    if (!options.NoLogo)
+    var isMcp = options is McpOptions;
+
+    Log.Logger = isMcp
+        ? new LoggerConfiguration()
+            .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose)
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+            .CreateLogger()
+        : new LoggerConfiguration()
+            .WriteTo.Console()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+            .CreateLogger();
+
+    if (!options.NoLogo && !isMcp)
     {
         var version = Assembly.GetExecutingAssembly().GetName().Version!;
         Console.WriteLine(Ring(version.ToString()));
@@ -93,9 +105,6 @@ try
         return new Kubernetes(KubernetesClientConfiguration.BuildConfigFromConfigFile(configPath));
     });
 
-    services.AddHostedService<WebsocketsInitializer>();
-    services.AddSingleton<ConsoleClient>();
-
     services.AddTransient<ProcessRunner>();
     services.AddTransient<KustomizeTool>();
     services.AddTransient<KubectlBundle>();
@@ -103,6 +112,19 @@ try
     services.AddTransient<GitClone>();
     services.AddTransient<DotnetCliBundle>();
     services.AddTransient<DockerCompose>();
+
+    if (isMcp)
+    {
+        services.AddHostedService<McpQueueDrainer>();
+        services.AddMcpServer()
+            .WithStdioServerTransport()
+            .WithTools<RingMcpTools>();
+    }
+    else
+    {
+        services.AddHostedService<WebsocketsInitializer>();
+        services.AddSingleton<ConsoleClient>();
+    }
 
     builder.Host.UseSerilog();
 
@@ -151,11 +173,24 @@ try
     var app = builder.Build();
     app.Urls.Add($"http://0.0.0.0:{app.Configuration.GetValue<int>("ring:port")}");
 
-    var loggingConfig = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration);
+    if (isMcp)
+    {
+        var mcpLogConfig = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose,
+                outputTemplate: "{UniqueId} | {LogEvent} | {Message}{NewLine}{Exception}");
+        if (options.IsDebug) mcpLogConfig.MinimumLevel.Debug();
+        Log.Logger = mcpLogConfig.CreateLogger();
+    }
+    else
+    {
+        var loggingConfig = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration);
+        if (options.IsDebug) loggingConfig.MinimumLevel.Debug();
+        Log.Logger = loggingConfig.CreateLogger();
+    }
 
-    if (options.IsDebug) loggingConfig.MinimumLevel.Debug();
-
-    Log.Logger = loggingConfig.CreateLogger();
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
     using (logger.WithHostScope(LogEvent.INIT))
@@ -163,12 +198,27 @@ try
         if (options is ServeOptions { Port: var port }) logger.LogInformation("Listening on port {Port}", port);
     }
 
-    app.UseWebSockets();
-    app.UseMiddleware<RingMiddleware>();
+    if (!isMcp)
+    {
+        app.UseWebSockets();
+        app.UseMiddleware<RingMiddleware>();
+    }
 
-    app.Lifetime.ApplicationStarted.Register(async () =>
-        await app.Services.GetRequiredService<ConsoleClient>().StartAsync(app.Lifetime.ApplicationStopping)
-    );
+    if (!isMcp)
+    {
+        app.Lifetime.ApplicationStarted.Register(async () =>
+            await app.Services.GetRequiredService<ConsoleClient>().StartAsync(app.Lifetime.ApplicationStopping)
+        );
+    }
+    else if (options is McpOptions { WorkspacePath: { } workspacePath })
+    {
+        app.Lifetime.ApplicationStarted.Register(async () =>
+        {
+            var server = app.Services.GetRequiredService<IServer>();
+            await server.LoadAsync(workspacePath, app.Lifetime.ApplicationStopping);
+            await server.StartAsync(app.Lifetime.ApplicationStopping);
+        });
+    }
 
     await app.RunRingAsync();
 }

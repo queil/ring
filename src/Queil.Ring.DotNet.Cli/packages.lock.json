@@ -11,8 +11,8 @@
       "KubernetesClient": {
         "type": "Direct",
         "requested": "[18.*, )",
-        "resolved": "18.0.5",
-        "contentHash": "xkttIbnGNibYwAyZ0sqeQle2w90bfaJrkF8BaURWHfSMKPbHwys9t/wq1XmT64eA4WRVXLENYlXtqmWlEstG6A==",
+        "resolved": "18.0.13",
+        "contentHash": "X5IuxmydftB148XeULtc7rD5/RvqLuW5SzkIjFovPgJpvV4RAoRqNPruVB7GEFu1Xg+zHVIk88WqdV8JjbgHbA==",
         "dependencies": {
           "Fractions": "7.3.0",
           "YamlDotNet": "16.3.0"
@@ -25,6 +25,15 @@
         "contentHash": "JtpBcbZH7OGc42Dg00x5V8EiMNOFRRT4zvjkxJNsfMJ/va3luTauBmBpyMmNpwWcMvIaye2zJrMDP8rQTnZm/A==",
         "dependencies": {
           "LightInject.Microsoft.DependencyInjection": "3.3.6"
+        }
+      },
+      "ModelContextProtocol": {
+        "type": "Direct",
+        "requested": "[0.*, )",
+        "resolved": "1.0.0",
+        "contentHash": "W7UX8AQ1qMjXyCDcpP25u/L1W2vIIgfhLX/B2ZtTU1VUyILXdmVbdRjkQesKVPT/wPMpYXIHUcZJTPdsGfKSfQ==",
+        "dependencies": {
+          "ModelContextProtocol.Core": "1.0.0"
         }
       },
       "Serilog.AspNetCore": {
@@ -45,8 +54,8 @@
       "Stateless": {
         "type": "Direct",
         "requested": "[5.*, )",
-        "resolved": "5.20.0",
-        "contentHash": "f3/9Bbr+NcepybGXy/CDY5rJRdpdjoixDQRK811VZXGtkoCCzMT4lCraRuur+cS17TZ7GdUNoY2qgA6uJV45eg=="
+        "resolved": "5.20.1",
+        "contentHash": "jQeuXgIeXEjFAImajavoxvJNcevO+zyK+9ICGzy0LRe/e1tP4vJUnO4Yrg6rP601wYRnulQs59mQH73TbIZzNg=="
       },
       "Tomlyn.Extensions.Configuration": {
         "type": "Direct",
@@ -75,10 +84,23 @@
           "LightInject": "6.4.0"
         }
       },
+      "Microsoft.Extensions.AI.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.3.0",
+        "contentHash": "hDjDvUERvUH3HBMs2MDusOcGJBjAHOG5pJIU2x/HZEa4e1UthNKt89cwMi3B+ogJo6skki1XFjfgGN3ksnVqvQ=="
+      },
       "Microsoft.Extensions.DependencyModel": {
         "type": "Transitive",
         "resolved": "9.0.0",
         "contentHash": "saxr2XzwgDU77LaQfYFXmddEDRUKHF4DaGMZkNB3qjdVSZlax3//dGJagJkKrGMIPNZs2jVFXITyCCR6UHJNdA=="
+      },
+      "ModelContextProtocol.Core": {
+        "type": "Transitive",
+        "resolved": "1.0.0",
+        "contentHash": "QKboiQEq2MJMGeQ029Gy6xqge88abm0Px9lnG7hueOyf+EDCxi5SUATV+Df7GwT+NwWzkEsYG271bUQD+LGhEg==",
+        "dependencies": {
+          "Microsoft.Extensions.AI.Abstractions": "10.3.0"
+        }
       },
       "Serilog": {
         "type": "Transitive",
@@ -145,8 +167,8 @@
       },
       "Tomlyn": {
         "type": "Transitive",
-        "resolved": "0.19.0",
-        "contentHash": "GlI2o8R8jbZIaE+YX6uA/VoAOH7zIxYeqxDm7jHW2hqUhuB+q19oKold35FkMuv8IZDoCqsTMolaBv2eBLBmrQ=="
+        "resolved": "0.20.0",
+        "contentHash": "Z8TmFcz6oeULVSVGDvbF1h+gnCoy/6NbWrlsQg9f2i+lzqXtUoU4+2RJIm8/s/14uSu0OqTv6JcSngTw3tlkTQ=="
       },
       "YamlDotNet": {
         "type": "Transitive",

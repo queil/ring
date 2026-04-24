@@ -14,9 +14,9 @@
       },
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[10.0.100, )",
-        "resolved": "10.0.100",
-        "contentHash": "c/r6T/HE9MWL0O0OispLtaKhVwDsiYQlLS249LoxSo1HNH/wfc0f5DE4pI6WpTXkCEdeXa66K5f9FmKLr/0cmw=="
+        "requested": "[10.0.104, )",
+        "resolved": "10.0.104",
+        "contentHash": "2VQpRzjhuN6EHODVGiYZ/svc68up2/c3TdQ7eQtkY2MAN6EKMOF2SaraPCiMDu4+JMIbq9KkPxaWk5sXbfPs9Q=="
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",

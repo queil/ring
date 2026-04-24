@@ -43,6 +43,7 @@ public static class CliParser
             .ParseArguments<
                 ConsoleOptions,
                 HeadlessOptions,
+                McpOptions,
                 CloneOptions,
                 ConfigPath,
                 ConfigDump,
@@ -53,6 +54,12 @@ public static class CliParser
                 options = opts;
             })
             .WithParsed<HeadlessOptions>(opts => options = opts)
+            .WithParsed<McpOptions>(opts =>
+            {
+                if (opts.WorkspacePath != null)
+                    opts.WorkspacePath = Path.GetFullPath(opts.WorkspacePath, originalWorkingDir);
+                options = opts;
+            })
             .WithParsed<CloneOptions>(opts =>
             {
                 opts.WorkspacePath = WorkspacePathOrDefault(opts.WorkspacePath);

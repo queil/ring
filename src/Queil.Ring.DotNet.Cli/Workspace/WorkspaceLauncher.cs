@@ -152,10 +152,9 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
         return IncludeResult.Ok;
     }
 
-    public void PublishStatus(ServerState serverState)
-    {
-        PublishStatusCore(serverState, true);
-    }
+    public void PublishStatus(ServerState serverState) => PublishStatusCore(serverState, true);
+
+    public WorkspaceInfo GetCurrentInfo() => CurrentInfo;
 
     public async Task WaitUntilStoppedAsync(CancellationToken token)
     {

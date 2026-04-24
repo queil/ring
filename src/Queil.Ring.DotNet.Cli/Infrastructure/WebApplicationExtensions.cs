@@ -26,6 +26,7 @@ public static class WebApplicationExtensions
                 }
             case HeadlessOptions:
             case ConsoleOptions:
+            case McpOptions:
                 await app.RunAsync();
                 break;
             default:

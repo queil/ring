@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Include="Async.fs" />
     <Compile Include="DotNet.fs" />
+    <Compile Include="McpClient.fs" />
     <Compile Include="RingControl.fs" />
     <Compile Include="TestContext.fs" />
     <Compile Include="Shared.fs" />
@@ -20,6 +21,7 @@
     <Compile Include="Tests.AspNetCore.fs" />
     <Compile Include="Tests.Proc.fs" />
     <Compile Include="Tests.WorkspaceConfig.fs" />
+    <Compile Include="Tests.Mcp.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 

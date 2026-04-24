@@ -4,6 +4,7 @@ open FSharp.Control
 open Ring.Tests.Integration.DotNet
 open Ring.Tests.Integration.DotNet.Types
 open Ring.Tests.Integration.Async
+open Ring.Tests.Integration.McpClient
 open System.Threading
 open Ring.Client
 open System
@@ -77,6 +78,18 @@ module RingControl =
                     Some(exec ("run" :: args) options.Env)
 
         member _.Client = client
+
+        member _.McpProcess(?workspacePath: string) =
+            let baseArgs = [ "mcp"; "--no-logo" ]
+            let allArgs =
+                workspacePath
+                |> Option.map (fun p -> baseArgs @ [ "-w"; p ])
+                |> Option.defaultValue baseArgs
+            let command, finalArgs =
+                match options.LocalTool with
+                | None -> "ring", allArgs
+                | Some _ -> "dotnet", "ring" :: allArgs
+            new McpProcess(command, finalArgs, options.WorkingDir, options.Env)
 
         interface IAsyncDisposable with
             member _.DisposeAsync() : ValueTask =
