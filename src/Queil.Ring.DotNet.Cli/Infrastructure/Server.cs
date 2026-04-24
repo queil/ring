@@ -117,7 +117,9 @@ public class Server(
     public async Task<Ack> IncludeAsync(string id, CancellationToken token)
     {
         await _fsm.FireAsync(Trigger.Include);
-        return await launcher.IncludeAsync(id, token) == IncludeResult.UnknownRunnable ? Ack.NotFound : Ack.Ok;
+        var result = await launcher.IncludeAsync(id, token);
+        RequestWorkspaceInfo();
+        return result == IncludeResult.UnknownRunnable ? Ack.NotFound : Ack.Ok;
     }
 
     public async Task<Ack> ApplyFlavourAsync(string flavour, CancellationToken token) =>
@@ -151,7 +153,9 @@ public class Server(
     public async Task<Ack> ExcludeAsync(string id, CancellationToken token)
     {
         await _fsm.FireAsync(Trigger.Exclude);
-        return await launcher.ExcludeAsync(id, token) == ExcludeResult.UnknownRunnable ? Ack.NotFound : Ack.Ok;
+        var result = await launcher.ExcludeAsync(id, token);
+        RequestWorkspaceInfo();
+        return result == ExcludeResult.UnknownRunnable ? Ack.NotFound : Ack.Ok;
     }
 
     public async Task<Ack> StartAsync(CancellationToken token)
