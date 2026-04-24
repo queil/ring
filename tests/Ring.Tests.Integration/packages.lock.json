@@ -4,11 +4,11 @@
     "net10.0": {
       "Arquidev.Fetch": {
         "type": "Direct",
-        "requested": "[1.4.0, )",
-        "resolved": "1.4.0",
-        "contentHash": "UC+emfNs8vQP6sEikh+Lg6FvoXK+ROM9uQnRdL6BN19Mhxw6txxFNr1GAGmboXkf0icjItKF5WoXp51GHGOu+g==",
+        "requested": "[2.*, )",
+        "resolved": "2.0.1",
+        "contentHash": "AsyKhU0FveJ3eCFyMiT1QGYtt6AFuFoAGa6qGna4pc+sYRoOFwtcBdnxpBrh+P/uCQvoaOlf0xjCfuie+0rgpA==",
         "dependencies": {
-          "FSharp.Core": "10.0.100",
+          "FSharp.Core": "10.1.201",
           "FSharp.SystemTextJson": "1.4.36"
         }
       },
@@ -47,9 +47,9 @@
       },
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[10.0.100, )",
-        "resolved": "10.0.100",
-        "contentHash": "c/r6T/HE9MWL0O0OispLtaKhVwDsiYQlLS249LoxSo1HNH/wfc0f5DE4pI6WpTXkCEdeXa66K5f9FmKLr/0cmw=="
+        "requested": "[10.0.203, )",
+        "resolved": "10.1.201",
+        "contentHash": "s5w9LWYurZ9yZdIppoIaYLkRadyT5s3u0wbQCb0J4bQd3ubIlIWQ3Nd5+ll1y3pv5OnTS373dP8T1S/BP46QXg=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
@@ -120,11 +120,11 @@
       },
       "FSharp.Control.AsyncSeq": {
         "type": "Transitive",
-        "resolved": "3.2.1",
-        "contentHash": "bkCq5ZOVeyvyS7sjv95tsyMNLQJ+F0Sj8E3wJQLwvCqd18XQVCV7BxclgUg72m2Z12rL2bLd09Vg69Ifcb365Q==",
+        "resolved": "4.15.0",
+        "contentHash": "d2EOQWfwK01x+Rf6ExsHOmXQmIkynHR7r5pjH03NhAOrm7Yduhb4oEu08i4dhxrNPgXbOw0pwe4hJOkcVxGyhA==",
         "dependencies": {
           "FSharp.Core": "4.7.2",
-          "Microsoft.Bcl.AsyncInterfaces": "5.0.0"
+          "Microsoft.Bcl.AsyncInterfaces": "10.0.6"
         }
       },
       "FSharp.SystemTextJson": {
@@ -142,8 +142,8 @@
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "W8DPQjkMScOMTtJbPwmPyj9c3zYSFGawDW3jwlBOOsnY+EzZFLgNQ/UMkK35JmkNOVPdCyPr2Tw7Vv9N+KA3ZQ=="
+        "resolved": "10.0.6",
+        "contentHash": "Os4eB/5WwgiBoFpOmQjEpo8sbFzbWrONvfqK52E7pl4YQoIWFlyeWdOxxxPMHNYFCDD3biT5NzDzNZCo/6kDLw=="
       },
       "Microsoft.CodeCoverage": {
         "type": "Transitive",
@@ -229,8 +229,8 @@
       "queil.ring.client.fsharp": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Control.AsyncSeq": "[3.2.1, )",
-          "FSharp.Core": "[10.0.104, )",
+          "FSharp.Control.AsyncSeq": "[4.15.0, )",
+          "FSharp.Core": "[10.0.203, )",
           "Queil.Ring.Protocol": "[1.0.0, )"
         }
       },

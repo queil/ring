@@ -17,7 +17,7 @@ type McpProcess(command: string, args: string list, workingDir: string, env: (st
         psi.RedirectStandardOutput <- true
         psi.RedirectStandardError <- true
         env |> List.iter (fun (k, v) -> psi.EnvironmentVariables.[k] <- v)
-        let p = Process()
+        let p = new Process()
         p.StartInfo <- psi
         p
 
