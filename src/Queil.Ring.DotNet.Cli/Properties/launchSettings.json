@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Queil.Ring.DotNet.Cli": {
-      "commandName": "Project",
-      "commandLineArgs": "headless"
+      "commandName": "Project"
     }
   }
 }

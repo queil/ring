@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Queil.Ring.Configuration;
@@ -41,19 +40,23 @@ var originalWorkingDir = Directory.GetCurrentDirectory();
 try
 {
     var options = CliParser.GetOptions(args, originalWorkingDir);
+    var isMcp = options is ServeOptions { Mcp: true };
 
-    if (options is McpOptions mcpOptions)
-    {
-        await RunMcpServerAsync(mcpOptions);
-        return;
-    }
+    if (isMcp) Console.SetOut(TextWriter.Null);
 
     ThreadPool.SetMinThreads(100, 100);
-    Log.Logger = new LoggerConfiguration().WriteTo.Console()
-        .MinimumLevel.Information()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Error).CreateLogger();
+    Log.Logger = isMcp
+        ? new LoggerConfiguration()
+            .WriteTo.File(Path.Combine(Path.GetTempPath(), "ring-mcp.log"))
+            .MinimumLevel.Warning()
+            .CreateLogger()
+        : new LoggerConfiguration()
+            .WriteTo.Console()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+            .CreateLogger();
 
-    if (!options.NoLogo)
+    if (!options.NoLogo && !isMcp)
     {
         var version = Assembly.GetExecutingAssembly().GetName().Version!;
         Console.WriteLine(Ring(version.ToString()));
@@ -76,7 +79,7 @@ try
     var services = builder.Services;
 
     services.AddSingleton(options);
-    if (options is ServeOptions) services.AddSingleton(f => (ServeOptions)f.GetRequiredService<BaseOptions>());
+    if (options is ServeOptions so) services.AddSingleton(so);
     services.AddSingleton<Func<Uri, HttpClient>>(_ =>
         uri => clients.GetOrAdd(uri, new HttpClient { BaseAddress = uri, MaxResponseContentBufferSize = 1 }));
     services.AddOptions();
@@ -97,13 +100,25 @@ try
     {
         var configuredPath = f.GetRequiredService<IOptions<RingConfiguration>>().Value.Kubernetes.ConfigPath;
         var maybeKubeconfigEnv = Environment.GetEnvironmentVariable("KUBECONFIG");
-        var configPath = maybeKubeconfigEnv ??
-                         configuredPath ?? throw new InvalidOperationException("Kubernetes config path is not set");
+        var configPath = maybeKubeconfigEnv ?? configuredPath;
+        if (!isMcp && configPath == null) throw new InvalidOperationException("Kubernetes config path is not set");
+        if (configPath == null) return (Kubernetes)null!;
         return new Kubernetes(KubernetesClientConfiguration.BuildConfigFromConfigFile(configPath));
     });
 
     services.AddHostedService<WebsocketsInitializer>();
-    services.AddSingleton<ConsoleClient>();
+
+    if (isMcp)
+    {
+        services.AddHostedService<McpInitializer>();
+        services.AddMcpServer()
+            .WithStdioServerTransport()
+            .WithTools<RingMcpTools>();
+    }
+    else
+    {
+        services.AddSingleton<ConsoleClient>();
+    }
 
     services.AddTransient<ProcessRunner>();
     services.AddTransient<KustomizeTool>();
@@ -175,9 +190,12 @@ try
     app.UseWebSockets();
     app.UseMiddleware<RingMiddleware>();
 
-    app.Lifetime.ApplicationStarted.Register(async () =>
-        await app.Services.GetRequiredService<ConsoleClient>().StartAsync(app.Lifetime.ApplicationStopping)
-    );
+    if (!isMcp)
+    {
+        app.Lifetime.ApplicationStarted.Register(async () =>
+            await app.Services.GetRequiredService<ConsoleClient>().StartAsync(app.Lifetime.ApplicationStopping)
+        );
+    }
 
     await app.RunRingAsync();
 }
@@ -185,6 +203,9 @@ catch (FileNotFoundException x) when (x.FileName == CliParser.DefaultFileName)
 {
     Console.WriteLine($"ERROR: {x.Message}");
     Environment.ExitCode = 1;
+}
+catch (OperationCanceledException)
+{
 }
 catch (Exception ex)
 {
@@ -194,111 +215,4 @@ catch (Exception ex)
 finally
 {
     Directory.SetCurrentDirectory(originalWorkingDir);
-}
-
-async Task RunMcpServerAsync(McpOptions opts)
-{
-    Log.Logger = new LoggerConfiguration()
-        .WriteTo.File(Path.Combine(Path.GetTempPath(), "ring-mcp.log"))
-        .MinimumLevel.Warning()
-        .CreateLogger();
-
-    var containerOptions = new ContainerOptions { EnablePropertyInjection = false, EnableVariance = false };
-    IServiceContainer mcpContainer = new ServiceContainer(containerOptions)
-    {
-        ScopeManagerProvider = new PerLogicalCallContextScopeManagerProvider()
-    };
-    var clients = new ConcurrentDictionary<Uri, HttpClient>();
-
-    var hostBuilder = Host.CreateDefaultBuilder(args);
-
-    hostBuilder.UseServiceProviderFactory(new LightInjectServiceProviderFactory());
-
-    hostBuilder.ConfigureAppConfiguration((ctx, config) =>
-    {
-        config.Sources.Clear();
-        config.AddTomlFile(InstallationDir.SettingsPath, false);
-        config.AddTomlFile(InstallationDir.LoggingPath, false);
-        config.AddTomlFile(UserSettingsDir.SettingsPath, true);
-        config.AddTomlFile(Directories.Working(originalWorkingDir).SettingsPath, true);
-        config.AddEnvironmentVariables("RING_");
-    });
-
-    hostBuilder.ConfigureServices((ctx, services) =>
-    {
-        services.AddSingleton<BaseOptions>(opts);
-        services.AddSingleton(opts);
-        services.AddSingleton<Func<Uri, HttpClient>>(_ =>
-            uri => clients.GetOrAdd(uri, new HttpClient { BaseAddress = uri, MaxResponseContentBufferSize = 1 }));
-        services.AddOptions();
-        services.Configure<RingConfiguration>(ctx.Configuration);
-        services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
-        services.AddSingleton<IServer, Server>();
-        services.AddSingleton<IConfigurationTreeReader, ConfigurationTreeReader>();
-        services.AddSingleton<IConfigurationLoader, ConfigurationLoader>();
-        services.AddSingleton<IConfigurator, Configurator>();
-        services.AddSingleton<IWorkspaceLauncher, WorkspaceLauncher>();
-        services.AddSingleton<IWorkspaceInitHook, WorkspaceInitHook>();
-        services.AddSingleton<Queue>();
-        services.AddSingleton<ISender>(f => f.GetRequiredService<Queue>());
-        services.AddSingleton<IReceiver>(f => f.GetRequiredService<Queue>());
-        services.AddSingleton(f =>
-        {
-            var configuredPath = f.GetRequiredService<IOptions<RingConfiguration>>().Value.Kubernetes.ConfigPath;
-            var maybeKubeconfigEnv = Environment.GetEnvironmentVariable("KUBECONFIG");
-            var configPath = maybeKubeconfigEnv ?? configuredPath;
-            if (configPath == null) return (Kubernetes)null!;
-            return new Kubernetes(KubernetesClientConfiguration.BuildConfigFromConfigFile(configPath));
-        });
-        services.AddTransient<ProcessRunner>();
-        services.AddTransient<KustomizeTool>();
-        services.AddTransient<KubectlBundle>();
-        services.AddTransient<IISExpressExe>();
-        services.AddTransient<GitClone>();
-        services.AddTransient<DotnetCliBundle>();
-        services.AddTransient<DockerCompose>();
-
-        services.AddHostedService<McpInitializer>();
-        services.AddMcpServer()
-            .WithStdioServerTransport()
-            .WithTools<RingMcpTools>();
-    });
-
-    hostBuilder.ConfigureContainer<IServiceContainer>((ctx, container) =>
-    {
-        var runnableTypes = Assembly.GetEntryAssembly()!.GetExportedTypes()
-            .Where(t => typeof(IRunnable).IsAssignableFrom(t)).ToList();
-
-        var configMap = (from r in runnableTypes
-                         let cfg = r.GetProperty(nameof(Runnable<object, IRunnableConfig>.Config))
-                         where cfg != null
-                         select (RunnableType: r, ConfigType: cfg.PropertyType))
-            .ToDictionary(x => x.ConfigType, x => x.RunnableType);
-
-        foreach (var (_, rt) in configMap) container.Register(rt, rt, new PerRequestLifeTime());
-
-        container.Register<IRunnableConfig, IRunnable>((factory, cfg) =>
-        {
-            var ct = configMap[cfg.GetType()];
-            var ctor = ct.GetConstructors().Single();
-            var factoryArgs = ctor.GetParameters().Select(x =>
-                    typeof(IRunnableConfig).IsAssignableFrom(x.ParameterType)
-                        ? cfg
-                        : factory.GetInstance(x.ParameterType))
-                .ToArray();
-            return (IRunnable)ctor.Invoke(factoryArgs);
-        });
-        container.Register<Func<Scope>>(x => x.BeginScope);
-    });
-
-    hostBuilder.UseSerilog();
-
-    var host = hostBuilder.Build();
-
-    var loggingConfig = new LoggerConfiguration()
-        .ReadFrom.Configuration(host.Services.GetRequiredService<IConfiguration>());
-    if (opts.IsDebug) loggingConfig.MinimumLevel.Debug();
-    Log.Logger = loggingConfig.CreateLogger();
-
-    await host.RunAsync();
 }

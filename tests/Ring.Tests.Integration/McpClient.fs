@@ -2,8 +2,6 @@ namespace Ring.Tests.Integration
 
 open System
 open System.Diagnostics
-open System.IO
-open System.Text
 open System.Text.Json
 open System.Threading.Tasks
 open Ring.Tests.Integration.DotNet.Types
@@ -20,26 +18,20 @@ module McpClient =
             msgId
 
         let sendMessage (msg: string) =
-            let bytes = Encoding.UTF8.GetBytes(msg)
-            let header = $"Content-Length: {bytes.Length}\r\n\r\n"
-            proc.StandardInput.Write(header)
-            proc.StandardInput.Write(msg)
+            proc.StandardInput.WriteLine(msg)
             proc.StandardInput.Flush()
 
         let readMessage () =
             task {
-                let mutable contentLength = 0
+                let mutable result = ""
                 let mutable line = proc.StandardOutput.ReadLine()
-                while line <> null && line <> "" do
-                    if line.StartsWith("Content-Length:") then
-                        contentLength <- int (line.Substring("Content-Length:".Length).Trim())
-                    line <- proc.StandardOutput.ReadLine()
-                if contentLength > 0 then
-                    let buf = Array.zeroCreate<char> contentLength
-                    let! _ = proc.StandardOutput.ReadAsync(buf, 0, contentLength) |> Async.AwaitTask
-                    return String(buf)
-                else
-                    return ""
+                while line <> null && result = "" do
+                    let trimmed = line.Trim()
+                    if trimmed.StartsWith("{") then
+                        result <- trimmed
+                    else
+                        line <- proc.StandardOutput.ReadLine()
+                return result
             }
 
         let callRpc (method: string) (paramsObj: obj) =
@@ -60,8 +52,8 @@ module McpClient =
         member _.Start() =
             let name, cmdArgs =
                 match options.LocalTool with
-                | None -> "ring", [ "mcp"; "--no-logo" ]
-                | Some _ -> "dotnet", [ "ring"; "mcp"; "--no-logo" ]
+                | None -> "ring", [ "run"; "--mcp"; "--no-logo" ]
+                | Some _ -> "dotnet", [ "ring"; "run"; "--mcp"; "--no-logo" ]
 
             let allArgs =
                 cmdArgs
