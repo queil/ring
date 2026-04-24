@@ -7,19 +7,15 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Protocol;
 
-public sealed class Queue() : ISender, IReceiver, IDisposable
+public sealed class Queue() : ISender, IReceiver
 {
     private readonly Channel<byte[]> _channel = Channel.CreateUnbounded<byte[]>();
     private readonly CancellationTokenSource _channelCompleted = new();
-    private int _completed;
 
     public void Complete()
     {
-        if (Interlocked.Exchange(ref _completed, 1) == 0)
-        {
-            _channel.Writer.Complete();
-            _channelCompleted.Cancel();
-        }
+        _channel.Writer.Complete();
+        _channelCompleted.Cancel();
     }
 
     public CancellationToken Completed => _channelCompleted.Token;
@@ -67,9 +63,4 @@ public sealed class Queue() : ISender, IReceiver, IDisposable
         return bytes;
     }
 
-    public void Dispose()
-    {
-        Complete();
-        _channelCompleted.Dispose();
-    }
 }

@@ -68,6 +68,16 @@ public class RingMcpTools(IServer server, IWorkspaceLauncher launcher)
         return ack == Ack.NotFound ? $"not found: {flavour}" : "applied";
     }
 
+    [McpServerTool(Name = "list_tasks", Title = "List available tasks")]
+    public string ListTasks()
+    {
+        var sb = new StringBuilder();
+        foreach (var r in launcher.GetCurrentInfo().Runnables)
+            foreach (var task in r.Tasks)
+                sb.AppendLine($"{r.Id}/{task}");
+        return sb.Length > 0 ? sb.ToString() : "no tasks available";
+    }
+
     [McpServerTool(Name = "execute_task", Title = "Execute task")]
     public async Task<string> ExecuteTask(string runnableId, string taskId, CancellationToken ct)
     {
