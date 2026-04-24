@@ -117,6 +117,10 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
         {
             logger.LogDebug(wx, "Error in send loop");
         }
+        catch (InvalidOperationException iox)
+        {
+            logger.LogDebug(iox, "Concurrent write attempt in send loop");
+        }
     }
 
     public async Task ListenAsync(Dispatch dispatch, CancellationToken t)
