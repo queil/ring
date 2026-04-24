@@ -10,14 +10,17 @@ using Protocol;
 public sealed class Queue() : ISender, IReceiver, IDisposable
 {
     private readonly Channel<byte[]> _channel = Channel.CreateUnbounded<byte[]>();
+    private readonly CancellationTokenSource _channelCompleted = new();
+    private int _completed;
 
     public void Complete()
     {
-        _channel.Writer.Complete();
-        _channelCompleted.Cancel();
+        if (Interlocked.Exchange(ref _completed, 1) == 0)
+        {
+            _channel.Writer.Complete();
+            _channelCompleted.Cancel();
+        }
     }
-
-    private readonly CancellationTokenSource _channelCompleted = new();
 
     public CancellationToken Completed => _channelCompleted.Token;
 
@@ -64,5 +67,9 @@ public sealed class Queue() : ISender, IReceiver, IDisposable
         return bytes;
     }
 
-    public void Dispose() => _channelCompleted.Dispose();
+    public void Dispose()
+    {
+        Complete();
+        _channelCompleted.Dispose();
+    }
 }

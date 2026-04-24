@@ -100,9 +100,8 @@ try
     {
         var configuredPath = f.GetRequiredService<IOptions<RingConfiguration>>().Value.Kubernetes.ConfigPath;
         var maybeKubeconfigEnv = Environment.GetEnvironmentVariable("KUBECONFIG");
-        var configPath = maybeKubeconfigEnv ?? configuredPath;
-        if (!isMcp && configPath == null) throw new InvalidOperationException("Kubernetes config path is not set");
-        if (configPath == null) return (Kubernetes)null!;
+        var configPath = maybeKubeconfigEnv ?? configuredPath
+            ?? throw new InvalidOperationException("Kubernetes config path is not set");
         return new Kubernetes(KubernetesClientConfiguration.BuildConfigFromConfigFile(configPath));
     });
 
