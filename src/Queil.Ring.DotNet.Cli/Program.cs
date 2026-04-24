@@ -190,6 +190,17 @@ try
     app.UseWebSockets();
     app.UseMiddleware<RingMiddleware>();
 
+    if (isMcp && options is ConsoleOptions { WorkspacePath: { } workspacePath })
+    {
+        app.Lifetime.ApplicationStarted.Register(async () =>
+        {
+            var server = app.Services.GetRequiredService<IServer>();
+            var ct = app.Lifetime.ApplicationStopping;
+            await server.LoadAsync(workspacePath, ct);
+            await server.StartAsync(ct);
+        });
+    }
+
     if (!isMcp)
     {
         app.Lifetime.ApplicationStarted.Register(async () =>
@@ -211,8 +222,4 @@ catch (Exception ex)
 {
     Log.Logger.Fatal($"Unhandled exception: {ex}");
     Environment.ExitCode = -1;
-}
-finally
-{
-    Directory.SetCurrentDirectory(originalWorkingDir);
 }

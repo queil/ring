@@ -50,10 +50,11 @@ module McpClient =
             }
 
         member _.Start() =
+            let verb = if workspacePath.IsSome then "run" else "headless"
             let name, cmdArgs =
                 match options.LocalTool with
-                | None -> "ring", [ "run"; "--mcp"; "--no-logo" ]
-                | Some _ -> "dotnet", [ "ring"; "run"; "--mcp"; "--no-logo" ]
+                | None -> "ring", [ verb; "--mcp"; "--port"; "0"; "--no-logo" ]
+                | Some _ -> "dotnet", [ "ring"; verb; "--mcp"; "--port"; "0"; "--no-logo" ]
 
             let allArgs =
                 cmdArgs
