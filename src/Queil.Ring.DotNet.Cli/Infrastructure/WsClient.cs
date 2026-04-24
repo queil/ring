@@ -164,7 +164,12 @@ public sealed class WsClient(ILogger<WebsocketsHandler> logger, Guid id, WebSock
                     }
 
                 var backgroundTask = dispatch(message, token);
-                if (backgroundTask.IsCompleted) return backgroundTask;
+                if (backgroundTask.IsCompleted)
+                {
+                    var ack = backgroundTask.IsCompletedSuccessfully ? backgroundTask.Result : Ack.ServerError;
+                    _sendChannel.Writer.TryWrite(new Message(M.ACK, (byte)ack).Bytes.ToArray());
+                    return null;
+                }
                 _channel.Writer.TryWrite(backgroundTask);
             }
             catch (OperationCanceledException)
