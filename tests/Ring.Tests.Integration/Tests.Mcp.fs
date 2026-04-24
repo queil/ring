@@ -14,6 +14,7 @@ let private expectedTools =
       "exclude_runnable"
       "get_workspace_info"
       "include_runnable"
+      "list_tasks"
       "load_workspace"
       "start_workspace"
       "stop_workspace"
@@ -113,6 +114,20 @@ let tests =
                       (fun () -> mcp.CallTool "get_workspace_info")
 
               "proc-1 should reach ZERO state after exclusion" |> Expect.isTrue ok
+          }
+
+          testTask "list_tasks returns tasks from loaded workspace" {
+              use ctx = new TestContext(localOptions)
+              let! (ring: Ring, dir: TestDir) = ctx.Init()
+              let workspace = dir.InSourceDir "../resources/basic/proc-with-tasks.toml"
+              let mcp = ring.McpProcess()
+              use _mcp = mcp
+              mcp.Start()
+              do! mcp.Initialize()
+              let! _ = mcp.CallTool("load_workspace", [ "workspacePath", workspace ])
+              let! (result: string) = mcp.CallTool("list_tasks")
+              "Should list proc-1/greet task" |> Expect.isTrue (result.Contains("proc-1/greet"))
+              "Should list proc-2/greet task" |> Expect.isTrue (result.Contains("proc-2/greet"))
           }
 
           testTask "auto-loads and starts workspace when --workspace flag is provided" {
