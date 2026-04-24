@@ -181,13 +181,12 @@ type WsClient(options: ClientOptions) =
 
     let events =
         buffer.Reader.ReadAllAsync()
-        |> AsyncSeq.ofAsyncEnum
         |> AsyncSeq.map (fun m ->
             cache.Writer.TryWrite(m) |> ignore
             m)
 
     let allEvents =
-        cache.Reader.ReadAllAsync() |> AsyncSeq.ofAsyncEnum |> AsyncSeq.cache
+        cache.Reader.ReadAllAsync() |> AsyncSeq.cache
 
     let cancellationToken =
         options.CancellationToken |> Option.defaultValue CancellationToken.None
