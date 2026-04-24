@@ -2,7 +2,7 @@ module Ring.Tests.Integration.AspNetCore
 
 open Expecto
 open FSharp.Control
-open Arquidev.Fetch
+open Arquidev.Tools
 open Queil.Ring.Protocol
 open Ring.Client
 open Ring.Client.Patterns
