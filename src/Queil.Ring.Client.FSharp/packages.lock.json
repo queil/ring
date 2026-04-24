@@ -4,24 +4,24 @@
     "net10.0": {
       "FSharp.Control.AsyncSeq": {
         "type": "Direct",
-        "requested": "[3.2.1, )",
-        "resolved": "3.2.1",
-        "contentHash": "bkCq5ZOVeyvyS7sjv95tsyMNLQJ+F0Sj8E3wJQLwvCqd18XQVCV7BxclgUg72m2Z12rL2bLd09Vg69Ifcb365Q==",
+        "requested": "[4.*, )",
+        "resolved": "4.15.0",
+        "contentHash": "d2EOQWfwK01x+Rf6ExsHOmXQmIkynHR7r5pjH03NhAOrm7Yduhb4oEu08i4dhxrNPgXbOw0pwe4hJOkcVxGyhA==",
         "dependencies": {
           "FSharp.Core": "4.7.2",
-          "Microsoft.Bcl.AsyncInterfaces": "5.0.0"
+          "Microsoft.Bcl.AsyncInterfaces": "10.0.6"
         }
       },
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[10.0.100, )",
-        "resolved": "10.0.100",
-        "contentHash": "c/r6T/HE9MWL0O0OispLtaKhVwDsiYQlLS249LoxSo1HNH/wfc0f5DE4pI6WpTXkCEdeXa66K5f9FmKLr/0cmw=="
+        "requested": "[10.1.203, )",
+        "resolved": "10.1.203",
+        "contentHash": "I2MFk72yHqfgI594gKFigq8PVIso0Mh1ZUgG9R4n8gyYQ4IwpBxmvecfjnKA7iMLdVHYULB70PsLwYW/K76gew=="
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "W8DPQjkMScOMTtJbPwmPyj9c3zYSFGawDW3jwlBOOsnY+EzZFLgNQ/UMkK35JmkNOVPdCyPr2Tw7Vv9N+KA3ZQ=="
+        "resolved": "10.0.6",
+        "contentHash": "Os4eB/5WwgiBoFpOmQjEpo8sbFzbWrONvfqK52E7pl4YQoIWFlyeWdOxxxPMHNYFCDD3biT5NzDzNZCo/6kDLw=="
       },
       "queil.ring.protocol": {
         "type": "Project"
