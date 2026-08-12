@@ -1,0 +1,10 @@
+[env.aspnetcore]
+  SUAVE_PORT = "4444"
+
+[tasks.netexe.build]
+  command = "dotnet"
+  args = ["build"]
+
+[[proc]]
+command = "sleep"
+args = ["30"]

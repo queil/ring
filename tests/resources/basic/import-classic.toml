@@ -1,2 +1,2 @@
 [[import]]
-path = "netcore.toml"
+path = "dotnet.toml"

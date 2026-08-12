@@ -38,16 +38,9 @@ turning services off/on for build/debugging if they're a part of the currently l
 * [kustomize](https://queil.github.io/ring/runnables/kustomize/) - Kubernetes apps managed
   by [Kustomize](https://kustomize.io/)
 * `dockercompose` - docker-compose files
-* [aspnetcore](https://queil.github.io/ring/runnables/aspnetcore/) - .NET Core apps running in console (like ASP.NET
+* [dotnet](https://queil.github.io/ring/runnables/dotnet/) - .NET apps running in console (like ASP.NET
   Core in Kestrel)
 * `proc` - arbitrary native processes
-
-Windows-only:
-
-* `iisxcore` - ASP.NET Core apps in IIS Express
-* [iisexpress](https://queil.github.io/ring/runnables/iisexpress/) - WCF and other .NET Framework services hosted in IIS
-  Express
-* `netexe` - full .NET Framework console apps (like TopShelf)
 
 # Installation
 

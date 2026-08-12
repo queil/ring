@@ -22,7 +22,6 @@ using Queil.Ring.DotNet.Cli.Infrastructure;
 using Queil.Ring.DotNet.Cli.Infrastructure.Cli;
 using Queil.Ring.DotNet.Cli.Logging;
 using Queil.Ring.DotNet.Cli.Tools;
-using Queil.Ring.DotNet.Cli.Tools.Windows;
 using Queil.Ring.DotNet.Cli.Workspace;
 using Serilog;
 using Serilog.Events;
@@ -99,7 +98,6 @@ try
     services.AddTransient<ProcessRunner>();
     services.AddTransient<KustomizeTool>();
     services.AddTransient<KubectlBundle>();
-    services.AddTransient<IISExpressExe>();
     services.AddTransient<GitClone>();
     services.AddTransient<DotnetCliBundle>();
     services.AddTransient<DockerCompose>();

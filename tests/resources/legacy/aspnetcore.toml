@@ -1,0 +1,2 @@
+[[aspnetcore]]
+csproj = "apps/webapp/webapp.csproj"

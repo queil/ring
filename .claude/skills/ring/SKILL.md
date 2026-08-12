@@ -1,6 +1,6 @@
 ---
 name: ring
-description: Use when authoring or debugging ring workspaces (ring.toml / workspace TOML files), running the ring CLI (run, headless, clone, config-*), or configuring ring itself (settings.toml, RING_* env vars). Covers runnable types (proc, aspnetcore, dockercompose, kustomize, iisexpress, iisxcore, netexe), imports, tags/flavours, per-runnable env and tasks.
+description: Use when authoring or debugging ring workspaces (ring.toml / workspace TOML files), running the ring CLI (run, headless, clone, config-*), or configuring ring itself (settings.toml, RING_* env vars). Covers runnable types (proc, dotnet, dockercompose, kustomize), imports, tags/flavours, per-runnable env and tasks, and migrating pre-v7 workspaces.
 ---
 
 # ring
@@ -48,11 +48,9 @@ Every runnable: `id`, `friendlyName`, `tags` (string[]), `[<type>.env]`, `[<type
 | type | keys | notes |
 |---|---|---|
 | `proc` | `command` (req), `args`, `workingDir` | `id ?? command` is the identity |
-| `aspnetcore` | `csproj` (req), `urls`, `sshRepoUrl`, `configuration` (default `Debug`), `workingDir` | `urls` joined by `;` into `ASPNETCORE_URLS`; `args` is parsed but ignored |
+| `dotnet` | `csproj` (req), `urls`, `args`, `sshRepoUrl`, `configuration` (default `Debug`), `workingDir` | `urls` joined by `;` into `ASPNETCORE_URLS` |
 | `dockercompose` | `path` (req), `sshRepoUrl`, `workingDir` | `docker compose rm` + `pull` on init |
 | `kustomize` | `path` (req), `sshRepoUrl`, `workingDir` | any go-getter path; `git@`/`ssh://` = remote |
-| `iisxcore`, `iisexpress` | as `aspnetcore` minus `urls`/`args` | Windows only |
-| `netexe` | as `aspnetcore` minus `urls`, plus `args` (honoured here) | Windows only |
 
 Identity (used for dedup across imports): `id` if set, else `path` (kustomize/dockercompose), `command` (proc),
 or csproj file name without extension. Two runnables with the same identity run once — set distinct `id`s to run
@@ -81,16 +79,16 @@ Applied to every runnable of that type in this file **and all files it imports**
 `env`/`tasks` key wins, and a nested workspace's keys win over the parent's.
 
 ```toml
-[env.aspnetcore]
+[env.dotnet]
 SUAVE_PORT = "4444"
 
-[tasks.aspnetcore.build]
+[tasks.dotnet.build]
 bringDown = true
 command = "dotnet"
 args = ["build"]
 ```
 
-`env` only reaches `proc` and the csproj-based runnables — `kustomize`/`dockercompose` ignore it.
+`env` only reaches `proc` and `dotnet` — `kustomize`/`dockercompose` ignore it.
 
 ### Tasks
 
@@ -121,8 +119,17 @@ Env var form: `RING_` + key with `.` → `__`, e.g. `hooks.init.command` → `RI
 * A broken workspace (missing file, invalid TOML) is logged and retried every 5s rather than fatal.
 * dotnet runnables: built only if `bin/<configuration>/<tfm>/<proj>.dll` is missing; run via the `.exe` if present,
   otherwise `dotnet exec` (not `dotnet run` — it orphans child processes).
-* dotnet runnables always get `ASPNETCORE_ENVIRONMENT=Development`.
 * Health check for proc/dotnet/dockercompose is "is the process alive"; unhealthy apps get restarted.
+* The `type` a runnable reports to clients is its TOML type id (`dotnet`, `proc`, ...), not a C# class name.
+
+## Migrating from pre-v7 workspaces
+
+v7 removed `netexe`, `iisexpress` and `iisxcore` (Windows/.NET Framework only) and renamed `aspnetcore` to
+`dotnet`. A workspace still using any of them fails to load with a message naming the file and what to change —
+including when the name only appears in `[env.<type>]` / `[tasks.<type>.*]`. Fixes: rename `[[aspnetcore]]` (and
+its `[aspnetcore.*]` / `[env.aspnetcore]` / `[tasks.aspnetcore.*]` tables) to `dotnet`; replace `netexe` with
+`proc`; replace `iisxcore` with `dotnet`. Also in v7: `ASPNETCORE_ENVIRONMENT=Development` is no longer forced —
+set it in `env` if the app needs it.
 
 ## Troubleshooting
 

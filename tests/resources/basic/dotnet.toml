@@ -1,9 +1,9 @@
-[[aspnetcore]]
+[[dotnet]]
 sshRepoUrl = "git@github.com:queil/k8s-debug-poc.git"
 csproj = "src/k8s-debug-poc.fsproj"
 tags = ["poc"]
 
-[aspnetcore.tasks.build]
+[dotnet.tasks.build]
   bringDown = true
   command = "dotnet"
   args = ["build"]

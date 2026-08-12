@@ -1,8 +1,0 @@
-[[aspnetcore]]
-csproj = "apps/aspnetcore/aspnetcore.csproj"
-urls = ["http://+:7123"]
-
-[aspnetcore.tasks.build]
-    bringDown = true
-    command = "dotnet"
-    args = ["build"]

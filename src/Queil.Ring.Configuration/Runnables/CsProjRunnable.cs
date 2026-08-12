@@ -12,7 +12,4 @@ public abstract class CsProjRunnable : RunnableConfigBase, IUseCsProjFile, IFrom
     public string Csproj { get; set; } = string.Empty;
     public string Configuration { get; init; } = "Debug";
     public string FullPath => GetFullPath(WorkingDir, Csproj);
-
-    public string LaunchSettingsJsonPath =>
-        Path.Combine(Path.GetDirectoryName(FullPath) ?? string.Empty, "Properties/launchSettings.json");
 }

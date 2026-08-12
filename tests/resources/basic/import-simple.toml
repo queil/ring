@@ -1,4 +1,4 @@
 imports = [
-  "netcore.toml",
-  "netcore2.toml"
+  "dotnet.toml",
+  "dotnet2.toml"
 ]

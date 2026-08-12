@@ -241,7 +241,7 @@ public sealed class WorkspaceLauncher : IWorkspaceLauncher, IDisposable
 
             var runnableInfo = new RunnableInfo(id,
                 [.. cfg.DeclaredPaths],
-                cfg.GetType().Name,
+                cfg.TypeId,
                 runnableState,
                 [.. cfg.Tags],
                 details,
