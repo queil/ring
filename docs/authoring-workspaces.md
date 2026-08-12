@@ -41,6 +41,8 @@ Requirements:
 csproj = "/path/to/your/project.csproj"
 ```
 
+More keys: [aspnetcore runnable](runnables/aspnetcore.md)
+
 ### Process
 
 ```toml
@@ -103,6 +105,74 @@ Requirements:
 ```toml
 [[netexe]]
 csproj = "path/to/your/project.csproj"
+```
+
+## Keys common to all apps
+
+* `id` (`string`) - the app identifier. Apps sharing an identifier are deduplicated -
+  see [running multiple instances](#running-multiple-instances-of-an-app).
+  Defaults to `path` (kustomize, dockercompose), `command` (proc), or the csproj file name without the extension (dotnet apps).
+* `friendlyName` (`string`) - name displayed by clients
+* `tags` (`string[]`) - see [flavours](#workspace-flavours)
+* `workingDir` (`string`) - where the app runs. Relative paths resolve against the directory of the TOML file
+  declaring the app - which is also the default. Relative `path` and `csproj` resolve against `workingDir`.
+* `env` (table) - see [environment variables](#environment-variables)
+* `tasks` (table) - see [tasks](#tasks)
+
+## Environment variables
+
+Supported by `proc` and `aspnetcore` apps.
+
+```toml
+[[proc]]
+command = "dotnet"
+args = ["watch", "--project", "src/api"]
+
+[proc.env]
+  URLS = "https://localhost:8080"
+```
+
+Mind the TOML rule: `[proc.env]` belongs to the last `[[proc]]` declared above it.
+
+Vars can also be set per app type for the whole workspace and everything it imports:
+
+```toml
+[env.aspnetcore]
+  SUAVE_PORT = "4444"
+```
+
+An app's own `env` wins over the workspace-level one. If the same var is set in both an importing and an
+imported workspace, the imported one wins.
+
+## Tasks
+
+Tasks are named commands attached to an app. They are triggered from a client (the VS Code / VS extension),
+not from the CLI.
+
+```toml
+[[aspnetcore]]
+csproj = "src/api/api.csproj"
+
+[aspnetcore.tasks.build]
+  command = "dotnet"
+  args = ["build"]
+  bringDown = true
+```
+
+* `command` (`string`) + `args` (`string[]`) - what to run
+* `bringDown` (`bool`) - if `true` ring stops the app before running the task and starts it back up if the task
+  succeeded. This is how you rebuild an app, as ring only builds it when its output assembly is missing.
+
+Tasks of dotnet apps run in the app's working directory. For the other app types they run in ring's
+working directory.
+
+Like env vars, tasks can be declared per app type for the whole workspace:
+
+```toml
+[tasks.aspnetcore.build]
+  command = "dotnet"
+  args = ["build"]
+  bringDown = true
 ```
 
 ## Imports
@@ -229,3 +299,12 @@ path = "ui-b"
 tags = ["b"]
 
 ```
+
+## Reloading
+
+Ring watches the workspace file and every file it imports. On save it starts the apps that were added and stops
+the ones that were removed. Apps are matched by identifier, so editing settings of an already running app does
+not restart it - stop and start it from a client, or restart ring.
+
+If the workspace fails to load (missing file, invalid TOML) ring logs the error and retries every 5 seconds,
+so you can fix the file in place.
