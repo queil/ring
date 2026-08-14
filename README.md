@@ -2,10 +2,9 @@
 
 ## Meta-orchestrator for developers (cross-platform)
 
-Ring brings order into the messy world of developing and debugging a cloud-ready microservice system side by side with
-maintaining and migrating legacy ones where you may have many different types of services (ASP.NET Core, Topshelf,
-WCF, ...) hosted in many different ways (Kubernetes, Docker, IIS Express, WindowsService, Exe) and scattered across many
-solutions and repositories.
+Ring brings order into the messy world of developing and debugging a cloud-ready microservice system where you may have
+many different types of apps (.NET services, containers, Kubernetes apps, arbitrary processes) hosted in many different
+ways (Kubernetes, Docker Compose, plain processes) and scattered across many solutions and repositories.
 
 # What is it?
 
