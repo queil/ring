@@ -24,9 +24,12 @@ public class Server(
 {
     private readonly ServerFsm _fsm = new();
     private Scope? _scope;
+    private bool _initialized;
 
     public Task InitializeAsync(CancellationToken token)
     {
+        if (_initialized) return Task.CompletedTask;
+        _initialized = true;
         _fsm.Configure(State.Idle)
             .OnEntryFromAsync(Trigger.Unload, async () =>
             {

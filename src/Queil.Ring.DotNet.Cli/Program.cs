@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -21,6 +22,7 @@ using Queil.Ring.DotNet.Cli.Abstractions;
 using Queil.Ring.DotNet.Cli.Infrastructure;
 using Queil.Ring.DotNet.Cli.Infrastructure.Cli;
 using Queil.Ring.DotNet.Cli.Logging;
+using Queil.Ring.DotNet.Cli.Mcp;
 using Queil.Ring.DotNet.Cli.Tools;
 using Queil.Ring.DotNet.Cli.Workspace;
 using Serilog;
@@ -36,14 +38,24 @@ var originalWorkingDir = Directory.GetCurrentDirectory();
 
 try
 {
-    ThreadPool.SetMinThreads(100, 100);
-    Log.Logger = new LoggerConfiguration().WriteTo.Console()
-        .MinimumLevel.Information()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Error).CreateLogger();
-
     var options = CliParser.GetOptions(args, originalWorkingDir);
+    var isMcp = options is ServeOptions { Mcp: true };
 
-    if (!options.NoLogo)
+    if (isMcp) Console.SetOut(TextWriter.Null);
+
+    ThreadPool.SetMinThreads(100, 100);
+    Log.Logger = isMcp
+        ? new LoggerConfiguration()
+            .WriteTo.File(Path.Combine(Path.GetTempPath(), "ring-mcp.log"))
+            .MinimumLevel.Warning()
+            .CreateLogger()
+        : new LoggerConfiguration()
+            .WriteTo.Console()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+            .CreateLogger();
+
+    if (!options.NoLogo && !isMcp)
     {
         var version = Assembly.GetExecutingAssembly().GetName().Version!;
         Console.WriteLine(Ring(version.ToString()));
@@ -66,7 +78,7 @@ try
     var services = builder.Services;
 
     services.AddSingleton(options);
-    if (options is ServeOptions) services.AddSingleton(f => (ServeOptions)f.GetRequiredService<BaseOptions>());
+    if (options is ServeOptions so) services.AddSingleton(so);
     services.AddSingleton<Func<Uri, HttpClient>>(_ =>
         uri => clients.GetOrAdd(uri, new HttpClient { BaseAddress = uri, MaxResponseContentBufferSize = 1 }));
     services.AddOptions();
@@ -87,13 +99,24 @@ try
     {
         var configuredPath = f.GetRequiredService<IOptions<RingConfiguration>>().Value.Kubernetes.ConfigPath;
         var maybeKubeconfigEnv = Environment.GetEnvironmentVariable("KUBECONFIG");
-        var configPath = maybeKubeconfigEnv ??
-                         configuredPath ?? throw new InvalidOperationException("Kubernetes config path is not set");
+        var configPath = maybeKubeconfigEnv ?? configuredPath
+            ?? throw new InvalidOperationException("Kubernetes config path is not set");
         return new Kubernetes(KubernetesClientConfiguration.BuildConfigFromConfigFile(configPath));
     });
 
     services.AddHostedService<WebsocketsInitializer>();
-    services.AddSingleton<ConsoleClient>();
+
+    if (isMcp)
+    {
+        services.AddHostedService<McpInitializer>();
+        services.AddMcpServer()
+            .WithStdioServerTransport()
+            .WithTools<RingMcpTools>();
+    }
+    else
+    {
+        services.AddSingleton<ConsoleClient>();
+    }
 
     services.AddTransient<ProcessRunner>();
     services.AddTransient<KustomizeTool>();
@@ -164,9 +187,23 @@ try
     app.UseWebSockets();
     app.UseMiddleware<RingMiddleware>();
 
-    app.Lifetime.ApplicationStarted.Register(async () =>
-        await app.Services.GetRequiredService<ConsoleClient>().StartAsync(app.Lifetime.ApplicationStopping)
-    );
+    if (isMcp && options is ConsoleOptions { WorkspacePath: { } workspacePath })
+    {
+        app.Lifetime.ApplicationStarted.Register(async () =>
+        {
+            var server = app.Services.GetRequiredService<IServer>();
+            var ct = app.Lifetime.ApplicationStopping;
+            await server.LoadAsync(workspacePath, ct);
+            await server.StartAsync(ct);
+        });
+    }
+
+    if (!isMcp)
+    {
+        app.Lifetime.ApplicationStarted.Register(async () =>
+            await app.Services.GetRequiredService<ConsoleClient>().StartAsync(app.Lifetime.ApplicationStopping)
+        );
+    }
 
     await app.RunRingAsync();
 }
@@ -175,12 +212,11 @@ catch (FileNotFoundException x) when (x.FileName == CliParser.DefaultFileName)
     Console.WriteLine($"ERROR: {x.Message}");
     Environment.ExitCode = 1;
 }
+catch (OperationCanceledException)
+{
+}
 catch (Exception ex)
 {
     Log.Logger.Fatal($"Unhandled exception: {ex}");
     Environment.ExitCode = -1;
-}
-finally
-{
-    Directory.SetCurrentDirectory(originalWorkingDir);
 }

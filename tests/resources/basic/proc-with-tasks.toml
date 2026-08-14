@@ -1,0 +1,13 @@
+[tasks.proc.greet]
+    command = "echo"
+    args = ["hello"]
+
+[[proc]]
+command = "sleep"
+args = ["30"]
+id = "proc-1"
+
+[[proc]]
+command = "sleep"
+args = ["40"]
+id = "proc-2"
