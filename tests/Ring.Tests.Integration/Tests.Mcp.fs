@@ -64,6 +64,17 @@ let tests =
               "Should report IDLE server state" |> Expect.isTrue (info.Contains("IDLE"))
           }
 
+          testTask "load_workspace reports a missing file instead of hanging" {
+              use ctx = new TestContext(localOptions)
+              let! (ring: Ring, _) = ctx.Init()
+              let mcp = ring.McpProcess()
+              use _mcp = mcp
+              mcp.Start()
+              do! mcp.Initialize()
+              let! (result: string) = mcp.CallTool("load_workspace", [ "workspacePath", "/does/not/exist.toml" ])
+              "Should report the missing file" |> Expect.isTrue (result.Contains("not found"))
+          }
+
           testTask "load_workspace + start_workspace makes services healthy" {
               use ctx = new TestContext(localOptions)
               let! (ring: Ring, dir: TestDir) = ctx.Init()

@@ -44,11 +44,14 @@ try
     if (isMcp) Console.SetOut(TextWriter.Null);
 
     ThreadPool.SetMinThreads(100, 100);
+    LoggerConfiguration McpLoggerConfig()
+    {
+        var cfg = new LoggerConfiguration().WriteTo.File(Path.Combine(Path.GetTempPath(), "ring-mcp.log"));
+        return options.IsDebug ? cfg.MinimumLevel.Debug() : cfg.MinimumLevel.Warning();
+    }
+
     Log.Logger = isMcp
-        ? new LoggerConfiguration()
-            .WriteTo.File(Path.Combine(Path.GetTempPath(), "ring-mcp.log"))
-            .MinimumLevel.Warning()
-            .CreateLogger()
+        ? McpLoggerConfig().CreateLogger()
         : new LoggerConfiguration()
             .WriteTo.Console()
             .MinimumLevel.Information()
@@ -172,11 +175,14 @@ try
     var app = builder.Build();
     app.Urls.Add($"http://0.0.0.0:{app.Configuration.GetValue<int>("ring:port")}");
 
-    var loggingConfig = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration);
+    if (!isMcp)
+    {
+        var loggingConfig = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration);
 
-    if (options.IsDebug) loggingConfig.MinimumLevel.Debug();
+        if (options.IsDebug) loggingConfig.MinimumLevel.Debug();
 
-    Log.Logger = loggingConfig.CreateLogger();
+        Log.Logger = loggingConfig.CreateLogger();
+    }
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
     using (logger.WithHostScope(LogEvent.INIT))
