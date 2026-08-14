@@ -1,6 +1,6 @@
 ---
 name: ring
-description: Use when authoring or debugging ring workspaces (ring.toml / workspace TOML files), running the ring CLI (run, headless, clone, config-*), or configuring ring itself (settings.toml, RING_* env vars). Covers runnable types (proc, dotnet, dockercompose, kustomize), imports, tags/flavours, per-runnable env and tasks, and migrating pre-v7 workspaces.
+description: Use when authoring or debugging ring workspaces (ring.toml / workspace TOML files), running the ring CLI (run, headless, clone, config-*), driving ring over its MCP server (--mcp), or configuring ring itself (settings.toml, RING_* env vars). Covers runnable types (proc, dotnet, dockercompose, kustomize), imports, tags/flavours, per-runnable env and tasks, and migrating pre-v7 workspaces.
 ---
 
 # ring
@@ -24,6 +24,44 @@ ring config-dump
 
 * `-w` defaults to `ring.toml` in cwd; missing file → error, no fallback.
 * `-d` debug logging, `-n` hide logo, `-l` delay load+start, `-p` port (default 7999).
+* `--mcp` on `run`/`headless` serves MCP over stdio instead of the console client — see below.
+
+## MCP server
+
+`ring headless --mcp` (no workspace) or `ring run --mcp -w path` (loads + starts that workspace on
+startup). Transport is stdio, so stdout carries JSON-RPC only — ring nulls `Console.Out` and skips the
+logo in this mode. The websocket server still starts, so pass `-p 0` unless you want it on 7999; two ring
+instances on the default port collide.
+
+Editor config looks like:
+
+```json
+{ "command": "ring", "args": ["headless", "--mcp", "--port", "0", "--no-logo"] }
+```
+
+Tools (all return plain text; each has a proper MCP description):
+
+| tool | args | returns |
+|---|---|---|
+| `get_workspace_info` | – | the `WorkspaceInfo` JSON (runnables, states, flavours, tasks) |
+| `load_workspace` | `workspacePath` | `loaded`, `not found: <path>`, or a timeout message (see below) |
+| `start_workspace` / `stop_workspace` / `unload_workspace` | – | `started` / `stopped` / `unloaded` |
+| `include_runnable` / `exclude_runnable` | `id` | `included` / `excluded`, or `not found: <id>` |
+| `apply_flavour` | `flavour` | `applied` or `not found: <flavour>` |
+| `list_tasks` | – | `<runnableId>/<taskId>` per line, or `no tasks available` |
+| `execute_task` | `runnableId`, `taskId` | `ok`, `task failed`, or `not found: <id>/<task>` |
+
+Workflow: `load_workspace` → `start_workspace` → poll `get_workspace_info` until the runnables report
+`HEALTHY` (states are the same `RunnableState` values the websocket clients see). There are no
+notifications — polling is the only way to observe progress.
+
+Caveats worth knowing:
+
+* `load_workspace` on an invalid workspace (bad TOML, legacy v7 type names) returns a timeout message
+  after 15s while ring keeps retrying every 5s in the background — fix the file and it loads on its own.
+  A missing file returns `not found` immediately.
+* `start/stop/unload_workspace` always report success — the underlying server has no failure signal there.
+* Logs never go to stdout in this mode; they land in `$TMPDIR/ring-mcp.log` (warnings+, or everything with `-d`).
 
 ## Workspace TOML
 

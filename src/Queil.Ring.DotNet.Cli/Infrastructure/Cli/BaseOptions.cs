@@ -6,6 +6,9 @@ public class ServeOptions : BaseOptions
 {
     [Option('p', "port", Default = 7999, Required = false, HelpText = "Specify sever port (defaults to 7999)")]
     public int Port { get; set; }
+
+    [Option("mcp", Required = false, HelpText = "Enable MCP server via stdio transport")]
+    public bool Mcp { get; set; }
 }
 
 public class BaseOptions
