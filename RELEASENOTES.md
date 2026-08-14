@@ -1,5 +1,16 @@
 # Release notes
 
+## 7.0.0
+
+* BREAKING: removed the `netexe`, `iisexpress` and `iisxcore` runnables
+* BREAKING: renamed the `aspnetcore` runnable to `dotnet` (`[[aspnetcore]]` -> `[[dotnet]]`)
+* BREAKING: dotnet apps no longer get `ASPNETCORE_ENVIRONMENT=Development` - set it via `env`
+* BREAKING: workspace info reports an app's type as its toml type id (`dotnet`, `proc`, ...) instead of the internal class name
+* add: dotnet apps honour `args`
+* add: workspaces using removed or renamed runnable types fail with an explicit migration message
+* fix: no longer mutating ring's own `ASPNETCORE_URLS` when launching a dotnet app
+* fix: env vars and urls no longer leak between restarts of the same dotnet app
+
 ## 5.0.0
 
 * BREAKING: dotnet 8

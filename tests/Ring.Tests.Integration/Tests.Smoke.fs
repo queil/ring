@@ -82,7 +82,7 @@ let tests =
 
               ring.Headless(debugMode = true)
               do! ring.Client.Connect()
-              do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/basic/netcore.toml")
+              do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/basic/dotnet.toml")
               do! ring.Client.StartWorkspace()
 
               let! events =
@@ -121,9 +121,9 @@ let tests =
 
               File.WriteAllLines(
                   dir.WorkPath + "/ring.toml",
-                  [ "[[aspnetcore]]"
-                    $"""csproj = '{dir.InSourceDir "../resources/apps/aspnetcore/aspnetcore.csproj"}' """
-                    "[aspnetcore.env]"
+                  [ "[[dotnet]]"
+                    $"""csproj = '{dir.InSourceDir "../resources/apps/webapp/webapp.csproj"}' """
+                    "[dotnet.env]"
                     """URLS="http://+:53412" """ ]
               )
 
@@ -133,7 +133,7 @@ let tests =
 
               let! events =
                   (ring.Stream
-                   |> AsyncSeq.filter (Runnable.byId "aspnetcore")
+                   |> AsyncSeq.filter (Runnable.byId "webapp")
                    |> AsyncSeq.takeWhileInclusive (not << Runnable.healthy ())
                    |> AsyncSeq.map (_.Type)
                    |> AsyncSeq.toListAsync
@@ -151,7 +151,7 @@ let tests =
 
               let! events =
                   (ring.Stream
-                   |> AsyncSeq.filter (Runnable.byId "aspnetcore")
+                   |> AsyncSeq.filter (Runnable.byId "webapp")
                    |> AsyncSeq.takeWhileInclusive (not << Runnable.destroyed ())
                    |> AsyncSeq.map (_.Type)
                    |> AsyncSeq.toListAsync

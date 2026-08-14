@@ -1,4 +1,4 @@
-module Ring.Tests.Integration.AspNetCore
+module Ring.Tests.Integration.DotnetRunnable
 
 open Expecto
 open FSharp.Control
@@ -14,46 +14,50 @@ open Ring.Tests.Integration.TestContext
 [<Tests>]
 let tests =
     testList
-        "AspNetCore runnable tests"
-        [ testTask "should override url via Urls" {
-              use ctx = new TestContext(localOptions >> logToFile "aspnetcore-urls.ring.log")
+        "Dotnet runnable tests"
+        [ testTask "should override url via Urls and pass args" {
+              use ctx = new TestContext(localOptions >> logToFile "dotnet-urls.ring.log")
               let! (ring: Ring, dir: TestDir) = ctx.Init()
 
               ring.Headless(debugMode = true)
               do! ring.Client.Connect()
-              do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/aspnetcore-urls.toml")
+              do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/dotnet-urls.toml")
               do! ring.Client.StartWorkspace()
 
               let! healthy =
                   ring.Client.NewEvents
-                  |> AsyncSeq.exists (Runnable.healthy "aspnetcore")
+                  |> AsyncSeq.exists (Runnable.healthy "webapp")
                   |> Async.AsTaskTimeout
 
-              "Aspnetcore runnable expected healthy" |> Expect.isTrue healthy
+              "Dotnet runnable expected healthy" |> Expect.isTrue healthy
 
               let! response = fetchTask<string> { GET "http://localhost:7123" }
 
 
               "Response on port 7123 should be OK" |> Expect.equal response "OK"
+
+              let! args = fetchTask<string> { GET "http://localhost:7123/args" }
+
+              "Args should be passed to the app" |> Expect.equal args "--ring-test-arg=42"
           }
 
           testTask "should execute shell task" {
               use ctx =
-                  new TestContext(localOptions >> logToFile "aspnetcore-exec-shell-task.ring.log")
+                  new TestContext(localOptions >> logToFile "dotnet-exec-shell-task.ring.log")
 
               let! (ring: Ring, dir: TestDir) = ctx.Init()
 
               ring.Headless(debugMode = true)
               do! ring.Client.Connect()
-              do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/aspnetcore-urls.toml")
+              do! ring.Client.LoadWorkspace(dir.InSourceDir "../resources/dotnet-urls.toml")
               do! ring.Client.StartWorkspace()
 
               let! events =
                   (ring.Stream
                    |> AsyncSeq.mapAsync (function
-                       | RunnableHealthy "aspnetcore" as x ->
+                       | RunnableHealthy "webapp" as x ->
                            async {
-                               do! ring.Client.ExecuteTask("aspnetcore", "build") |> Async.AwaitTask
+                               do! ring.Client.ExecuteTask("webapp", "build") |> Async.AwaitTask
                                return x
                            }
 
@@ -66,11 +70,11 @@ let tests =
               "Unexpected events sequence"
               |> Expect.sequenceContainsOrder
                   events
-                  [ M.RUNNABLE_STOPPED, MsgScope.Runnable "aspnetcore"
-                    M.RUNNABLE_DESTROYED, MsgScope.Runnable "aspnetcore"
-                    M.RUNNABLE_INITIATED, MsgScope.Runnable "aspnetcore"
-                    M.RUNNABLE_STARTED, MsgScope.Runnable "aspnetcore"
+                  [ M.RUNNABLE_STOPPED, MsgScope.Runnable "webapp"
+                    M.RUNNABLE_DESTROYED, MsgScope.Runnable "webapp"
+                    M.RUNNABLE_INITIATED, MsgScope.Runnable "webapp"
+                    M.RUNNABLE_STARTED, MsgScope.Runnable "webapp"
                     M.ACK, MsgScope.Ack Ack.TaskOk ]
           } ]
 
-    |> testLabel "aspnetcore"
+    |> testLabel "dotnet"

@@ -115,6 +115,13 @@ public sealed class Configurator(IConfigurationTreeReader configReader, ILogger<
                 logger.LogError("File not found: {FilePath} when loading workspace: {WorkspacePath}", fx.FileName, paths.WorkspacePath);
                 await Task.Delay(5000, token);
             }
+            catch (WorkspaceConfigException wx)
+            {
+                using var __ = logger.WithLogErrorScope();
+                logger.LogError("Unsupported runnable types in {WorkspacePath}:", wx.Path);
+                foreach (var problem in wx.Problems) logger.LogError("* {Problem}", problem);
+                await Task.Delay(5000, token);
+            }
             catch (Tomlyn.TomlException tx)
             {
                 using var __ = logger.WithLogErrorScope();

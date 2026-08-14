@@ -80,6 +80,9 @@ let tests =
               "Workspace should contain runnable"
               |> Expect.containsAll (ws.Runnables |> Seq.map (_.Id)) [ "x1" ]
 
+              "Runnable type should be reported as its toml type id"
+              |> Expect.equal (ws.Runnables |> Seq.map (_.Type) |> Seq.distinct |> List.ofSeq) [ "dotnet" ]
+
 
           } ]
     |> testLabel "workspace-config"

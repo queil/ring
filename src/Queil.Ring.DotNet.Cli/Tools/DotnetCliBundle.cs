@@ -13,37 +13,28 @@ public class DotnetCliBundle(ProcessRunner processRunner, ILogger<DotnetCliBundl
     : ITool
 {
     private const string UrlsEnvVar = "ASPNETCORE_URLS";
-    private readonly Dictionary<string, string> DefaultEnvVars = new() { ["ASPNETCORE_ENVIRONMENT"] = "Development" };
     public ILogger<ITool> Logger { get; } = logger;
     public string Command { get; set; } = "dotnet";
     public string[] DefaultArgs { get; set; } = [];
 
-    public async Task<ExecutionInfo> RunAsync(DotnetContext ctx, CancellationToken token, string[]? urls = null)
+    public async Task<ExecutionInfo> RunAsync(DotnetContext ctx, CancellationToken token)
     {
-        HandleUrls();
-        foreach (var (k, v) in ctx.Env) DefaultEnvVars[k] = v;
+        var envVars = new Dictionary<string, string>();
+        if (ctx.Urls.Length > 0) envVars[UrlsEnvVar] = string.Join(';', ctx.Urls);
+        foreach (var (k, v) in ctx.Env) envVars[k] = v;
+
         if (File.Exists(ctx.ExePath))
         {
             processRunner.Command = ctx.ExePath;
-            return await processRunner.RunAsync(workingDirectory: ctx.WorkingDir, envVars: DefaultEnvVars,
-                token: token);
+            return await processRunner.RunAsync(ctx.Args, ctx.WorkingDir, envVars, token: token);
         }
 
         if (File.Exists(ctx.EntryAssemblyPath))
             // Using dotnet exec here because dotnet run spawns subprocesses and killing it doesn't actually kill them
-            return await this.RunAsync(["exec", $"\"{ctx.EntryAssemblyPath}\""],
-                workingDirectory: ctx.WorkingDir, envVars: DefaultEnvVars,
+            return await this.RunAsync(["exec", $"\"{ctx.EntryAssemblyPath}\"", .. ctx.Args],
+                workingDirectory: ctx.WorkingDir, envVars: envVars,
                 token: token);
         throw new InvalidOperationException($"Neither Exe path nor Dll path specified. {ctx.CsProjPath}");
-
-        void HandleUrls()
-        {
-            if (urls == null) return;
-            if (Environment.GetEnvironmentVariable(UrlsEnvVar) == null)
-                DefaultEnvVars.TryAdd(UrlsEnvVar, string.Join(';', urls));
-            else
-                Environment.SetEnvironmentVariable(UrlsEnvVar, string.Join(';', urls));
-        }
     }
 
     public async Task<ExecutionInfo> BuildAsync(string csProjFile, CancellationToken token) =>

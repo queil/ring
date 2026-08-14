@@ -4,6 +4,9 @@ site_url: https://queil.github.io/ring
 nav:
   - Home: index.md
   - Authoring Workspaces: authoring-workspaces.md
+  - Runnables:
+      - dotnet: runnables/dotnet.md
+      - kustomize: runnables/kustomize.md
   - Configuration: configuration.md
   - Use cases: use-cases.md
   - Known issues: known-issues.md

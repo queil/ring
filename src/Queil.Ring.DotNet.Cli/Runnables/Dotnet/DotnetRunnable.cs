@@ -4,46 +4,46 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Configuration;
 using CsProj;
 using Infrastructure;
 using Microsoft.Extensions.Logging;
 using Tools;
+using DotnetConfig = Queil.Ring.Configuration.Runnables.Dotnet;
 using static Dtos.DetailsKeys;
 
-public abstract class DotnetRunnableBase<TContext, TConfig>(
-    TConfig config,
+public class DotnetRunnable(
+    DotnetConfig config,
     DotnetCliBundle dotnet,
-    ILogger<DotnetRunnableBase<TContext, TConfig>> logger,
+    ILogger<DotnetRunnable> logger,
     ISender sender,
     GitClone gitClone)
-    : ProcessRunnable<TContext, TConfig>(config, logger, sender)
-    where TContext : DotnetContext
-    where TConfig : IUseCsProjFile, IRunnableConfig
+    : ProcessRunnable<DotnetContext, DotnetConfig>(config, logger, sender)
 {
-    protected readonly DotnetCliBundle Dotnet = dotnet;
-
     public override string UniqueId => Config.GetProjName();
 
-    protected override async Task<TContext> InitAsync(CancellationToken token)
+    protected override async Task<DotnetContext> InitAsync(CancellationToken token)
     {
-        if (Config is IFromGit { SshRepoUrl: not null } gitCfg)
-            await gitClone.CloneOrPullAsync(gitCfg, token, true, true);
+        AddDetail(CsProjPath, Config.FullPath);
 
-        var ctx = DotnetContext.Create<TContext, TConfig>(Config, c => gitClone.ResolveFullClonePath(c));
+        if (Config.SshRepoUrl is not null) await gitClone.CloneOrPullAsync(Config, token, true, true);
+
+        var ctx = DotnetContext.Create(Config, c => gitClone.ResolveFullClonePath(c));
+        AddDetail(WorkDir, ctx.WorkingDir);
+        if (ctx.Urls.Length > 0) AddDetail(Dtos.DetailsKeys.Uri, ctx.Urls);
+
         if (File.Exists(ctx.EntryAssemblyPath)) return ctx;
 
         logger.LogDebug("Building {Project}", ctx.CsProjPath);
         var result =
-            await Dotnet.TryAsync(3, TimeSpan.FromSeconds(10), f => f.BuildAsync(ctx.CsProjPath!, token), token);
+            await dotnet.TryAsync(3, TimeSpan.FromSeconds(10), f => f.BuildAsync(ctx.CsProjPath!, token), token);
 
         if (!result.IsSuccess) logger.LogInformation("Build failed | {output}", result.Output);
         return ctx;
     }
 
-    protected override async Task StartAsync(TContext ctx, CancellationToken token)
+    protected override async Task StartAsync(DotnetContext ctx, CancellationToken token)
     {
-        var info = await Dotnet.RunAsync(ctx, token);
+        var info = await dotnet.RunAsync(ctx, token);
         ctx.ProcessId = info.Pid;
         AddDetail(ProcessId, ctx.ProcessId);
         ctx.Output = info.Output;

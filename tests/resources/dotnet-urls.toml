@@ -1,0 +1,9 @@
+[[dotnet]]
+csproj = "apps/webapp/webapp.csproj"
+urls = ["http://+:7123"]
+args = ["--ring-test-arg=42"]
+
+[dotnet.tasks.build]
+    bringDown = true
+    command = "dotnet"
+    args = ["build"]

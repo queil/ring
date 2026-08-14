@@ -14,20 +14,14 @@ public class WorkspaceConfig : IWorkspaceConfig
     public Dictionary<string, Dictionary<string, string>> Env { get; init; } = [];
     public Dictionary<string, Dictionary<string, TaskDefinition>> Tasks { get; } = [];
     public List<Proc> Proc { get; } = [];
-    public List<AspNetCore> Aspnetcore { get; } = [];
-    public List<IISExpress> Iisexpress { get; } = [];
-    public List<IISXCore> Iisxcore { get; } = [];
-    public List<NetExe> Netexe { get; } = [];
+    public List<Dotnet> Dotnet { get; } = [];
     public List<DockerCompose> Dockercompose { get; } = [];
     public List<Kustomize> Kustomize { get; } = [];
     public List<string> Imports { get; } = [];
     public List<WorkspaceConfig> Import { get; } = [];
 
     public IEnumerable<IRunnableConfig> All =>
-        Proc.Union<IRunnableConfig>(Aspnetcore)
-            .Union(Iisexpress)
-            .Union(Iisxcore)
-            .Union(Netexe)
+        Proc.Union<IRunnableConfig>(Dotnet)
             .Union(Dockercompose)
             .Union(Kustomize);
 

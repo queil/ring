@@ -30,7 +30,6 @@ public interface IUseCsProjFile : IUseWorkingDir
 {
     string Csproj { get; set; }
     string FullPath { get; }
-    string LaunchSettingsJsonPath { get; }
     string Configuration { get; }
 }
 

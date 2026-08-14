@@ -37,11 +37,12 @@ Requirements:
 * Dotnet SDK
 
 ```toml
-[[aspnetcore]]
+[[dotnet]]
 csproj = "/path/to/your/project.csproj"
+args = ["--my-switch=42"]
 ```
 
-More keys: [aspnetcore runnable](runnables/aspnetcore.md)
+More keys: [dotnet runnable](runnables/dotnet.md)
 
 ### Process
 
@@ -68,45 +69,6 @@ args = ["watch", "--project", "path/to/proj"]
   URLS = "https://localhost:8080"
 ```
 
-### Legacy formats
-
-#### ASP.NET Core (IIS Express)
-
-Requirements:
-
-* Dotnet SDK
-
-```toml
-[[iisxcore]]
-csproj = "path/to/your/project.csproj"
-```
-
-#### .NET Framework web service (IIS Express)
-
-Legacy Windows web services like AspNet MVC or WCF
-
-Requirements:
-
-* .NET Framework (4.*)
-
-```toml
-[[iisexpress]]
-csproj = "path/to/your/project.csproj"
-```
-
-#### .NET Framework executable project
-
-Legacy Windows services like TopShelf
-
-Requirements:
-
-* .NET Framework (4.*)
-
-```toml
-[[netexe]]
-csproj = "path/to/your/project.csproj"
-```
-
 ## Keys common to all apps
 
 * `id` (`string`) - the app identifier. Apps sharing an identifier are deduplicated -
@@ -121,7 +83,7 @@ csproj = "path/to/your/project.csproj"
 
 ## Environment variables
 
-Supported by `proc` and `aspnetcore` apps.
+Supported by `proc` and `dotnet` apps.
 
 ```toml
 [[proc]]
@@ -137,7 +99,7 @@ Mind the TOML rule: `[proc.env]` belongs to the last `[[proc]]` declared above i
 Vars can also be set per app type for the whole workspace and everything it imports:
 
 ```toml
-[env.aspnetcore]
+[env.dotnet]
   SUAVE_PORT = "4444"
 ```
 
@@ -150,10 +112,10 @@ Tasks are named commands attached to an app. They are triggered from a client (t
 not from the CLI.
 
 ```toml
-[[aspnetcore]]
+[[dotnet]]
 csproj = "src/api/api.csproj"
 
-[aspnetcore.tasks.build]
+[dotnet.tasks.build]
   command = "dotnet"
   args = ["build"]
   bringDown = true
@@ -169,7 +131,7 @@ working directory.
 Like env vars, tasks can be declared per app type for the whole workspace:
 
 ```toml
-[tasks.aspnetcore.build]
+[tasks.dotnet.build]
   command = "dotnet"
   args = ["build"]
   bringDown = true
@@ -207,7 +169,7 @@ path = "path/to/yet/another/workspace/c.toml"
 
 ```toml
 # This is a comment
-# [[aspnetcore]]
+# [[dotnet]]
 # csproj = "/path/to/your/project.csproj"
 ```
 
@@ -307,4 +269,5 @@ the ones that were removed. Apps are matched by identifier, so editing settings 
 not restart it - stop and start it from a client, or restart ring.
 
 If the workspace fails to load (missing file, invalid TOML) ring logs the error and retries every 5 seconds,
-so you can fix the file in place.
+so you can fix the file in place. Workspaces using app types removed in v7 (`aspnetcore`, `netexe`,
+`iisexpress`, `iisxcore`) fail the same way, with a message saying what to change.
